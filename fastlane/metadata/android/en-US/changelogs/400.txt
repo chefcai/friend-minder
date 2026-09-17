@@ -1,0 +1,9 @@
+Phase 2: groups, stats dashboard, and outreach logging
+
+- New Dashboard tab: key metric, outreach streaks, neglected-contacts list, weekly outreach chart, upcoming birthdays & special dates
+- New Groups tab: create color-coded groups, manage membership, group detail view
+- Contact detail screen redesigned: outreach history, special dates, group chips, per-contact check-in frequency
+- Log outreach (call, text, visit, etc.) in a couple of taps - stats update instantly
+- Birthday & special-date reminders, with a settings toggle to turn them off
+- Contact photos and color-coded avatar fallbacks throughout
+- Auto Backup wired up for groups, logs, and special dates

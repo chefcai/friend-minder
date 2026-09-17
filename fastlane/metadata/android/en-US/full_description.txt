@@ -1,0 +1,24 @@
+Friend-minder helps you stay in touch with the people who matter, without the mental overhead of remembering who you haven't called in a while.
+
+FEATURES
+
+Contact reminders
+Get gentle nudges to reach out to friends and family based on how long it's been since your last contact - with a frequency you can customize per person.
+
+Groups
+Organize contacts into color-coded groups (family, close friends, work, etc.) so you can see at a glance who belongs where, and manage group membership from either the group or the contact.
+
+Dashboard
+A quick-glance view of how you're doing: a key metric card, your current outreach streak, a list of contacts you've been neglecting, a weekly outreach chart, and upcoming birthdays and special dates.
+
+Outreach logging
+Log a call, text, visit, or any other kind of outreach in a couple of taps, with the date, time, and type recorded automatically. Your stats and streaks update immediately.
+
+Contact detail
+Every contact now shows their outreach history, special dates (birthdays and custom dates you add), group memberships, and a per-contact check-in frequency you can override anytime.
+
+Birthdays & special dates
+Friend-minder can pull birthdays from your phone's contacts and combine them with custom dates you add (anniversaries, and anything else worth remembering), with optional reminder notifications.
+
+Privacy-first
+No accounts, no cloud sync, no ads, no trackers. Everything lives on your device, backed up via Android's own Auto Backup if you have that enabled. Friend-minder is free and open source, built for F-Droid.
