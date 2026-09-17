@@ -40,6 +40,7 @@ class SuggestionWorker(
         val friendListRepo = ServiceLocator.friendListRepository
         val cooldownRepo = ServiceLocator.cooldownRepository
         val settingsRepo = ServiceLocator.settingsRepository
+        val reminderFrequencyRepo = ServiceLocator.reminderFrequencyRepository
 
         val friends = friendListRepo.getFriendList()
         if (friends.isEmpty()) {
@@ -47,11 +48,14 @@ class SuggestionWorker(
             return Result.success() // nothing to suggest (Designer spec S4.1)
         }
 
-        val cooldownDays = settingsRepo.getCooldownDays()
+        val defaultCooldownDays = settingsRepo.getCooldownDays()
         val cooldownStatus = mutableMapOf<String, Boolean>()
         val lastSuggested = mutableMapOf<String, Long>()
         for (friend in friends) {
-            cooldownStatus[friend.id] = cooldownRepo.isOnCooldown(friend.id, cooldownDays)
+            // FRM-32: a contact's own reminder frequency override, if set, replaces the
+            // app-wide default when deciding whether they're on cooldown.
+            val effectiveCooldownDays = reminderFrequencyRepo.getOverride(friend.id) ?: defaultCooldownDays
+            cooldownStatus[friend.id] = cooldownRepo.isOnCooldown(friend.id, effectiveCooldownDays)
             lastSuggested[friend.id] = cooldownRepo.getLastSuggestion(friend.id) ?: 0L
         }
 
@@ -63,6 +67,7 @@ class SuggestionWorker(
         }
 
         cooldownRepo.setLastSuggestion(chosen.id, System.currentTimeMillis())
+        cooldownRepo.incrementReminderCount(chosen.id) // FRM-38: StatisticsService reach-rate denominator.
         // Random pick from the template pool (chefcai/friend-minder#30) so
         // recipients don't see the exact same wording every reminder;
         // getMessageTemplates() guarantees a non-empty list. Respect the
