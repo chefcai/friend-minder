@@ -51,6 +51,33 @@ installed, `minSdk` 26 (Android 8.0+).
 - `gradle.properties` sets `android.useNewApkStructure=true`.
 - All data is local to the device; no backend, no accounts, no analytics.
 
+## Backup & restore
+
+The app opts in to Android's built-in Auto Backup for Apps (`android:allowBackup="true"`
+on `<application>`, wired to `res/xml/backup_rules.xml` for API 23-30 via
+`android:fullBackupContent` and `res/xml/data_extraction_rules.xml` for API 31+
+via `android:dataExtractionRules`). No custom `BackupAgent` code and no
+Play Services dependency are required — it's the OS's own backup transport,
+tied to whatever Google account is signed in on the device, and stays within
+F-Droid's constraints.
+
+Both rule files default to "back up everything the app owns" and only
+exclude WorkManager's internal job-queue database (`androidx.work.workdb`):
+restoring stale scheduled work after a reinstall causes crashes/inconsistent
+state rather than restoring anything the user cares about. Today "everything"
+means the three `friend_minder_*` SharedPreferences files (friend list,
+settings, cooldowns); Phase 2's groups/frequencies/logs/special dates
+(FRM-30-35) are included automatically as soon as that storage lands, with no
+changes needed here unless a future addition specifically needs to be
+excluded.
+
+To verify manually on a device or emulator with a Google account signed in:
+
+```
+adb shell bmgr backupnow com.example.friendminder
+adb shell bmgr restore com.example.friendminder   # after a fresh install
+```
+
 ## Deployment / secrets
 
 No hardcoded hostnames, IPs, or secrets belong in this repo. There is

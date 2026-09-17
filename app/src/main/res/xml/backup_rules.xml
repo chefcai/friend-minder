@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy Auto Backup content spec, used on API 23-30 (android:fullBackupContent).
+  API 31+ devices use data_extraction_rules.xml instead (dataExtractionRules);
+  both attributes are set on <application> so the whole minSdk 26+ range is covered.
+
+  No <include> block, so the default is "back up everything the app owns" -
+  today that's the three friend_minder_* SharedPreferences files
+  (FriendListRepository, SettingsRepository, CooldownRepository) and whatever
+  Room database Phase 2 (FRM-30-35) adds under /data. New storage added later
+  is backed up automatically without touching this file; only WorkManager's
+  internal job-queue database is excluded, since restoring stale scheduled
+  work after a reinstall causes crashes/inconsistent state rather than
+  restoring anything the user cares about (see FRM-43).
+-->
+<full-backup-content>
+    <exclude domain="database" path="androidx.work.workdb" />
+</full-backup-content>
