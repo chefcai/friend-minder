@@ -3,18 +3,17 @@ package com.example.friendminder.work
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.friendminder.notifications.NotificationHelper
+import com.example.friendminder.utils.ServiceLocator
 
 /**
- * Daily background job that will eventually: pick a random, non-cooled-down
- * contact from the Friend List and post the reminder notification (FRM-9,
- * FRM-10). Stubbed to a no-op success so the WorkManager plumbing (scheduling,
- * reboot survival, unique work replacement) can be proven out and exercised
- * by Publisher before the suggestion logic itself is implemented.
+ * Daily (or test-triggered, see HomeFragment's test button) background job:
+ * picks a random, non-cooled-down contact from the Friend List and posts the
+ * reminder notification (FRM-9, FRM-10; wired to FRM-11/FRM-13 through
+ * NotificationHelper).
  *
- * Note: implemented as [CoroutineWorker] rather than the plain [androidx.work.Worker]
- * sketched in the original ticket, since our repository interfaces are all
- * `suspend fun` — CoroutineWorker.doWork() is the WorkManager API that
- * actually supports suspend functions.
+ * Implemented as [CoroutineWorker] (inherited from the FRM-3 scaffold) since
+ * the repository interfaces are all `suspend fun`.
  */
 class SuggestionWorker(
     context: Context,
@@ -26,9 +25,28 @@ class SuggestionWorker(
     }
 
     override suspend fun doWork(): Result {
-        // TODO(FRM-9): select a random contact (respecting cooldown, FRM-10)
-        // and post the reminder notification with the SMS Intent action
-        // (FRM-11, FRM-13).
+        val friendListRepo = ServiceLocator.friendListRepository
+        val cooldownRepo = ServiceLocator.cooldownRepository
+        val settingsRepo = ServiceLocator.settingsRepository
+
+        val friends = friendListRepo.getFriendList()
+        if (friends.isEmpty()) return Result.success() // nothing to suggest (Designer spec §4.1)
+
+        val cooldownDays = settingsRepo.getCooldownDays()
+        val eligible = friends.filterNot { cooldownRepo.isOnCooldown(it.id, cooldownDays) }
+
+        // If every contact is on cooldown, fall back to the least-recently-
+        // suggested one rather than blocking (PRD §10 "All contacts on cooldown").
+        val chosen = if (eligible.isNotEmpty()) {
+            eligible.random()
+        } else {
+            friends.minByOrNull { cooldownRepo.getLastSuggestion(it.id) ?: 0L } ?: friends.first()
+        }
+
+        cooldownRepo.setLastSuggestion(chosen.id, System.currentTimeMillis())
+
+        NotificationHelper.postReminder(applicationContext, chosen, settingsRepo.getMessageTemplate())
+
         return Result.success()
     }
 }

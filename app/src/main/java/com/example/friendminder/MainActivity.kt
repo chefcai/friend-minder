@@ -1,15 +1,22 @@
 package com.example.friendminder
 
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.databinding.ActivityMainBinding
+import com.example.friendminder.ui.friendlist.FriendListFragment
+import com.example.friendminder.ui.home.HomeFragment
+import com.example.friendminder.utils.ServiceLocator
+import kotlinx.coroutines.launch
 
 /**
- * Navigation shell only — no business logic. Designer (FRM-4) will spec the
- * real screen flow (Friend List -> Settings -> Notification Preview); this
- * scaffold just proves the app launches without crashing and gives Designer
- * a concrete container (nav_host_container) to plan Fragments/Compose
- * destinations against.
+ * Navigation shell (Designer spec §2): decides first-launch (onboarding) vs.
+ * returning-user (Home) start destination, then hosts FriendListFragment /
+ * SettingsFragment / HomeFragment via plain FragmentTransactions. No
+ * Navigation-Component dependency — consistent with the project's minimal,
+ * easy-to-audit dependency tree (see ServiceLocator).
  */
 class MainActivity : AppCompatActivity() {
 
@@ -20,7 +27,30 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // TODO(FRM-12): host FriendListFragment / SettingsFragment here once
-        // Designer's navigation spec and Publisher's Fragments land.
+        // Single global back handler: pop the fragment back stack while
+        // there's something on it (Designer spec §2.1/§2.2 "edit" mode back
+        // arrows behave the same as system back); otherwise fall through to
+        // the platform default, which finishes the activity.
+        onBackPressedDispatcher.addCallback(this) {
+            if (supportFragmentManager.backStackEntryCount > 0) {
+                supportFragmentManager.popBackStack()
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+                isEnabled = true
+            }
+        }
+
+        if (savedInstanceState == null) {
+            lifecycleScope.launch {
+                val hasFriends = ServiceLocator.friendListRepository.getFriendList().isNotEmpty()
+                supportFragmentManager.commit {
+                    replace(
+                        R.id.nav_host_container,
+                        if (hasFriends) HomeFragment() else FriendListFragment.newInstance(isOnboarding = true)
+                    )
+                }
+            }
+        }
     }
 }

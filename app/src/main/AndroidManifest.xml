@@ -4,7 +4,13 @@
     <!-- Read the phone's contact list so the user can build their Friend List -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
-    <!-- Launch the SMS composer with a pre-filled recipient + message -->
+    <!-- Declared per PRD §16 Q1 ("LOCKED: Request SEND_SMS"); NOT requested at
+         runtime by this implementation — Designer spec §2.3/§3.4 and the
+         README both specify launching the SMS app via ACTION_SENDTO (the
+         user reviews/sends in their own SMS app), which doesn't require this
+         permission. Left declared rather than silently dropped since it was
+         an explicit PRD decision; flagged in FRM-5 status notes for
+         Tracker/PM to confirm it can be removed. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
 
     <!-- Deliver the daily reminder notification (required at runtime on API 33+) -->
@@ -30,6 +36,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Transparent trampoline the reminder notification's PendingIntent
+             targets to open the SMS composer (see SmsLaunchActivity). Not
+             exported: only ever invoked via a PendingIntent this app created. -->
+        <activity
+            android:name=".notifications.SmsLaunchActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:excludeFromRecents="true"
+            android:noHistory="true" />
 
     </application>
 
