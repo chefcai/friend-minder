@@ -51,6 +51,27 @@ jobs:
             echo "No signing secrets configured - publishing the debug-signed APK."
           fi
 
+      # chefcai/friend-minder#37: derive versionCode/versionName from the pushed tag so a
+      # tagged release is never out of sync with what app/build.gradle.kts happens to have
+      # committed - no manual "bump the version" step to forget before cutting a release.
+      # Only tag pushes get this treatment; a workflow_dispatch dry run (no tag) keeps
+      # whatever defaults are committed, since there's no tag to derive from.
+      - name: Derive version from tag
+        id: version
+        if: github.ref_type == 'tag'
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION_NAME="${TAG#v}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NAME"
+          if ! [[ "$MAJOR" =~ ^[0-9]+$ && "$MINOR" =~ ^[0-9]+$ && "$PATCH" =~ ^[0-9]+$ ]]; then
+            echo "Tag '$TAG' isn't a plain vMAJOR.MINOR.PATCH - skipping version override, keeping committed defaults." >&2
+            exit 0
+          fi
+          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "Derived versionName=$VERSION_NAME versionCode=$VERSION_CODE from tag $TAG"
+
       - name: Restore keystore
         if: steps.variant.outputs.name == 'release'
         run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
@@ -62,11 +83,15 @@ jobs:
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          ./gradlew testDebugUnitTest
+          VERSION_PROPS=()
+          if [ -n "${{ steps.version.outputs.name }}" ]; then
+            VERSION_PROPS=(-PappVersionName="${{ steps.version.outputs.name }}" -PappVersionCode="${{ steps.version.outputs.code }}")
+          fi
+          ./gradlew testDebugUnitTest "${VERSION_PROPS[@]}"
           if [ "${{ steps.variant.outputs.name }}" = "release" ]; then
-            ./gradlew assembleRelease
+            ./gradlew assembleRelease "${VERSION_PROPS[@]}"
           else
-            ./gradlew assembleDebug
+            ./gradlew assembleDebug "${VERSION_PROPS[@]}"
           fi
 
       - name: Name the APK

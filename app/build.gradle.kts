@@ -12,8 +12,17 @@ android {
         applicationId = "com.example.friendminder"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+
+        // versionCode/versionName default to the last cut release (chefcai/friend-minder#37)
+        // and can be overridden from the command line - release.yml does this automatically
+        // by deriving both from the pushed `vX.Y.Z` tag, so a tagged release never reports a
+        // stale version in Android Settings > App info regardless of what's committed here.
+        // Local/CI builds that don't pass these properties (assembleDebug during development,
+        // PR checks, `workflow_dispatch` dry runs) fall back to the values below, which should
+        // still be bumped to match whenever a release is manually prepared without using the
+        // tag-driven path.
+        versionCode = (project.findProperty("appVersionCode") as String?)?.toInt() ?: 2
+        versionName = project.findProperty("appVersionName") as String? ?: "0.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
