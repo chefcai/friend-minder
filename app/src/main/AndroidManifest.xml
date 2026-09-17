@@ -13,6 +13,12 @@
          Tracker/PM to confirm it can be removed. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
 
+    <!-- SEND_SMS above implies telephony hardware is required by default (this trips
+         ChromeOS/tablet installability). The app never actually places calls or sends
+         SMS itself (see comment above - it only launches the user's SMS app), so declare
+         telephony optional rather than required (FRM-18 / PermissionImpliesUnsupportedChromeOsHardware). -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
     <!-- Deliver the daily reminder notification (required at runtime on API 33+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 

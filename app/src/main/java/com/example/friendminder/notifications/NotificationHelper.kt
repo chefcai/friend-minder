@@ -1,16 +1,21 @@
 package com.example.friendminder.notifications
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
 
 private const val CHANNEL_ID = "daily_reminders"
+private const val TAG = "NotificationHelper"
 
 object NotificationHelper {
 
@@ -28,6 +33,17 @@ object NotificationHelper {
     }
 
     fun postReminder(context: Context, contact: Contact, messageTemplate: String) {
+        // postReminder runs off SuggestionWorker (a background WorkManager job) with no UI to
+        // prompt from - the in-app request/rationale flow lives in SettingsFragment. If the
+        // user hasn't granted POST_NOTIFICATIONS (or revoked it since), just skip this
+        // reminder rather than let notify() throw a SecurityException (FRM-18).
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i(TAG, "Skipping reminder for contact ${contact.id}: POST_NOTIFICATIONS not granted")
+            return
+        }
+
         ensureChannel(context)
 
         val firstName = contact.name.trim().substringBefore(' ').ifBlank { contact.name }
