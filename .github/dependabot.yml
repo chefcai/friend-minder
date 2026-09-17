@@ -8,6 +8,22 @@ updates:
     labels:
       - "dependencies"
       - "security"
+    groups:
+      gradle-minor-patch:
+        patterns:
+          - "androidx.test.espresso:espresso-core"
+          - "androidx.test.ext:junit"
+          - "androidx.recyclerview:recyclerview"
+          - "io.gitlab.arturbosch.detekt"
+          - "org.jetbrains.kotlinx:kotlinx-coroutines-android"
+          - "com.google.android.material:material"
+          - "com.google.code.gson:gson"
+    # Deliberately NOT grouped (FRM-17): com.android.application and the Gradle
+    # wrapper are major-version jumps that can require real build-file changes,
+    # so they stay as individual PRs rather than risk blocking review of the
+    # rest of the group. org.jetbrains.kotlin.android is left ungrouped for the
+    # same reason - a Kotlin version bump wasn't in FRM-17's explicit grouping
+    # list, so it keeps its own PR rather than a judgment call about bundling it.
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -16,3 +32,10 @@ updates:
     labels:
       - "dependencies"
       - "security"
+    groups:
+      github-actions:
+        patterns:
+          - "actions/checkout"
+          - "actions/setup-java"
+          - "actions/upload-artifact"
+          - "softprops/action-gh-release"
