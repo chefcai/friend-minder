@@ -1,11 +1,8 @@
 package com.example.friendminder.ui.settings
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +21,15 @@ import kotlinx.coroutines.launch
  * the tap-to-send flow: SEND_SMS is now only ever requested here, after the
  * user has read the explanation and turned the setting on themselves, never
  * as an automatic side effect of tapping a reminder notification.
+ *
+ * There is deliberately no "Open Settings" deep link for a denied SEND_SMS
+ * permission here (chefcai/friend-minder#38 follow-up): unlike the
+ * READ_CONTACTS flow elsewhere in the app, Android treats SEND_SMS as a
+ * hardware/SMS-restricted permission and grays out its per-app toggle in
+ * system Settings, so that affordance was a dead end for users. The
+ * permissionDeniedHelper text below instead explains the graceful fallback
+ * (messages still open in the user's SMS app) and that re-checking the
+ * checkbox is how to retry the OS permission prompt.
  */
 class AdvancedSettingsFragment : Fragment() {
 
@@ -58,14 +64,6 @@ class AdvancedSettingsFragment : Fragment() {
         binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-
-        binding.openSettingsButton.setOnClickListener {
-            startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", requireContext().packageName, null)
-                }
-            )
         }
 
         binding.directSendCheckbox.setOnCheckedChangeListener { _, isChecked ->
@@ -107,7 +105,6 @@ class AdvancedSettingsFragment : Fragment() {
         isSyncingUi = false
 
         binding.permissionDeniedHelper.visibility = if (permissionGranted) View.GONE else View.VISIBLE
-        binding.openSettingsButton.visibility = if (permissionGranted) View.GONE else View.VISIBLE
     }
 
     override fun onDestroyView() {
