@@ -14,6 +14,12 @@ local.properties
 # Keystores — never commit signing material
 *.jks
 *.keystore
+# Exception: the repo's own fixed debug-signing keystore (FRM-26). This is not
+# sensitive - Android's debug alias/password (androiddebugkey/android) are a
+# public convention, not a secret. Committing it gives every build (local or
+# CI) the same debug signing cert, so releases can upgrade in place instead of
+# hitting an install-time signature conflict.
+!debug.keystore
 
 # Env files — real secrets/hostnames stay out of GitHub per project convention
 .env

@@ -18,6 +18,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // Fixed debug keystore (FRM-26), committed at the repo root, instead of relying
+            // on AGP's implicit default (~/.android/debug.keystore). That default is
+            // auto-generated with a *random* keypair the first time a debug build runs on a
+            // machine, so every GitHub Actions run - a fresh ephemeral VM each time - was
+            // producing a differently-signed "debug" APK. Two releases signed with different
+            // certs can't upgrade in place (Android refuses the install as a signature
+            // conflict) and Auto Backup restore-on-reinstall requires the cert to match too.
+            // Alias/password are Android's standard debug convention, not a secret.
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
