@@ -38,12 +38,15 @@ android {
     }
 
     lint {
-        // report-only for now (see FRM-16) - two pre-existing gaps need triage
-        // before flipping abortOnError back on: a real MissingPermission finding
-        // in NotificationHelper.postReminder (no runtime check before notify()),
-        // and whatever the four accessibility checks below turn up now that
-        // they're promoted from warning to error severity for the first time.
-        abortOnError = false
+        // Blocking as of FRM-18. The two pre-existing errors that kept this report-only
+        // are both fixed: MissingPermission in NotificationHelper.postReminder (added a
+        // checkSelfPermission guard before notify(), since that call runs off a background
+        // WorkManager job with no UI to prompt from) and PermissionImpliesUnsupportedChromeOsHardware
+        // on the declared SEND_SMS permission (added a required="false" telephony uses-feature).
+        // The four accessibility checks below were promoted from warning to error for FRM-16
+        // and a full lintDebug run found zero violations of them in the current UI - promotion
+        // kept as-is so any future regression fails the build instead of merging quietly.
+        abortOnError = true
         warningsAsErrors = false
         checkDependencies = false
         error += listOf("ContentDescription", "ClickableViewAccessibility", "LabelFor", "KeyboardInaccessibleWidget")
