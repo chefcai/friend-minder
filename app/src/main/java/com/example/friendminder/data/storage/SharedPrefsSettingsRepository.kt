@@ -18,11 +18,13 @@ private const val KEY_MESSAGE_ENABLED = "message_enabled"
 private const val KEY_MESSAGE_TEMPLATE = "message_template" // legacy single-template key, FRM-30 migration source
 private const val KEY_MESSAGE_TEMPLATES = "message_templates_json"
 private const val KEY_COOLDOWN_DAYS = "cooldown_days"
+private const val KEY_DIRECT_SEND_ENABLED = "direct_send_enabled"
 
 // PRD-locked defaults (§16 Open Questions -> Resolved Decisions)
 private const val DEFAULT_CONTACTS_PER_DAY = 1
 private const val DEFAULT_COOLDOWN_DAYS = 3
 private const val DEFAULT_MESSAGE_ENABLED = true
+private const val DEFAULT_DIRECT_SEND_ENABLED = false
 private val DEFAULT_MESSAGE_TEMPLATES = listOf(
     "Hey, How's it going?",
     "Thinking of you — how have you been?",
@@ -111,5 +113,13 @@ class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
 
     override suspend fun setCooldownDays(days: Int) = withContext(Dispatchers.IO) {
         prefs.edit().putInt(KEY_COOLDOWN_DAYS, days).apply()
+    }
+
+    override suspend fun isDirectSendEnabled(): Boolean = withContext(Dispatchers.IO) {
+        prefs.getBoolean(KEY_DIRECT_SEND_ENABLED, DEFAULT_DIRECT_SEND_ENABLED)
+    }
+
+    override suspend fun setDirectSendEnabled(enabled: Boolean) = withContext(Dispatchers.IO) {
+        prefs.edit().putBoolean(KEY_DIRECT_SEND_ENABLED, enabled).apply()
     }
 }
