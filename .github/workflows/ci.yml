@@ -32,7 +32,8 @@ jobs:
       is-android: true
       build-cmd: "./gradlew assembleDebug"
       test-cmd: "./gradlew test lintDebug"
-      # report-only for now: a first real run found 2 pre-existing findings
-      # (SwallowedException, LoopWithTooManyJumpStatements) that need an actual
-      # code fix, not a config bypass. Flip to true once FRM-16 triages them.
-      detekt-blocking: false
+      # Flipped to blocking (FRM-16): the 2 pre-existing findings that kept
+      # this report-only (SwallowedException in SmsLaunchActivity, issue #4;
+      # LoopWithTooManyJumpStatements in ContactsLoader, issue #5) were both
+      # fixed and merged in #20.
+      detekt-blocking: true
