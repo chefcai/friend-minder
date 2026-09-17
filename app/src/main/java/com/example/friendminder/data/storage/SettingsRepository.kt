@@ -54,4 +54,14 @@ interface SettingsRepository {
      */
     suspend fun isDirectSendEnabled(): Boolean
     suspend fun setDirectSendEnabled(enabled: Boolean)
+
+    /**
+     * Whether the daily birthday/special-date check ([BirthdayWorker], FRM-35)
+     * should be scheduled at all. Defaults to `true` - Phase 2 originally
+     * scheduled this unconditionally from [FriendMinderApplication.onCreate],
+     * so existing installs keep getting birthday reminders unless they
+     * explicitly turn this off from Advanced settings (FRM-54).
+     */
+    suspend fun isBirthdayCheckEnabled(): Boolean
+    suspend fun setBirthdayCheckEnabled(enabled: Boolean)
 }

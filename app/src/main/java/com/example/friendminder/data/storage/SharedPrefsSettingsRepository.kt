@@ -19,12 +19,14 @@ private const val KEY_MESSAGE_TEMPLATE = "message_template" // legacy single-tem
 private const val KEY_MESSAGE_TEMPLATES = "message_templates_json"
 private const val KEY_COOLDOWN_DAYS = "cooldown_days"
 private const val KEY_DIRECT_SEND_ENABLED = "direct_send_enabled"
+private const val KEY_BIRTHDAY_CHECK_ENABLED = "birthday_check_enabled"
 
 // PRD-locked defaults (§16 Open Questions -> Resolved Decisions)
 private const val DEFAULT_CONTACTS_PER_DAY = 1
 private const val DEFAULT_COOLDOWN_DAYS = 3
 private const val DEFAULT_MESSAGE_ENABLED = true
 private const val DEFAULT_DIRECT_SEND_ENABLED = false
+private const val DEFAULT_BIRTHDAY_CHECK_ENABLED = true
 private val DEFAULT_MESSAGE_TEMPLATES = listOf(
     "Hey, How's it going?",
     "Thinking of you — how have you been?",
@@ -121,5 +123,13 @@ class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
 
     override suspend fun setDirectSendEnabled(enabled: Boolean) = withContext(Dispatchers.IO) {
         prefs.edit().putBoolean(KEY_DIRECT_SEND_ENABLED, enabled).apply()
+    }
+
+    override suspend fun isBirthdayCheckEnabled(): Boolean = withContext(Dispatchers.IO) {
+        prefs.getBoolean(KEY_BIRTHDAY_CHECK_ENABLED, DEFAULT_BIRTHDAY_CHECK_ENABLED)
+    }
+
+    override suspend fun setBirthdayCheckEnabled(enabled: Boolean) = withContext(Dispatchers.IO) {
+        prefs.edit().putBoolean(KEY_BIRTHDAY_CHECK_ENABLED, enabled).apply()
     }
 }

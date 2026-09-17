@@ -29,11 +29,12 @@ complexity:
     # SettingsRepository/SharedPrefsSettingsRepository are a single cohesive
     # settings store that grows by exactly 2 functions (getter/setter) per new
     # configurable setting (FRM-27 added isDirectSendEnabled/setDirectSendEnabled
-    # for chefcai/friend-minder#38) - splitting it into multiple interfaces would
+    # for chefcai/friend-minder#38; FRM-54 added isBirthdayCheckEnabled/
+    # setBirthdayCheckEnabled) - splitting it into multiple interfaces would
     # scatter one concern across files for no real benefit at this size.
-    thresholdInClasses: 17
+    thresholdInClasses: 19
     thresholdInObjects: 15
-    thresholdInInterfaces: 17
+    thresholdInInterfaces: 19
 
 exceptions:
   TooGenericExceptionCaught:

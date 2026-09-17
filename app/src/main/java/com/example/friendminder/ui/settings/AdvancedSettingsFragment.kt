@@ -11,16 +11,18 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
+import com.example.friendminder.data.storage.BirthdayWorkScheduler
 import com.example.friendminder.databinding.FragmentAdvancedSettingsBinding
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
 /**
- * Explicit opt-in for direct SMS sending (chefcai/friend-minder#38). Reached
- * via the gear icon on HomeFragment's toolbar, deliberately separate from
- * the tap-to-send flow: SEND_SMS is now only ever requested here, after the
- * user has read the explanation and turned the setting on themselves, never
- * as an automatic side effect of tapping a reminder notification.
+ * Explicit opt-in for direct SMS sending (chefcai/friend-minder#38), plus the
+ * birthday/special-date reminder toggle (FRM-54). Reached via the gear icon
+ * on HomeFragment's toolbar, deliberately separate from the tap-to-send
+ * flow: SEND_SMS is now only ever requested here, after the user has read
+ * the explanation and turned the setting on themselves, never as an
+ * automatic side effect of tapping a reminder notification.
  *
  * There is deliberately no "Open Settings" deep link for a denied SEND_SMS
  * permission here (chefcai/friend-minder#38 follow-up): unlike the
@@ -36,9 +38,11 @@ class AdvancedSettingsFragment : Fragment() {
     private var _binding: FragmentAdvancedSettingsBinding? = null
     private val binding get() = _binding!!
 
-    // Guards against the checkbox's own listener re-firing when we set its
-    // checked state programmatically from refresh() below.
+    // Guards against each checkbox's own listener re-firing when we set its
+    // checked state programmatically from refresh() below. Separate flags
+    // per checkbox since they're independent settings.
     private var isSyncingUi = false
+    private var isSyncingBirthdayUi = false
 
     private val requestSmsPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -77,6 +81,15 @@ class AdvancedSettingsFragment : Fragment() {
                 }
             }
         }
+
+        binding.birthdayCheckCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            if (isSyncingBirthdayUi) return@setOnCheckedChangeListener
+            viewLifecycleOwner.lifecycleScope.launch {
+                ServiceLocator.settingsRepository.setBirthdayCheckEnabled(isChecked)
+                val scheduler = BirthdayWorkScheduler(requireContext().applicationContext)
+                if (isChecked) scheduler.ensureScheduled() else scheduler.cancel()
+            }
+        }
     }
 
     override fun onResume() {
@@ -105,6 +118,10 @@ class AdvancedSettingsFragment : Fragment() {
         isSyncingUi = false
 
         binding.permissionDeniedHelper.visibility = if (permissionGranted) View.GONE else View.VISIBLE
+
+        isSyncingBirthdayUi = true
+        binding.birthdayCheckCheckbox.isChecked = settingsRepo.isBirthdayCheckEnabled()
+        isSyncingBirthdayUi = false
     }
 
     override fun onDestroyView() {
