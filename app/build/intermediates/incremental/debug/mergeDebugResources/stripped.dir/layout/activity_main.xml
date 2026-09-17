@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Navigation shell only. Designer (FRM-4) will spec the real screens
+  (FriendListFragment, SettingsFragment, etc.); Publisher (FRM-5) implements
+  them here. This container is intentionally empty of business logic.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nav_host_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />

@@ -1,0 +1,19 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Keystores — never commit signing material
+*.jks
+*.keystore
+
+# Env files — real secrets/hostnames stay out of GitHub per project convention
+.env
+.env.*
+!.env.example

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder vector foreground (simple speech-bubble glyph) so the app
+     builds without shipping raster launcher art. Swap for real branding
+     whenever Designer/Publisher produce it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,34 H78 A8,8 0 0 1 86,42 V66 A8,8 0 0 1 78,74 H50 L36,86 V74 H30 A8,8 0 0 1 22,66 V42 A8,8 0 0 1 30,34 Z" />
+</vector>

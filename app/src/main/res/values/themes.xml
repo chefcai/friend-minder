@@ -1,0 +1,4 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Barebones MVP theme: Material 3 defaults, no custom branding. -->
+    <style name="Theme.FriendMinder" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+</resources>
