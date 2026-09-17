@@ -1,0 +1,35 @@
+# Project overrides on top of detekt's default rule set (buildUponDefaultConfig = true).
+# friend-minder uses ViewBinding/XML, not Compose, so none of the Compose-specific
+# relaxations kything-companion carries are needed here.
+#
+# MagicNumber/ReturnCount/TooManyFunctions are relaxed below because a first real
+# ./gradlew detekt run showed them firing almost entirely on self-documenting time
+# arithmetic (hours/minutes/millis constants in SlotScheduling, the settings time
+# pickers) and deliberate early returns (SuggestionWorker.doWork, SuggestionSelector)
+# rather than actual bugs - same call kything-companion made for its own reasons.
+# Left active (and left BLOCKING off for now, see ci.yml) are two real findings
+# that need an actual code fix, not a config bypass:
+#   - SwallowedException in SmsLaunchActivity.kt
+#   - LoopWithTooManyJumpStatements in ContactsLoader.kt
+# Tracked for triage under FRM-16 before flipping detekt-blocking: true.
+
+style:
+  MaxLineLength:
+    maxLineLength: 140
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    active: false
+  ReturnCount:
+    max: 3
+
+complexity:
+  TooManyFunctions:
+    thresholdInFiles: 15
+    thresholdInClasses: 15
+    thresholdInObjects: 15
+    thresholdInInterfaces: 15
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false # BroadcastReceivers/Workers deliberately catch-all and log
