@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 2 spacing/component tokens (FRM-42), Designer's Confluence
+  "Phase 2 UI Specs" §3. The 4dp base grid plus the specific component
+  measurements called out for avatars, cards, badges and the outreach FAB -
+  used as new screens (FRM-42-44) come online, and already applied to the
+  existing contact list rows in item_contact.xml (avatar size, row spacing).
+-->
+<resources>
+    <!-- 4dp base grid -->
+    <dimen name="fm_space_1">4dp</dimen>
+    <dimen name="fm_space_2">8dp</dimen>
+    <dimen name="fm_space_3">12dp</dimen>
+    <dimen name="fm_space_4">16dp</dimen>
+    <dimen name="fm_space_6">24dp</dimen>
+    <dimen name="fm_space_8">32dp</dimen>
+
+    <!-- Cards -->
+    <dimen name="fm_card_corner_radius">12dp</dimen>
+    <dimen name="fm_card_elevation">4dp</dimen>
+    <dimen name="fm_card_elevation_pressed">8dp</dimen>
+    <dimen name="fm_card_padding">16dp</dimen>
+
+    <!-- Avatars (FRM-39): circular photo or initials-fallback size by context -->
+    <dimen name="fm_avatar_size_list">48dp</dimen>
+    <dimen name="fm_avatar_size_detail">96dp</dimen>
+    <dimen name="fm_avatar_size_notification">64dp</dimen>
+    <dimen name="fm_avatar_outline_width">1dp</dimen>
+
+    <!-- Streak badge + Log Outreach FAB -->
+    <dimen name="fm_streak_badge_size">24dp</dimen>
+    <dimen name="fm_fab_size">56dp</dimen>
+</resources>

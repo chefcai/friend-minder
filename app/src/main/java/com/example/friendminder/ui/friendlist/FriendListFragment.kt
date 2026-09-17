@@ -86,7 +86,10 @@ class FriendListFragment : Fragment() {
             }
         }
 
-        adapter = ContactAdapter { item -> onRowClicked(item) }
+        adapter = ContactAdapter(
+            photoLoader = ServiceLocator.contactPhotoLoader,
+            scope = viewLifecycleOwner.lifecycleScope
+        ) { item -> onRowClicked(item) }
         binding.contactRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.contactRecyclerView.adapter = adapter
 

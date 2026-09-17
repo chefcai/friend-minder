@@ -1,6 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Barebones MVP theme: Material 3 defaults, dynamic color (Material You)
-         where the device supports it, else the M3 baseline palette — no
-         custom color overrides (Designer spec §5). -->
-    <style name="Theme.FriendMinder" parent="Theme.Material3.DayNight.NoActionBar" />
+    <!-- Material 3 theme with Phase 2 brand colors applied (FRM-42, Designer
+         spec §1). Dynamic color (Material You) is intentionally NOT enabled:
+         the whole point of Designer's palette is a consistent, curated brand
+         look, which a per-device dynamic scheme would override. Dark theme
+         counterpart is values-night/themes.xml. -->
+    <style name="Theme.FriendMinder" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/fm_primary</item>
+        <item name="colorSecondary">@color/fm_secondary</item>
+        <item name="colorOnPrimary">@color/fm_avatar_initials_light</item>
+        <item name="colorOnSecondary">@color/fm_avatar_initials_light</item>
+    </style>
 </resources>

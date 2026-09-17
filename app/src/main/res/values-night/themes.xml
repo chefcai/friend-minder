@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Dark-theme counterpart to values/themes.xml (FRM-42, Designer spec §1). -->
+    <style name="Theme.FriendMinder" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/fm_primary</item>
+        <item name="colorSecondary">@color/fm_secondary</item>
+        <item name="colorOnPrimary">@color/fm_avatar_initials_dark</item>
+        <item name="colorOnSecondary">@color/fm_avatar_initials_dark</item>
+    </style>
+</resources>
