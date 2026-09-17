@@ -16,7 +16,6 @@ import kotlin.random.Random
 
 private const val UNIQUE_WORK_PREFIX = "friend_minder_suggestion_slot_"
 private const val MAX_SLOTS = 5
-private const val MINUTES_PER_DAY = 24 * 60
 
 /**
  * WorkManager-backed [NotificationScheduler] (FRM-8). Each notification slot
@@ -29,6 +28,10 @@ private const val MINUTES_PER_DAY = 24 * 60
  * Random-window slots use a fresh OneTimeWorkRequest each day instead, since
  * PeriodicWorkRequest can't re-randomize its own fire time — [SuggestionWorker]
  * calls [enqueueRandomOneTime] again after each run to re-arm tomorrow.
+ *
+ * The actual time math is factored out to [SlotScheduling], a pure function
+ * with no Android dependency, so it's covered directly by unit tests
+ * (SlotSchedulingTest) rather than only implicitly through this class.
  */
 class WorkManagerNotificationScheduler(private val context: Context) : NotificationScheduler {
 
@@ -39,11 +42,8 @@ class WorkManagerNotificationScheduler(private val context: Context) : Notificat
             val slots = contactsPerDay.coerceIn(1, MAX_SLOTS)
             cancelSlotsFrom(slots)
             for (slot in 0 until slots) {
-                // Spread slots evenly across the day starting at (hour, minute).
-                val baseMinutes = hour * 60 + minute
-                val offsetMinutes = slot * (MINUTES_PER_DAY / slots)
-                val slotTotalMinutes = (baseMinutes + offsetMinutes) % MINUTES_PER_DAY
-                enqueueDailySlot(slot, slotTotalMinutes / 60, slotTotalMinutes % 60)
+                val (slotHour, slotMinute) = SlotScheduling.spreadSlotTime(hour, minute, slot, slots)
+                enqueueDailySlot(slot, slotHour, slotMinute)
             }
         }
     }
@@ -65,10 +65,9 @@ class WorkManagerNotificationScheduler(private val context: Context) : Notificat
      * re-arm itself for tomorrow right after it fires.
      */
     fun enqueueRandomOneTime(slot: Int, startHour: Int, endHour: Int) {
-        val windowMinutes = (((endHour - startHour + 24) % 24).coerceAtLeast(1)) * 60
-        val offsetMinutes = Random.nextInt(windowMinutes)
-        val targetHour = (startHour + offsetMinutes / 60) % 24
-        val targetMinute = offsetMinutes % 60
+        val (targetHour, targetMinute) = SlotScheduling.randomTimeInWindow(startHour, endHour) { windowMinutes ->
+            Random.nextInt(windowMinutes)
+        }
 
         val input = Data.Builder()
             .putInt(SuggestionWorker.KEY_SLOT, slot)

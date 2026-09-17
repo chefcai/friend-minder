@@ -16,6 +16,11 @@ private const val NOTIFICATION_ID_BASE = 1000
  * Friend List contact that isn't on cooldown, post the reminder notification
  * for them, and record the suggestion.
  *
+ * The actual eligible-contact/fallback logic lives in [SuggestionSelector],
+ * a pure function with no Android dependency, so it's covered directly by
+ * unit tests (SuggestionSelectorTest) rather than only implicitly through
+ * this class.
+ *
  * CoroutineWorker (rather than the plain [androidx.work.Worker] sketched in
  * the original ticket) because our repository interfaces are all `suspend fun`.
  */
@@ -45,33 +50,20 @@ class SuggestionWorker(
         }
 
         val cooldownDays = settingsRepo.getCooldownDays()
-        val eligible = mutableListOf<com.example.friendminder.data.models.Contact>()
+        val cooldownStatus = mutableMapOf<String, Boolean>()
+        val lastSuggested = mutableMapOf<String, Long>()
         for (friend in friends) {
-            if (!cooldownRepo.isOnCooldown(friend.id, cooldownDays)) {
-                eligible.add(friend)
-            }
+            cooldownStatus[friend.id] = cooldownRepo.isOnCooldown(friend.id, cooldownDays)
+            lastSuggested[friend.id] = cooldownRepo.getLastSuggestion(friend.id) ?: 0L
         }
 
-        // If every friend is on cooldown (small Friend List, low cooldown
-        // days), fall back to the least-recently-suggested contact rather
-        // than silently skipping the day (PRD §8: cooldown should soften,
-        // not block, reminders).
-        val pool = if (eligible.isNotEmpty()) {
-            eligible
-        } else {
-            var oldest = friends.first()
-            var oldestTimestamp = cooldownRepo.getLastSuggestion(oldest.id) ?: 0L
-            for (friend in friends) {
-                val timestamp = cooldownRepo.getLastSuggestion(friend.id) ?: 0L
-                if (timestamp < oldestTimestamp) {
-                    oldest = friend
-                    oldestTimestamp = timestamp
-                }
-            }
-            listOf(oldest)
+        val pool = SuggestionSelector.selectPool(friends, cooldownStatus, lastSuggested)
+        val chosen = pool.randomOrNull()
+        if (chosen == null) {
+            rearmIfRandom()
+            return Result.success()
         }
 
-        val chosen = pool.random()
         val messageTemplate = settingsRepo.getMessageTemplate()
         val notificationId = NOTIFICATION_ID_BASE + inputData.getInt(KEY_SLOT, 0)
         val posted = NotificationHelper.postSuggestion(appContext, chosen, messageTemplate, notificationId)
