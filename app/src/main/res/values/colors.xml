@@ -36,4 +36,20 @@
     <!-- Initials text colors for the avatar fallback circle -->
     <color name="fm_avatar_initials_light">#FFFFFF</color>
     <color name="fm_avatar_initials_dark">#1C1B1F</color>
+
+    <!-- Group identity palette (FRM-56): a separate, more saturated 8-color
+         set from the avatar-fallback palette above, per Designer's
+         SCREENS-PHASE2.md §3 note ("use a separate...palette for group
+         identity chips" to avoid a group color reading as a contact's
+         avatar fallback color). Assigned round-robin at group-creation time
+         (see GroupEditDialogFragment), not derived from a hash, since a
+         user explicitly picks/keeps a color for a group. -->
+    <color name="fm_group_color_1">#E53935</color>
+    <color name="fm_group_color_2">#FB8C00</color>
+    <color name="fm_group_color_3">#FDD835</color>
+    <color name="fm_group_color_4">#43A047</color>
+    <color name="fm_group_color_5">#1E88E5</color>
+    <color name="fm_group_color_6">#8E24AA</color>
+    <color name="fm_group_color_7">#F5F5F5</color>
+    <color name="fm_group_color_8">#212121</color>
 </resources>

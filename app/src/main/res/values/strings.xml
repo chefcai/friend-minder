@@ -75,4 +75,109 @@
     <string name="toast_settings_saved">Saved</string>
     <string name="format_birthday_message">Happy birthday, %1$s! 🎉</string>
     <string name="format_special_date_body">%1$s today</string>
+
+    <!-- Dashboard (DashboardFragment, FRM-55) -->
+    <string name="title_dashboard">Dashboard</string>
+    <string name="action_dashboard_row">Dashboard</string>
+    <plurals name="format_dashboard_key_metric">
+        <item quantity="zero">You haven\'t reached out to anyone this month yet</item>
+        <item quantity="one">You\'ve reached out to %1$d contact this month</item>
+        <item quantity="other">You\'ve reached out to %1$d contacts this month</item>
+    </plurals>
+    <string name="label_dashboard_streaks_header">Your strongest connections</string>
+    <string name="label_dashboard_neglected_header">Needs attention</string>
+    <string name="label_dashboard_chart_header">Monthly outreach</string>
+    <string name="label_dashboard_upcoming_header">Upcoming birthdays &amp; dates</string>
+    <string name="label_dashboard_empty">Reach out to a few friends to see your stats here</string>
+    <string name="label_today">Today</string>
+    <string name="label_never_contacted">Never contacted</string>
+    <string name="action_reach_out">Reach out</string>
+    <plurals name="format_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
+    <plurals name="format_upcoming_in_days">
+        <item quantity="one">in %1$d day</item>
+        <item quantity="other">in %1$d days</item>
+    </plurals>
+    <string name="format_last_contact">Last contact: %1$s</string>
+    <plurals name="format_streak_days">
+        <item quantity="one">Streak: %1$d day</item>
+        <item quantity="other">Streak: %1$d days</item>
+    </plurals>
+    <string name="format_reach_rate">Reach rate: %1$.0f%%</string>
+    <string name="format_frequency_default">Every %1$d days (default)</string>
+    <string name="format_frequency_custom">Every %1$d days (custom)</string>
+    <string name="format_chart_bar_count">%1$d contacts</string>
+    <string name="format_streak_badge_overflow">9+</string>
+
+    <!-- Groups (GroupsFragment, FRM-56) -->
+    <string name="title_groups">Groups</string>
+    <string name="action_groups_row">Groups</string>
+    <string name="action_new_group">New Group</string>
+    <string name="title_edit_group">Edit Group</string>
+    <string name="hint_group_name">Group name</string>
+    <string name="label_group_color">Color</string>
+    <plurals name="format_group_member_count">
+        <item quantity="one">%1$d member</item>
+        <item quantity="other">%1$d members</item>
+    </plurals>
+    <string name="label_groups_empty">No groups yet</string>
+    <string name="action_create_first_group">Create your first group</string>
+    <string name="action_delete_group">Delete group</string>
+    <string name="format_confirm_delete_group">Delete \'%1$s\'? Contacts won\'t be removed, only the group.</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_create">Create</string>
+    <string name="action_save">Save</string>
+    <string name="label_group_no_members">No members yet</string>
+    <string name="action_add_contact_to_group">Add contact to group</string>
+    <string name="label_add_to_group_empty">All your friends are already in this group</string>
+    <string name="action_remove_from_group">Remove from group</string>
+    <string name="toast_removed_from_group">Removed from group</string>
+    <string name="action_undo">Undo</string>
+
+    <!-- Contact Detail (ContactDetailFragment, FRM-57) -->
+    <string name="label_groups_header">Groups</string>
+    <string name="action_add_group_chip">+ Add</string>
+    <string name="label_tab_history">History</string>
+    <string name="label_tab_special_dates">Special Dates</string>
+    <string name="label_history_empty">No outreach logged yet — send a message or log a hangout</string>
+    <string name="action_log_outreach">Log Outreach</string>
+    <string name="label_reminder_day_of">Day of</string>
+    <string name="label_reminder_1_day_before">1 day before</string>
+    <string name="label_reminder_1_week_before">1 week before</string>
+    <string name="action_add_special_date">Add special date</string>
+    <string name="hint_special_date_label">Label (e.g. Anniversary)</string>
+    <string name="action_pick_date">Pick date</string>
+    <string name="label_special_dates_empty">No special dates yet</string>
+    <string name="title_edit_frequency">Reminder Frequency</string>
+    <string name="action_reset_default">Reset to default</string>
+    <string name="format_frequency_slider_value">Every %1$d days</string>
+    <string name="format_birthday_caption">🎂 %1$s</string>
+    <string name="format_special_date_row">%1$s · %2$s</string>
+    <string name="action_add_to_group_picker">Add to group</string>
+    <string name="label_no_groups_to_add">No other groups to add — create one from the Groups tab</string>
+
+    <!-- Outreach Log Dialog (FRM-58) -->
+    <string name="title_log_outreach_dialog">Log Outreach</string>
+    <string name="label_outreach_type_header">Type</string>
+    <string name="outreach_type_sms">SMS</string>
+    <string name="outreach_type_call">Call</string>
+    <string name="outreach_type_in_person">In-person</string>
+    <string name="outreach_type_video">Video</string>
+    <string name="outreach_type_other">Other</string>
+    <string name="label_when_header">When</string>
+    <string name="hint_outreach_note">Note (optional)</string>
+    <string name="toast_outreach_logged">Outreach logged</string>
+
+    <string-array name="group_color_names">
+        <item>Red</item>
+        <item>Orange</item>
+        <item>Yellow</item>
+        <item>Green</item>
+        <item>Blue</item>
+        <item>Purple</item>
+        <item>White</item>
+        <item>Black</item>
+    </string-array>
 </resources>

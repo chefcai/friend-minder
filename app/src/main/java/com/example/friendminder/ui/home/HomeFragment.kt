@@ -21,6 +21,8 @@ import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactsLoader
 import com.example.friendminder.databinding.FragmentHomeBinding
 import com.example.friendminder.ui.friendlist.FriendListFragment
+import com.example.friendminder.ui.dashboard.DashboardFragment
+import com.example.friendminder.ui.groups.GroupsFragment
 import com.example.friendminder.ui.settings.AdvancedSettingsFragment
 import com.example.friendminder.ui.settings.SettingsFragment
 import com.example.friendminder.utils.ServiceLocator
@@ -55,6 +57,18 @@ class HomeFragment : Fragment() {
 
         binding.addFriendsButton.setOnClickListener { openFriendList() }
         binding.editFriendsRow.setOnClickListener { openFriendList() }
+        binding.dashboardRow.setOnClickListener {
+            parentFragmentManager.commit {
+                replace(R.id.nav_host_container, DashboardFragment.newInstance())
+                addToBackStack(null)
+            }
+        }
+        binding.groupsRow.setOnClickListener {
+            parentFragmentManager.commit {
+                replace(R.id.nav_host_container, GroupsFragment.newInstance())
+                addToBackStack(null)
+            }
+        }
         binding.settingsRow.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.nav_host_container, SettingsFragment.newInstance(isOnboarding = false))
