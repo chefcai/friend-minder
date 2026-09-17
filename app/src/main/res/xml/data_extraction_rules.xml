@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup content spec for API 31+ (android:dataExtractionRules). Mirrors
+  backup_rules.xml's policy (back up everything except WorkManager's internal
+  job-queue database) for both the cloud-backup transport and device-to-device
+  transfer, so a reinstall on the same or a new phone restores groups,
+  frequencies, logs, and special dates the same way (FRM-43).
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="androidx.work.workdb" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="androidx.work.workdb" />
+    </device-transfer>
+</data-extraction-rules>
