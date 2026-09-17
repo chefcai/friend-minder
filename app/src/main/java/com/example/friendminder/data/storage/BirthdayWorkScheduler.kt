@@ -30,6 +30,15 @@ class BirthdayWorkScheduler(private val context: Context) {
             .enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
     }
 
+    /**
+     * Stops the daily check (FRM-54 settings toggle). Safe to call whether
+     * or not it's currently scheduled - WorkManager no-ops on an unknown
+     * unique work name rather than throwing.
+     */
+    fun cancel() {
+        WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+    }
+
     private fun delayUntilNext(hour: Int): Long {
         val now = Calendar.getInstance()
         val target = Calendar.getInstance().apply {
