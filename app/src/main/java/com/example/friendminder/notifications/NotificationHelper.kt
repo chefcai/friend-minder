@@ -47,8 +47,13 @@ object NotificationHelper {
         ensureChannel(context)
 
         val firstName = contact.name.trim().substringBefore(' ').ifBlank { contact.name }
+        val notificationId = contact.id.hashCode()
 
-        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, messageTemplate)
+        // Passing our own notificationId through lets SmsLaunchActivity explicitly cancel this
+        // notification itself rather than relying solely on setAutoCancel() below, which is
+        // unreliable for action-button PendingIntents that launch an activity into a new task
+        // (chefcai/friend-minder#35).
+        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, messageTemplate, notificationId)
         val pendingIntent = PendingIntent.getActivity(
             context,
             contact.id.hashCode(),
@@ -66,6 +71,6 @@ object NotificationHelper {
             .addAction(0, context.getString(R.string.format_notif_action_text, firstName), pendingIntent)
             .build()
 
-        NotificationManagerCompat.from(context).notify(contact.id.hashCode(), notification)
+        NotificationManagerCompat.from(context).notify(notificationId, notification)
     }
 }

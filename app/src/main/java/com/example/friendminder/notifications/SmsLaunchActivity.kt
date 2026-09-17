@@ -13,6 +13,7 @@ import android.telephony.SmsManager
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.friendminder.R
 
@@ -31,12 +32,25 @@ class SmsLaunchActivity : Activity() {
 
     private var phoneNumber: String? = null
     private var message: String? = null
+    private var notificationId: Int = NO_NOTIFICATION_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         phoneNumber = intent.getStringExtra(EXTRA_PHONE_NUMBER)
         message = intent.getStringExtra(EXTRA_MESSAGE)
+        notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, NO_NOTIFICATION_ID)
+
+        // Dismiss the source notification unconditionally, up front. Both the
+        // notification's content tap and its "Text <Name>" action use this
+        // same PendingIntent, and NotificationCompat.setAutoCancel() is
+        // unreliable for action-button-triggered PendingIntents that launch
+        // an activity into a new task (this one does) - it can leave the
+        // notification sitting in the shade after the user has already acted
+        // on it (chefcai/friend-minder#35). Cancelling here doesn't depend on
+        // that platform behavior, and covers both the direct-send and
+        // fallback-to-SMS-app paths below.
+        dismissSourceNotification()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) ==
             PackageManager.PERMISSION_GRANTED
@@ -62,6 +76,11 @@ class SmsLaunchActivity : Activity() {
         } else {
             launchSmsAppFallback()
         }
+    }
+
+    private fun dismissSourceNotification() {
+        if (notificationId == NO_NOTIFICATION_ID) return
+        NotificationManagerCompat.from(this).cancel(notificationId)
     }
 
     private fun sendDirectly() {
@@ -119,12 +138,20 @@ class SmsLaunchActivity : Activity() {
         private const val TAG = "SmsLaunchActivity"
         private const val EXTRA_PHONE_NUMBER = "extra_phone_number"
         private const val EXTRA_MESSAGE = "extra_message"
+        private const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
         private const val REQUEST_CODE_SEND_SMS = 1001
+        private const val NO_NOTIFICATION_ID = -1
 
-        fun intentFor(context: Context, phoneNumber: String, message: String): Intent =
+        fun intentFor(
+            context: Context,
+            phoneNumber: String,
+            message: String,
+            notificationId: Int = NO_NOTIFICATION_ID
+        ): Intent =
             Intent(context, SmsLaunchActivity::class.java).apply {
                 putExtra(EXTRA_PHONE_NUMBER, phoneNumber)
                 putExtra(EXTRA_MESSAGE, message)
+                putExtra(EXTRA_NOTIFICATION_ID, notificationId)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
     }
