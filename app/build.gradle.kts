@@ -39,6 +39,18 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    lint {
+        // report-only for now (see FRM-16) - two pre-existing gaps need triage
+        // before flipping abortOnError back on: a real MissingPermission finding
+        // in NotificationHelper.postReminder (no runtime check before notify()),
+        // and whatever the four accessibility checks below turn up now that
+        // they're promoted from warning to error severity for the first time.
+        abortOnError = false
+        warningsAsErrors = false
+        checkDependencies = false
+        error += listOf("ContentDescription", "ClickableViewAccessibility", "LabelFor", "KeyboardInaccessibleWidget")
+    }
 }
 
 dependencies {

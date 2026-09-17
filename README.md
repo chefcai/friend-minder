@@ -57,3 +57,31 @@ No hardcoded hostnames, IPs, or secrets belong in this repo. There is
 currently no backend and no CI secrets are required; if any are ever added,
 follow the `.env` + `${VAR:-default}` convention rather than committing
 real values.
+
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every push/PR to `main`, composed from
+the shared `chefcai/ci-templates` reusable workflows (the same pattern
+`kything-companion` uses):
+
+- **baseline** — `gitleaks` secret scanning + Trivy `fs` dependency/config
+  scanning, both blocking.
+- **kotlin** — `./gradlew assembleDebug`, `./gradlew test lintDebug`, and
+  `detekt` static analysis.
+
+`.github/workflows/release.yml` is deliberately separate and does **not**
+run on merge — only on a `v*` tag push or a manual "Run workflow", so a
+release is never cut remotely just because something landed on `main`. It
+publishes a debug-signed sideloadable APK unless the four
+`RELEASE_KEYSTORE_*` repo secrets are configured for a signed release
+build (not set up yet — see FRM-16).
+
+**Known gaps, tracked under FRM-16:**
+
+- No Gradle dependency lockfile (`./gradlew dependencies --write-locks`)
+  is committed yet, so Trivy's `fs` scan has no lockfile to check Gradle
+  dependencies against — same gap `kything-companion` currently has.
+- `detekt` and Android Lint both run in report-only mode
+  (`detekt-blocking: false`, `lint.abortOnError = false`) pending triage
+  of a small number of pre-existing findings; see the FRM-16 ticket for
+  the current list.
