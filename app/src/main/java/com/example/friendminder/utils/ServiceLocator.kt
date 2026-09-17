@@ -1,6 +1,7 @@
 package com.example.friendminder.utils
 
 import android.content.Context
+import com.example.friendminder.data.contacts.ContactPhotoLoader
 import com.example.friendminder.data.storage.ContactGroupRepository
 import com.example.friendminder.data.storage.CooldownRepository
 import com.example.friendminder.data.storage.FriendListRepository
@@ -61,6 +62,11 @@ object ServiceLocator {
 
     val notificationScheduler: NotificationScheduler by lazy {
         WorkManagerNotificationScheduler(requireContext())
+    }
+
+    /** Shared across every screen that renders contact avatars (FRM-39), so the in-memory photo cache isn't rebuilt per-fragment. */
+    val contactPhotoLoader: ContactPhotoLoader by lazy {
+        ContactPhotoLoader()
     }
 
     // --- Phase 2 (FRM-30..35) ---

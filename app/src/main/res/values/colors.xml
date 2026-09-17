@@ -1,3 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 2 Material 3 palette (FRM-42), light theme. Values are Designer's
+  Confluence "Phase 2 UI Specs" §1 color table (FRM-36-41, Designer agent),
+  verified >=4.5:1 body / >=3:1 large text against Material 3 surface tokens.
+  Dark-theme counterparts are in values-night/colors.xml; the 8-color avatar
+  fallback palette (FRM-40) additionally has a dark-mode lightness shift and
+  initials-text-color flip computed at runtime by AvatarPalette rather than
+  hardcoded here (see that class's kdoc).
+-->
 <resources>
     <color name="ic_launcher_background">#2E7D32</color>
+
+    <!-- Brand / status tokens -->
+    <color name="fm_primary">#00695C</color>
+    <color name="fm_secondary">#E8871E</color>
+    <color name="fm_status_healthy">#2E7D32</color>
+    <color name="fm_status_attention">#B8860B</color>
+    <color name="fm_status_neglected">#C62828</color>
+    <color name="fm_status_new">#757575</color>
+
+    <!-- Avatar fallback palette (FRM-40): 8 HSL-distributed colors, light
+         theme values. abs(contactId.hashCode()) % 8 picks the index;
+         AvatarPalette.kt is the single place that indexes into this list
+         and derives the dark-theme variant, so it's the only code that
+         should reference these by position. -->
+    <color name="fm_avatar_1">#5C6BC0</color>
+    <color name="fm_avatar_2">#26A69A</color>
+    <color name="fm_avatar_3">#7E57C2</color>
+    <color name="fm_avatar_4">#EC7063</color>
+    <color name="fm_avatar_5">#5D8AA8</color>
+    <color name="fm_avatar_6">#8D6E63</color>
+    <color name="fm_avatar_7">#009688</color>
+    <color name="fm_avatar_8">#B0855C</color>
+
+    <!-- Initials text colors for the avatar fallback circle -->
+    <color name="fm_avatar_initials_light">#FFFFFF</color>
+    <color name="fm_avatar_initials_dark">#1C1B1F</color>
 </resources>
