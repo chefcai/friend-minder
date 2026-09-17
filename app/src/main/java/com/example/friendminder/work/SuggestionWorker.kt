@@ -7,19 +7,17 @@ import com.example.friendminder.data.storage.WorkManagerNotificationScheduler
 import com.example.friendminder.notifications.NotificationHelper
 import com.example.friendminder.utils.ServiceLocator
 
-private const val NOTIFICATION_ID_BASE = 1000
-
 /**
- * Daily background job. [WorkManagerNotificationScheduler] (FRM-8) schedules
- * one instance of this per notification slot; this class implements the
- * actual suggestion logic (FRM-9) and cooldown bookkeeping (FRM-10): pick a
- * Friend List contact that isn't on cooldown, post the reminder notification
- * for them, and record the suggestion.
+ * Daily (or test-triggered, see HomeFragment's test button) background job.
+ * [WorkManagerNotificationScheduler] (FRM-8) schedules one instance of this
+ * per notification slot; this class implements the actual suggestion logic
+ * (FRM-9) and cooldown bookkeeping (FRM-10): pick a Friend List contact that
+ * isn't on cooldown, post the reminder notification via [NotificationHelper]
+ * (FRM-11/FRM-13, Publisher), and record the suggestion.
  *
- * The actual eligible-contact/fallback logic lives in [SuggestionSelector],
- * a pure function with no Android dependency, so it's covered directly by
- * unit tests (SuggestionSelectorTest) rather than only implicitly through
- * this class.
+ * The eligible-contact/fallback logic lives in [SuggestionSelector], a pure
+ * function with no Android dependency, covered directly by unit tests
+ * (SuggestionSelectorTest).
  *
  * CoroutineWorker (rather than the plain [androidx.work.Worker] sketched in
  * the original ticket) because our repository interfaces are all `suspend fun`.
@@ -46,7 +44,7 @@ class SuggestionWorker(
         val friends = friendListRepo.getFriendList()
         if (friends.isEmpty()) {
             rearmIfRandom()
-            return Result.success()
+            return Result.success() // nothing to suggest (Designer spec S4.1)
         }
 
         val cooldownDays = settingsRepo.getCooldownDays()
@@ -64,13 +62,8 @@ class SuggestionWorker(
             return Result.success()
         }
 
-        val messageTemplate = settingsRepo.getMessageTemplate()
-        val notificationId = NOTIFICATION_ID_BASE + inputData.getInt(KEY_SLOT, 0)
-        val posted = NotificationHelper.postSuggestion(appContext, chosen, messageTemplate, notificationId)
-
-        if (posted) {
-            cooldownRepo.setLastSuggestion(chosen.id, System.currentTimeMillis())
-        }
+        cooldownRepo.setLastSuggestion(chosen.id, System.currentTimeMillis())
+        NotificationHelper.postReminder(appContext, chosen, settingsRepo.getMessageTemplate())
 
         rearmIfRandom()
         return Result.success()
