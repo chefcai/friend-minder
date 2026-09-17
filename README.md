@@ -76,12 +76,12 @@ publishes a debug-signed sideloadable APK unless the four
 `RELEASE_KEYSTORE_*` repo secrets are configured for a signed release
 build (not set up yet — see FRM-16).
 
-**Known gaps, tracked under FRM-16:**
+`detekt` and Android Lint (including four accessibility checks —
+`ContentDescription`, `ClickableViewAccessibility`, `LabelFor`,
+`KeyboardInaccessibleWidget` — promoted from warning to error) are both
+blocking as of FRM-16/FRM-17/FRM-18.
 
-- No Gradle dependency lockfile (`./gradlew dependencies --write-locks`)
-  is committed yet, so Trivy's `fs` scan has no lockfile to check Gradle
-  dependencies against — same gap `kything-companion` currently has.
-- `detekt` and Android Lint both run in report-only mode
-  (`detekt-blocking: false`, `lint.abortOnError = false`) pending triage
-  of a small number of pre-existing findings; see the FRM-16 ticket for
-  the current list.
+**Known, accepted gap:** no Gradle dependency lockfile
+(`./gradlew dependencies --write-locks`) is committed yet, so Trivy's
+`fs` scan has no lockfile to check Gradle dependencies against — same
+gap `kything-companion` currently has.
