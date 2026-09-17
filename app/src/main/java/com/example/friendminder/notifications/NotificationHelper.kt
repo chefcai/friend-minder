@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.SpecialDate
 
 private const val CHANNEL_ID = "daily_reminders"
 private const val TAG = "NotificationHelper"
@@ -65,6 +66,54 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(firstName)
             .setContentText(context.getString(R.string.notif_body))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .addAction(0, context.getString(R.string.format_notif_action_text, firstName), pendingIntent)
+            .build()
+
+        NotificationManagerCompat.from(context).notify(notificationId, notification)
+    }
+/**
+     * Posts a birthday/special-date reminder (PRD §6.3, FRM-35). Reuses the
+     * same tap-to-send flow as [postReminder] via [SmsLaunchActivity],
+     * pre-filled with a festive template for birthdays and a generic one for
+     * custom dates (anniversaries, etc.).
+     */
+    fun postSpecialDateReminder(context: Context, contact: Contact, specialDate: SpecialDate) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i(TAG, "Skipping special date reminder for contact ${contact.id}: POST_NOTIFICATIONS not granted")
+            return
+        }
+
+        ensureChannel(context)
+
+        val firstName = contact.name.trim().substringBefore(' ').ifBlank { contact.name }
+        // Namespaced with the SpecialDate id (rather than reusing postReminder's
+        // contact.id.hashCode()) so a birthday reminder never collides with, or gets
+        // silently replaced by, a same-day daily suggestion for the same contact.
+        val notificationId = (contact.id + "_" + specialDate.id).hashCode()
+        val isBirthday = specialDate.label.equals("Birthday", ignoreCase = true)
+        val message = if (isBirthday) {
+            context.getString(R.string.format_birthday_message, firstName)
+        } else {
+            context.getString(R.string.format_special_date_body, specialDate.label)
+        }
+
+        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, message, notificationId)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            smsIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(firstName)
+            .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)

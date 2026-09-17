@@ -13,4 +13,14 @@ interface CooldownRepository {
 
     /** True if [contactId] was suggested within the last [cooldownDays] days. */
     suspend fun isOnCooldown(contactId: String, cooldownDays: Int): Boolean
+
+    /**
+     * Lifetime count of times [contactId] has been suggested (PRD §6.5
+     * "Reach Rate" denominator; FRM-38). Added for Phase 2 — the MVP only
+     * ever needed the *last* suggestion, not a running total.
+     */
+    suspend fun getReminderCount(contactId: String): Int
+
+    /** Increments [contactId]'s reminder count. Call alongside [setLastSuggestion] whenever a reminder actually fires. */
+    suspend fun incrementReminderCount(contactId: String)
 }
