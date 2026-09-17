@@ -1,0 +1,121 @@
+package com.example.friendminder.ui.settings
+
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Bundle
+import android.provider.Settings
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.example.friendminder.R
+import com.example.friendminder.databinding.FragmentAdvancedSettingsBinding
+import com.example.friendminder.utils.ServiceLocator
+import kotlinx.coroutines.launch
+
+/**
+ * Explicit opt-in for direct SMS sending (chefcai/friend-minder#38). Reached
+ * via the gear icon on HomeFragment's toolbar, deliberately separate from
+ * the tap-to-send flow: SEND_SMS is now only ever requested here, after the
+ * user has read the explanation and turned the setting on themselves, never
+ * as an automatic side effect of tapping a reminder notification.
+ */
+class AdvancedSettingsFragment : Fragment() {
+
+    private var _binding: FragmentAdvancedSettingsBinding? = null
+    private val binding get() = _binding!!
+
+    // Guards against the checkbox's own listener re-firing when we set its
+    // checked state programmatically from refresh() below.
+    private var isSyncingUi = false
+
+    private val requestSmsPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                ServiceLocator.settingsRepository.setDirectSendEnabled(granted)
+                refresh()
+            }
+        }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentAdvancedSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.toolbar.title = getString(R.string.title_advanced_settings)
+        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        binding.openSettingsButton.setOnClickListener {
+            startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", requireContext().packageName, null)
+                }
+            )
+        }
+
+        binding.directSendCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            if (isSyncingUi) return@setOnCheckedChangeListener
+            if (isChecked && !isSendSmsGranted()) {
+                requestSmsPermission.launch(Manifest.permission.SEND_SMS)
+            } else {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    ServiceLocator.settingsRepository.setDirectSendEnabled(isChecked)
+                    refresh()
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewLifecycleOwner.lifecycleScope.launch { refresh() }
+    }
+
+    private fun isSendSmsGranted(): Boolean =
+        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.SEND_SMS) ==
+            PackageManager.PERMISSION_GRANTED
+
+    private suspend fun refresh() {
+        val permissionGranted = isSendSmsGranted()
+        val settingsRepo = ServiceLocator.settingsRepository
+
+        // If the stored opt-in flag says enabled but the OS permission was
+        // revoked externally (e.g. via system Settings) since it was last
+        // checked here, correct the flag rather than show a checked box
+        // that no longer reflects reality.
+        if (!permissionGranted && settingsRepo.isDirectSendEnabled()) {
+            settingsRepo.setDirectSendEnabled(false)
+        }
+
+        isSyncingUi = true
+        binding.directSendCheckbox.isChecked = permissionGranted && settingsRepo.isDirectSendEnabled()
+        isSyncingUi = false
+
+        binding.permissionDeniedHelper.visibility = if (permissionGranted) View.GONE else View.VISIBLE
+        binding.openSettingsButton.visibility = if (permissionGranted) View.GONE else View.VISIBLE
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    companion object {
+        fun newInstance(): AdvancedSettingsFragment = AdvancedSettingsFragment()
+    }
+}

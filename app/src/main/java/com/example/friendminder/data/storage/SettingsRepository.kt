@@ -41,4 +41,17 @@ interface SettingsRepository {
     /** Days before a contact can be re-suggested (PRD Q2 default: 3). */
     suspend fun getCooldownDays(): Int
     suspend fun setCooldownDays(days: Int)
+
+    /**
+     * Explicit user opt-in for [SmsLaunchActivity] to send SMS directly
+     * (skipping the recipient's own SMS app) instead of always falling back
+     * to the ACTION_SENDTO pre-fill flow. Defaults to `false` — direct
+     * sending is off until the user turns it on from the Advanced settings
+     * screen (chefcai/friend-minder#38). Deliberately separate from the
+     * SEND_SMS OS permission grant itself: Android has no API to un-grant a
+     * permission the app already holds, so this flag is what makes the
+     * toggle meaningfully reversible even after permission was granted once.
+     */
+    suspend fun isDirectSendEnabled(): Boolean
+    suspend fun setDirectSendEnabled(enabled: Boolean)
 }

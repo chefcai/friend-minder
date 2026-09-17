@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="@string/title_advanced_settings" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/helper_direct_send_explanation"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:layout_marginBottom="16dp" />
+
+            <CheckBox
+                android:id="@+id/directSendCheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/checkbox_direct_send" />
+
+            <TextView
+                android:id="@+id/permissionDeniedHelper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/label_direct_send_permission_denied"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorError"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/openSettingsButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/action_open_settings"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

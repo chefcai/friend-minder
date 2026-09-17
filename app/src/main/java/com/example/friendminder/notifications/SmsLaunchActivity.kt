@@ -12,27 +12,36 @@ import android.os.Bundle
 import android.telephony.SmsManager
 import android.util.Log
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.friendminder.R
+import com.example.friendminder.utils.ServiceLocator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * PRD §16 Q1 (LOCKED): "implement one-tap send... if SEND_SMS permission
  * allows direct send, implement it; otherwise, require manual send
- * confirmation." SEND_SMS was declared in the manifest but, until now, never
- * requested at runtime, so the app always fell through to the "otherwise"
- * branch (ACTION_SENDTO pre-fill in the user's own SMS app). This now
- * requests SEND_SMS on first use and sends directly once granted
- * (chefcai/friend-minder#29), falling back to the pre-fill flow if the user
- * denies the permission, there's no message body to send, or the direct
- * send itself fails for any reason.
+ * confirmation." Direct sending is available once granted, but per
+ * chefcai/friend-minder#38 the SEND_SMS permission itself is no longer
+ * requested from here automatically — that felt like an unexplained,
+ * out-of-context system dialog triggered by a simple notification tap.
+ * Instead, direct sending is an explicit opt-in the user turns on from the
+ * Advanced settings screen (see AdvancedSettingsFragment), which is where
+ * SEND_SMS actually gets requested, with an explanation shown first. This
+ * Activity only checks whether that opt-in AND the permission are both
+ * already in place; if not, it falls back to the pre-fill flow, same as if
+ * the user had denied permission (chefcai/friend-minder#29 baseline).
  */
 class SmsLaunchActivity : Activity() {
 
     private var phoneNumber: String? = null
     private var message: String? = null
     private var notificationId: Int = NO_NOTIFICATION_ID
+    private val activityScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,30 +61,21 @@ class SmsLaunchActivity : Activity() {
         // fallback-to-SMS-app paths below.
         dismissSourceNotification()
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) ==
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            sendDirectly()
-        } else {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.SEND_SMS), REQUEST_CODE_SEND_SMS
-            )
+        activityScope.launch {
+            val canSendDirectly = ServiceLocator.settingsRepository.isDirectSendEnabled() &&
+                ContextCompat.checkSelfPermission(this@SmsLaunchActivity, Manifest.permission.SEND_SMS) ==
+                PackageManager.PERMISSION_GRANTED
+            if (canSendDirectly) {
+                sendDirectly()
+            } else {
+                launchSmsAppFallback()
+            }
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode != REQUEST_CODE_SEND_SMS) return
-
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            sendDirectly()
-        } else {
-            launchSmsAppFallback()
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        activityScope.cancel()
     }
 
     private fun dismissSourceNotification() {
@@ -139,7 +139,6 @@ class SmsLaunchActivity : Activity() {
         private const val EXTRA_PHONE_NUMBER = "extra_phone_number"
         private const val EXTRA_MESSAGE = "extra_message"
         private const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
-        private const val REQUEST_CODE_SEND_SMS = 1001
         private const val NO_NOTIFICATION_ID = -1
 
         fun intentFor(
