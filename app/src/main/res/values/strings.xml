@@ -71,4 +71,6 @@
     <string name="toast_no_sms_app">No SMS app available.</string>
     <string name="toast_sms_sent">Message sent</string>
     <string name="toast_settings_saved">Saved</string>
+    <string name="format_birthday_message">Happy birthday, %1$s! 🎉</string>
+    <string name="format_special_date_body">%1$s today</string>
 </resources>

@@ -141,4 +141,73 @@ object ContactsLoader {
             }
             ids
         }
+
+    /**
+     * Birthdays (month/day only — no year, PRD §6.3 privacy note) for every
+     * id in [contactIds], sourced from ContactsContract's Events table.
+     * Contacts with no birthday event, or one in an unparseable format, are
+     * omitted rather than guessed at.
+     */
+    suspend fun loadBirthdays(context: Context, contactIds: Set<String>): Map<String, Pair<Int, Int>> =
+        withContext(Dispatchers.IO) {
+            if (contactIds.isEmpty()) return@withContext emptyMap()
+            val result = mutableMapOf<String, Pair<Int, Int>>()
+            val projection = arrayOf(
+                ContactsContract.CommonDataKinds.Event.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Event.START_DATE
+            )
+            val selection = "${ContactsContract.CommonDataKinds.Event.MIMETYPE} = ? AND " +
+                "${ContactsContract.CommonDataKinds.Event.TYPE} = ?"
+            val selectionArgs = arrayOf(
+                ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE,
+                ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY.toString()
+            )
+            context.contentResolver.query(
+                ContactsContract.Data.CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                val idIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Event.CONTACT_ID)
+                val dateIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Event.START_DATE)
+                while (cursor.moveToNext()) {
+                    val entry = readBirthdayRow(cursor, idIdx, dateIdx, contactIds) ?: continue
+                    result[entry.first] = entry.second
+                }
+            }
+            result
+        }
+
+    /**
+     * Builds a (contactId, month-day) pair from the cursor's current row, or
+     * `null` if the row should be skipped (contact not in [contactIds],
+     * missing date, or an unparseable date format). Keeps [loadBirthdays]'s
+     * loop to a single jump statement (FRM-#5 convention, see [readContactRow]).
+     */
+    private fun readBirthdayRow(
+        cursor: Cursor,
+        idIdx: Int,
+        dateIdx: Int,
+        contactIds: Set<String>
+    ): Pair<String, Pair<Int, Int>>? =
+        cursor.getString(idIdx)?.takeIf { it in contactIds }?.let { contactId ->
+            cursor.getString(dateIdx)?.let { raw ->
+                parseMonthDay(raw)?.let { monthDay -> contactId to monthDay }
+            }
+        }
+
+    /**
+     * ContactsContract Event dates are either "--MM-DD" (no year — the
+     * common case for a birthday entered without one) or "yyyy-MM-dd".
+     * Returns null for anything else rather than guessing.
+     */
+    private fun parseMonthDay(raw: String): Pair<Int, Int>? {
+        Regex("^--(\\d{2})-(\\d{2})$").find(raw)?.let { (m, d) -> return m.toInt() to d.toInt() }
+        Regex("^\\d{4}-(\\d{2})-(\\d{2})$").find(raw)?.let { (m, d) -> return m.toInt() to d.toInt() }
+        return null
+    }
+
+    private operator fun MatchResult.component1(): String = groupValues[1]
+    private operator fun MatchResult.component2(): String = groupValues[2]
 }

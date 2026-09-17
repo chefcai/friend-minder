@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit
 
 private const val PREFS_NAME = "friend_minder_cooldowns"
 private const val KEY_PREFIX = "last_suggested_"
+private const val COUNT_KEY_PREFIX = "reminder_count_"
 
 class SharedPrefsCooldownRepository(context: Context) : CooldownRepository {
 
@@ -28,5 +29,14 @@ class SharedPrefsCooldownRepository(context: Context) : CooldownRepository {
         val last = getLastSuggestion(contactId) ?: return false
         val cooldownMillis = TimeUnit.DAYS.toMillis(cooldownDays.toLong())
         return (System.currentTimeMillis() - last) < cooldownMillis
+    }
+
+    override suspend fun getReminderCount(contactId: String): Int = withContext(Dispatchers.IO) {
+        prefs.getInt(COUNT_KEY_PREFIX + contactId, 0)
+    }
+
+    override suspend fun incrementReminderCount(contactId: String) = withContext(Dispatchers.IO) {
+        val current = prefs.getInt(COUNT_KEY_PREFIX + contactId, 0)
+        prefs.edit().putInt(COUNT_KEY_PREFIX + contactId, current + 1).apply()
     }
 }
