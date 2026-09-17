@@ -60,4 +60,5 @@
     <string name="format_notif_action_text">Text %1$s</string>
     <string name="toast_no_sms_app">No SMS app available.</string>
     <string name="toast_sms_sent">Message sent</string>
+    <string name="toast_settings_saved">Saved</string>
 </resources>

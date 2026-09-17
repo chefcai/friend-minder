@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -206,6 +207,11 @@ class SettingsFragment : Fragment() {
             .map { it.trim() }
             .filter { it.isNotBlank() }
 
+        // Captured before the coroutine's suspend points so a fast fragment
+        // transition (see navigation below) can't tear down the view before
+        // the confirmation toast is shown (chefcai/friend-minder#31).
+        val appContext = requireContext().applicationContext
+
         viewLifecycleOwner.lifecycleScope.launch {
             val settingsRepo = ServiceLocator.settingsRepository
             settingsRepo.setRandomTimeEnabled(isRandom)
@@ -222,6 +228,8 @@ class SettingsFragment : Fragment() {
             } else {
                 scheduler.scheduleDaily(fixedHour, fixedMinute, contactsPerDay)
             }
+
+            Toast.makeText(appContext, R.string.toast_settings_saved, Toast.LENGTH_SHORT).show()
 
             if (isOnboarding) {
                 // Collapse the onboarding back-stack (FriendList -> Settings)
