@@ -4,19 +4,19 @@
     <!-- Read the phone's contact list so the user can build their Friend List -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
-    <!-- Declared per PRD §16 Q1 ("LOCKED: Request SEND_SMS"); NOT requested at
-         runtime by this implementation — Designer spec §2.3/§3.4 and the
-         README both specify launching the SMS app via ACTION_SENDTO (the
-         user reviews/sends in their own SMS app), which doesn't require this
-         permission. Left declared rather than silently dropped since it was
-         an explicit PRD decision; flagged in FRM-5 status notes for
-         Tracker/PM to confirm it can be removed. -->
+    <!-- PRD §16 Q1 (LOCKED: "Request SEND_SMS"). Requested at runtime by
+         SmsLaunchActivity as of chefcai/friend-minder#29: reminders now send
+         directly when the user grants this permission, falling back to
+         ACTION_SENDTO (open the user's own SMS app, pre-filled) if they
+         deny it or no message body is set — matching the PRD's "otherwise,
+         require manual send confirmation" branch of the same decision. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
 
     <!-- SEND_SMS above implies telephony hardware is required by default (this trips
-         ChromeOS/tablet installability). The app never actually places calls or sends
-         SMS itself (see comment above - it only launches the user's SMS app), so declare
-         telephony optional rather than required (FRM-18 / PermissionImpliesUnsupportedChromeOsHardware). -->
+         ChromeOS/tablet installability). The app degrades gracefully to the
+         ACTION_SENDTO fallback when SEND_SMS is denied or unusable (see
+         SmsLaunchActivity), so declare telephony optional rather than required
+         (FRM-18 / PermissionImpliesUnsupportedChromeOsHardware). -->
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <!-- Deliver the daily reminder notification (required at runtime on API 33+) -->
@@ -43,13 +43,18 @@
             </intent-filter>
         </activity>
 
-        <!-- Transparent trampoline the reminder notification's PendingIntent
-             targets to open the SMS composer (see SmsLaunchActivity). Not
+        <!-- Trampoline the reminder notification's PendingIntent targets to
+             send/open the SMS composer (see SmsLaunchActivity). Translucent
+             rather than Theme.NoDisplay (chefcai/friend-minder#29): the
+             activity now has to stay alive across an async runtime
+             permission request/response, which a NoDisplay-themed activity
+             cannot do without risking a BadTokenException — translucent
+             lets it linger invisibly until it finishes itself. Not
              exported: only ever invoked via a PendingIntent this app created. -->
         <activity
             android:name=".notifications.SmsLaunchActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.NoDisplay"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true"
             android:noHistory="true" />
 
