@@ -46,7 +46,7 @@
     <string name="action_advanced_settings">Advanced settings</string>
     <string name="helper_direct_send_explanation">Send reminder texts right away when you tap a notification, without opening your messaging app each time. This uses the SMS permission, only to send the message you tap — nothing else.</string>
     <string name="checkbox_direct_send">Send messages directly</string>
-    <string name="label_direct_send_permission_denied">SMS permission isn\'t granted, so messages will open in your messaging app instead. To enable direct sending, allow SMS access in system settings.</string>
+    <string name="label_direct_send_permission_denied">SMS permission isn\'t granted, so messages will open in your messaging app instead. To enable direct sending, turn this back on and allow the permission when asked.</string>
 
     <!-- Home (HomeFragment) -->
     <string name="title_home">Friend-minder</string>
