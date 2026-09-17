@@ -1,11 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 android {
     namespace = "com.example.friendminder"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.friendminder"
@@ -32,10 +33,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         viewBinding = true
     }
@@ -50,6 +47,16 @@ android {
         warningsAsErrors = false
         checkDependencies = false
         error += listOf("ContentDescription", "ClickableViewAccessibility", "LabelFor", "KeyboardInaccessibleWidget")
+    }
+}
+
+kotlin {
+    compilerOptions {
+        // AGP 9.0+ has built-in Kotlin support and no longer needs the separate
+        // org.jetbrains.kotlin.android plugin (applying it alongside AGP 9 is now
+        // a hard error - see https://kotl.in/gradle/agp-built-in-kotlin). The old
+        // android { kotlinOptions { jvmTarget = "17" } } DSL moves here instead.
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
