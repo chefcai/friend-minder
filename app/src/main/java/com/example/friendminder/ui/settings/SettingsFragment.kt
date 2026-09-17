@@ -102,10 +102,13 @@ class SettingsFragment : Fragment() {
         binding.includeMessageCheckbox.setOnCheckedChangeListener { _, checked ->
             binding.messageTemplateInput.isEnabled = checked
         }
+        // One template per line (chefcai/friend-minder#30); the char counter
+        // now reports how many usable templates that resolves to rather than
+        // a single field's character count.
         binding.messageTemplateInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.charCounterText.text = getString(R.string.format_char_counter, s?.length ?: 0, 200)
+                updateTemplateCounter(s?.toString().orEmpty())
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })
@@ -136,16 +139,21 @@ class SettingsFragment : Fragment() {
             val cooldownIndex = listOf(3, 7, 14).indexOf(cooldown).let { if (it < 0) 0 else it }
             binding.cooldownSpinner.setSelection(cooldownIndex)
 
-            val template = repo.getMessageTemplate()
-            val hasTemplate = template.isNotBlank()
-            binding.includeMessageCheckbox.isChecked = hasTemplate
-            binding.messageTemplateInput.isEnabled = hasTemplate
-            binding.messageTemplateInput.setText(if (hasTemplate) template else "")
-            binding.charCounterText.text =
-                getString(R.string.format_char_counter, binding.messageTemplateInput.text?.length ?: 0, 200)
+            val messageEnabled = repo.isMessageEnabled()
+            val templatesText = repo.getMessageTemplates().joinToString("\n")
+            binding.includeMessageCheckbox.isChecked = messageEnabled
+            binding.messageTemplateInput.isEnabled = messageEnabled
+            binding.messageTemplateInput.setText(templatesText)
+            updateTemplateCounter(templatesText)
 
             validateTimeRange()
         }
+    }
+
+    private fun updateTemplateCounter(text: String) {
+        val count = text.lines().map { it.trim() }.count { it.isNotBlank() }
+        binding.charCounterText.text =
+            resources.getQuantityString(R.plurals.format_template_counter, count, count)
     }
 
     private fun renderFixedTimeButton() {
@@ -193,7 +201,10 @@ class SettingsFragment : Fragment() {
         val contactsPerDay = (binding.contactsPerDaySpinner.selectedItemPosition + 1).coerceIn(1, 5)
         val cooldownDays = listOf(3, 7, 14)[binding.cooldownSpinner.selectedItemPosition.coerceIn(0, 2)]
         val includeMessage = binding.includeMessageCheckbox.isChecked
-        val template = if (includeMessage) binding.messageTemplateInput.text?.toString().orEmpty() else ""
+        val templates = binding.messageTemplateInput.text?.toString().orEmpty()
+            .lines()
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             val settingsRepo = ServiceLocator.settingsRepository
@@ -202,7 +213,8 @@ class SettingsFragment : Fragment() {
             settingsRepo.setRandomTimeRange(randomStartHour, randomEndHour)
             settingsRepo.setContactsPerDay(contactsPerDay)
             settingsRepo.setCooldownDays(cooldownDays)
-            settingsRepo.setMessageTemplate(template)
+            settingsRepo.setMessageEnabled(includeMessage)
+            settingsRepo.setMessageTemplates(templates)
 
             val scheduler = ServiceLocator.notificationScheduler
             if (isRandom) {

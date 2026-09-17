@@ -63,7 +63,16 @@ class SuggestionWorker(
         }
 
         cooldownRepo.setLastSuggestion(chosen.id, System.currentTimeMillis())
-        NotificationHelper.postReminder(appContext, chosen, settingsRepo.getMessageTemplate())
+        // Random pick from the template pool (chefcai/friend-minder#30) so
+        // recipients don't see the exact same wording every reminder;
+        // getMessageTemplates() guarantees a non-empty list. Respect the
+        // user's "include a message" opt-out independently of the pool.
+        val message = if (settingsRepo.isMessageEnabled()) {
+            settingsRepo.getMessageTemplates().random()
+        } else {
+            ""
+        }
+        NotificationHelper.postReminder(appContext, chosen, message)
 
         rearmIfRandom()
         return Result.success()
