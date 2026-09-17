@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:paddingStart="@dimen/fm_space_2"
+    android:paddingEnd="@dimen/fm_space_2"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:minWidth="72dp">
+
+    <FrameLayout
+        android:layout_width="@dimen/fm_avatar_size_list"
+        android:layout_height="@dimen/fm_avatar_size_list">
+
+        <ImageView
+            android:id="@+id/contactPhoto"
+            android:layout_width="@dimen/fm_avatar_size_list"
+            android:layout_height="@dimen/fm_avatar_size_list"
+            android:background="@drawable/bg_avatar_placeholder"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/contactInitial"
+            android:layout_width="@dimen/fm_avatar_size_list"
+            android:layout_height="@dimen/fm_avatar_size_list"
+            android:background="@drawable/bg_avatar_placeholder"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSecondaryContainer" />
+
+        <TextView
+            android:id="@+id/streakBadge"
+            android:layout_width="@dimen/fm_streak_badge_size"
+            android:layout_height="@dimen/fm_streak_badge_size"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_streak_badge"
+            android:gravity="center"
+            android:textColor="?attr/colorOnSecondary"
+            android:textAppearance="?attr/textAppearanceLabelSmall" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/streakName"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_1"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textAppearance="?attr/textAppearanceLabelSmall" />
+</LinearLayout>
