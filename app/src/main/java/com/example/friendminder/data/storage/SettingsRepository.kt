@@ -23,9 +23,20 @@ interface SettingsRepository {
     suspend fun getContactsPerDay(): Int
     suspend fun setContactsPerDay(count: Int)
 
-    /** Optional pre-fill text for the SMS body (PRD Q7 default: "Hey, How's it going?"). */
-    suspend fun getMessageTemplate(): String
-    suspend fun setMessageTemplate(template: String)
+    /** Whether reminders should include a pre-filled SMS body at all ("Include a message" checkbox). */
+    suspend fun isMessageEnabled(): Boolean
+    suspend fun setMessageEnabled(enabled: Boolean)
+
+    /**
+     * Pool of pre-fill/send SMS body templates (PRD Q7 default seed:
+     * "Hey, How's it going?"); [SuggestionWorker] picks one at random per
+     * reminder when [isMessageEnabled] is true (chefcai/friend-minder#30) so
+     * recipients don't see the exact same text every time. Always
+     * non-empty — falls back to the built-in defaults if the user clears
+     * every template.
+     */
+    suspend fun getMessageTemplates(): List<String>
+    suspend fun setMessageTemplates(templates: List<String>)
 
     /** Days before a contact can be re-suggested (PRD Q2 default: 3). */
     suspend fun getCooldownDays(): Int

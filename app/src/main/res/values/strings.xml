@@ -28,10 +28,15 @@
     <string name="cooldown_option_3">3 days</string>
     <string name="cooldown_option_7">7 days</string>
     <string name="cooldown_option_14">14 days</string>
-    <string name="label_message_template">Message Template</string>
+    <string name="label_message_templates">Message Templates</string>
+    <string name="hint_message_templates">One message per line — a random one is used each time</string>
     <string name="checkbox_include_message">Include a pre-filled message</string>
     <string name="action_save_settings">Save Settings</string>
-    <string name="format_char_counter">%1$d/%2$d</string>
+    <plurals name="format_template_counter">
+        <item quantity="zero">No templates yet — a default will be used</item>
+        <item quantity="one">%1$d template</item>
+        <item quantity="other">%1$d templates</item>
+    </plurals>
 
     <!-- Home (HomeFragment) -->
     <string name="title_home">Friend-minder</string>

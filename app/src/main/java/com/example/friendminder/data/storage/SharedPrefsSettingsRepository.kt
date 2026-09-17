@@ -2,6 +2,8 @@ package com.example.friendminder.data.storage
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -12,18 +14,27 @@ private const val KEY_RANDOM_ENABLED = "random_time_enabled"
 private const val KEY_RANDOM_START = "random_start_hour"
 private const val KEY_RANDOM_END = "random_end_hour"
 private const val KEY_CONTACTS_PER_DAY = "contacts_per_day"
-private const val KEY_MESSAGE_TEMPLATE = "message_template"
+private const val KEY_MESSAGE_ENABLED = "message_enabled"
+private const val KEY_MESSAGE_TEMPLATE = "message_template" // legacy single-template key, FRM-30 migration source
+private const val KEY_MESSAGE_TEMPLATES = "message_templates_json"
 private const val KEY_COOLDOWN_DAYS = "cooldown_days"
 
 // PRD-locked defaults (§16 Open Questions -> Resolved Decisions)
 private const val DEFAULT_CONTACTS_PER_DAY = 1
 private const val DEFAULT_COOLDOWN_DAYS = 3
-private const val DEFAULT_MESSAGE_TEMPLATE = "Hey, How's it going?"
+private const val DEFAULT_MESSAGE_ENABLED = true
+private val DEFAULT_MESSAGE_TEMPLATES = listOf(
+    "Hey, How's it going?",
+    "Thinking of you — how have you been?",
+    "It's been a while! What's new with you?"
+)
 
 class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
 
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val gson = Gson()
+    private val templatesListType = object : TypeToken<List<String>>() {}.type
 
     override suspend fun getReminderTime(): Pair<Int, Int>? = withContext(Dispatchers.IO) {
         val hour = prefs.getInt(KEY_HOUR, -1)
@@ -61,12 +72,37 @@ class SharedPrefsSettingsRepository(context: Context) : SettingsRepository {
         prefs.edit().putInt(KEY_CONTACTS_PER_DAY, count).apply()
     }
 
-    override suspend fun getMessageTemplate(): String = withContext(Dispatchers.IO) {
-        prefs.getString(KEY_MESSAGE_TEMPLATE, DEFAULT_MESSAGE_TEMPLATE) ?: DEFAULT_MESSAGE_TEMPLATE
+    override suspend fun isMessageEnabled(): Boolean = withContext(Dispatchers.IO) {
+        prefs.getBoolean(KEY_MESSAGE_ENABLED, DEFAULT_MESSAGE_ENABLED)
     }
 
-    override suspend fun setMessageTemplate(template: String) = withContext(Dispatchers.IO) {
-        prefs.edit().putString(KEY_MESSAGE_TEMPLATE, template).apply()
+    override suspend fun setMessageEnabled(enabled: Boolean) = withContext(Dispatchers.IO) {
+        prefs.edit().putBoolean(KEY_MESSAGE_ENABLED, enabled).apply()
+    }
+
+    override suspend fun getMessageTemplates(): List<String> = withContext(Dispatchers.IO) {
+        val json = prefs.getString(KEY_MESSAGE_TEMPLATES, null)
+        val stored = if (json != null) {
+            runCatching { gson.fromJson<List<String>>(json, templatesListType) }.getOrNull()
+        } else {
+            null
+        }
+        val nonBlank = stored?.map { it.trim() }?.filter { it.isNotBlank() }
+
+        if (!nonBlank.isNullOrEmpty()) return@withContext nonBlank
+
+        // Nothing valid under the new key yet — migrate the legacy single
+        // template (pre-FRM-30) if one was set, otherwise fall back to defaults.
+        val legacy = prefs.getString(KEY_MESSAGE_TEMPLATE, null)?.trim()
+        if (!legacy.isNullOrBlank()) listOf(legacy) else DEFAULT_MESSAGE_TEMPLATES
+    }
+
+    override suspend fun setMessageTemplates(templates: List<String>) = withContext(Dispatchers.IO) {
+        val cleaned = templates.map { it.trim() }.filter { it.isNotBlank() }
+        prefs.edit()
+            .putString(KEY_MESSAGE_TEMPLATES, gson.toJson(cleaned))
+            .remove(KEY_MESSAGE_TEMPLATE) // superseded by KEY_MESSAGE_TEMPLATES
+            .apply()
     }
 
     override suspend fun getCooldownDays(): Int = withContext(Dispatchers.IO) {
