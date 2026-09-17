@@ -1,6 +1,7 @@
 package com.example.friendminder.data.contacts
 
 import android.content.Context
+import android.database.Cursor
 import android.provider.ContactsContract
 import com.example.friendminder.data.models.Contact
 import kotlinx.coroutines.Dispatchers
@@ -41,15 +42,31 @@ object ContactsLoader {
                 val photoIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_URI)
 
                 while (cursor.moveToNext()) {
-                    val id = cursor.getString(idIdx) ?: continue
-                    if (byId.containsKey(id)) continue // first phone number for this contact wins
-                    val name = cursor.getString(nameIdx) ?: continue
-                    val number = cursor.getString(numberIdx)?.takeIf { it.isNotBlank() } ?: continue
-                    val photoUri = cursor.getString(photoIdx)
-                    byId[id] = Contact(id = id, name = name, phoneNumber = number, photoUri = photoUri)
+                    val contact = readContactRow(cursor, idIdx, nameIdx, numberIdx, photoIdx) ?: continue
+                    if (!byId.containsKey(contact.id)) byId[contact.id] = contact // first phone number wins
                 }
             }
             byId.values.sortedBy { it.name.lowercase() }
+        }
+
+    /**
+     * Builds a [Contact] from the cursor's current row, or `null` if the row should be skipped
+     * (missing id, missing name, or missing/blank phone number). Keeps [loadContactsWithPhoneNumbers]'s
+     * loop to a single jump statement, with zero jumps of its own here (FRM-#5).
+     */
+    private fun readContactRow(
+        cursor: Cursor,
+        idIdx: Int,
+        nameIdx: Int,
+        numberIdx: Int,
+        photoIdx: Int
+    ): Contact? =
+        cursor.getString(idIdx)?.let { id ->
+            cursor.getString(nameIdx)?.let { name ->
+                cursor.getString(numberIdx)?.takeIf { it.isNotBlank() }?.let { number ->
+                    Contact(id = id, name = name, phoneNumber = number, photoUri = cursor.getString(photoIdx))
+                }
+            }
         }
 
     /**
