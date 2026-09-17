@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import com.example.friendminder.R
 
@@ -25,12 +26,16 @@ class SmsLaunchActivity : Activity() {
         try {
             startActivity(smsIntent)
         } catch (e: ActivityNotFoundException) {
+            // Log the original exception — the catch is scoped to "no SMS app installed", but a
+            // malformed sms: URI or other cause would otherwise be silently swallowed (FRM-#4).
+            Log.w(TAG, "No app can handle $smsIntent", e)
             Toast.makeText(this, R.string.toast_no_sms_app, Toast.LENGTH_SHORT).show()
         }
         finish()
     }
 
     companion object {
+        private const val TAG = "SmsLaunchActivity"
         private const val EXTRA_PHONE_NUMBER = "extra_phone_number"
         private const val EXTRA_MESSAGE = "extra_message"
 
