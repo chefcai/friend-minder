@@ -19,9 +19,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactsLoader
+import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.FragmentFriendListBinding
 import com.example.friendminder.ui.settings.SettingsFragment
 import com.example.friendminder.utils.ServiceLocator
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
 /**
@@ -42,10 +44,19 @@ class FriendListFragment : Fragment() {
     private lateinit var adapter: ContactAdapter
 
     /** Full candidate list currently shown: device contacts + any missing saved friends. */
-    private var allItemsSource: List<com.example.friendminder.data.models.Contact> = emptyList()
+    private var allItemsSource: List<Contact> = emptyList()
     private val selectedIds = linkedSetOf<String>()
     private var missingFriendIds: Set<String> = emptySet()
     private var initialFriendIds: Set<String> = emptySet()
+
+    /**
+     * Every phone number on file per device contact (primary-flagged one
+     * first), keyed by contact id. Used only to decide whether selecting a
+     * contact needs a number picker first (chefcai/friend-minder#39) —
+     * [Contact.phoneNumber] in [allItemsSource] is still the single resolved
+     * number that actually gets persisted.
+     */
+    private var phoneNumbersByContactId: Map<String, List<String>> = emptyMap()
     private var searchQuery: String = ""
 
     private val requestContactsPermission =
@@ -138,7 +149,9 @@ class FriendListFragment : Fragment() {
             selectedIds.clear()
             selectedIds += initialFriendIds
 
-            val device = ContactsLoader.loadContactsWithPhoneNumbers(requireContext())
+            val result = ContactsLoader.loadContactsWithPhoneNumbers(requireContext())
+            val device = result.contacts
+            phoneNumbersByContactId = result.phoneNumbersByContactId
             val deviceIds = device.map { it.id }.toSet()
             val missing = savedFriends.filterNot { it.id in deviceIds }
             missingFriendIds = missing.map { it.id }.toSet()
@@ -179,8 +192,39 @@ class FriendListFragment : Fragment() {
             renderList()
             return
         }
-        if (item.contact.id in selectedIds) selectedIds -= item.contact.id else selectedIds += item.contact.id
+
+        val isCurrentlySelected = item.contact.id in selectedIds
+        if (!isCurrentlySelected) {
+            // Newly selecting a contact with more than one phone number on
+            // file needs a choice made now, before the selection takes effect
+            // (PRD §16 Q3, chefcai/friend-minder#39) — resolved once here so
+            // nothing downstream ever has to ask again at send time.
+            val numbers = phoneNumbersByContactId[item.contact.id].orEmpty()
+            if (numbers.size > 1) {
+                showPhoneNumberPicker(item.contact, numbers)
+                return
+            }
+        }
+
+        if (isCurrentlySelected) selectedIds -= item.contact.id else selectedIds += item.contact.id
         renderList()
+    }
+
+    private fun showPhoneNumberPicker(contact: Contact, numbers: List<String>) {
+        var chosenIndex = 0
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.format_choose_phone_number, contact.name))
+            .setSingleChoiceItems(numbers.toTypedArray(), chosenIndex) { _, which -> chosenIndex = which }
+            .setPositiveButton(R.string.action_use_number) { _, _ ->
+                val chosenNumber = numbers[chosenIndex]
+                allItemsSource = allItemsSource.map {
+                    if (it.id == contact.id) it.copy(phoneNumber = chosenNumber) else it
+                }
+                selectedIds += contact.id
+                renderList()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
     }
 
     private fun updateSelectionCount() {

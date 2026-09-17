@@ -15,19 +15,53 @@ import kotlinx.coroutines.withContext
 object ContactsLoader {
 
     /**
-     * Contacts with at least one phone number, one row per contact (first
-     * phone number wins), sorted by display name. Contacts without any phone
-     * number are excluded entirely so they can never be selected (Designer
-     * spec §4.5).
+     * Result of [loadContactsWithPhoneNumbers]: one [Contact] per device
+     * contact that has at least one phone number (PRD §16 Q3's chosen/default
+     * number — the OS-flagged primary when one exists, otherwise whichever
+     * number the query returned first), plus every phone number on file for
+     * that contact so callers can offer a picker (chefcai/friend-minder#39).
      */
-    suspend fun loadContactsWithPhoneNumbers(context: Context): List<Contact> =
+    data class ContactsQueryResult(
+        val contacts: List<Contact>,
+        val phoneNumbersByContactId: Map<String, List<String>>
+    )
+
+    private data class ContactRow(
+        val id: String,
+        val name: String,
+        val number: String,
+        val photoUri: String?,
+        val isPrimary: Boolean
+    )
+
+    /** Groups the Phone table's column indices into one param (keeps [readContactRow] under detekt's LongParameterList threshold). */
+    private data class PhoneColumns(
+        val idIdx: Int,
+        val nameIdx: Int,
+        val numberIdx: Int,
+        val photoIdx: Int,
+        val primaryIdx: Int
+    )
+
+    /**
+     * Contacts with at least one phone number, one row per contact, sorted by
+     * display name. Contacts without any phone number are excluded entirely
+     * so they can never be selected (Designer spec §4.5). Also returns every
+     * phone number on file per contact (deduped, primary-flagged number
+     * first) so [com.example.friendminder.ui.friendlist.FriendListFragment]
+     * can prompt a picker for contacts with more than one (PRD §16 Q3,
+     * chefcai/friend-minder#39) without a second query pass.
+     */
+    suspend fun loadContactsWithPhoneNumbers(context: Context): ContactsQueryResult =
         withContext(Dispatchers.IO) {
-            val byId = LinkedHashMap<String, Contact>()
+            val firstSeen = LinkedHashMap<String, Contact>()
+            val rowsById = LinkedHashMap<String, MutableList<ContactRow>>()
             val projection = arrayOf(
                 ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY,
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
-                ContactsContract.CommonDataKinds.Phone.PHOTO_URI
+                ContactsContract.CommonDataKinds.Phone.PHOTO_URI,
+                ContactsContract.CommonDataKinds.Phone.IS_PRIMARY
             )
             context.contentResolver.query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -36,35 +70,51 @@ object ContactsLoader {
                 null,
                 "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY} ASC"
             )?.use { cursor ->
-                val idIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
-                val nameIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY)
-                val numberIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                val photoIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_URI)
+                val columns = PhoneColumns(
+                    idIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID),
+                    nameIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY),
+                    numberIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER),
+                    photoIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_URI),
+                    primaryIdx = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.IS_PRIMARY)
+                )
 
                 while (cursor.moveToNext()) {
-                    val contact = readContactRow(cursor, idIdx, nameIdx, numberIdx, photoIdx) ?: continue
-                    if (!byId.containsKey(contact.id)) byId[contact.id] = contact // first phone number wins
+                    val row = readContactRow(cursor, columns) ?: continue
+                    if (!firstSeen.containsKey(row.id)) {
+                        firstSeen[row.id] = Contact(id = row.id, name = row.name, phoneNumber = row.number, photoUri = row.photoUri)
+                    }
+                    val rows = rowsById.getOrPut(row.id) { mutableListOf() }
+                    if (rows.none { it.number == row.number }) rows += row
                 }
             }
-            byId.values.sortedBy { it.name.lowercase() }
+
+            val phoneNumbersByContactId = rowsById.mapValues { (_, rows) ->
+                rows.sortedByDescending { it.isPrimary }.map { it.number }
+            }
+            val contacts = firstSeen.values.map { contact ->
+                val preferred = phoneNumbersByContactId[contact.id]?.firstOrNull() ?: contact.phoneNumber
+                contact.copy(phoneNumber = preferred)
+            }.sortedBy { it.name.lowercase() }
+
+            ContactsQueryResult(contacts = contacts, phoneNumbersByContactId = phoneNumbersByContactId)
         }
 
     /**
-     * Builds a [Contact] from the cursor's current row, or `null` if the row should be skipped
+     * Builds a [ContactRow] from the cursor's current row, or `null` if the row should be skipped
      * (missing id, missing name, or missing/blank phone number). Keeps [loadContactsWithPhoneNumbers]'s
      * loop to a single jump statement, with zero jumps of its own here (FRM-#5).
      */
-    private fun readContactRow(
-        cursor: Cursor,
-        idIdx: Int,
-        nameIdx: Int,
-        numberIdx: Int,
-        photoIdx: Int
-    ): Contact? =
-        cursor.getString(idIdx)?.let { id ->
-            cursor.getString(nameIdx)?.let { name ->
-                cursor.getString(numberIdx)?.takeIf { it.isNotBlank() }?.let { number ->
-                    Contact(id = id, name = name, phoneNumber = number, photoUri = cursor.getString(photoIdx))
+    private fun readContactRow(cursor: Cursor, columns: PhoneColumns): ContactRow? =
+        cursor.getString(columns.idIdx)?.let { id ->
+            cursor.getString(columns.nameIdx)?.let { name ->
+                cursor.getString(columns.numberIdx)?.takeIf { it.isNotBlank() }?.let { number ->
+                    ContactRow(
+                        id = id,
+                        name = name,
+                        number = number,
+                        photoUri = cursor.getString(columns.photoIdx),
+                        isPrimary = cursor.getInt(columns.primaryIdx) != 0
+                    )
                 }
             }
         }

@@ -12,6 +12,9 @@
     <string name="label_no_contacts_with_numbers">No contacts with phone numbers found</string>
     <string name="label_permission_denied">Enable contact access to add friends</string>
     <string name="action_open_settings">Open Settings</string>
+    <string name="format_choose_phone_number">Which number for %1$s?</string>
+    <string name="action_use_number">Use this number</string>
+    <string name="action_cancel">Cancel</string>
 
     <!-- Settings (SettingsFragment) -->
     <string name="title_settings">Settings</string>
