@@ -1,4 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Barebones MVP theme: Material 3 defaults, no custom branding. -->
-    <style name="Theme.FriendMinder" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+    <!-- Barebones MVP theme: Material 3 defaults, dynamic color (Material You)
+         where the device supports it, else the M3 baseline palette — no
+         custom color overrides (Designer spec §5). -->
+    <style name="Theme.FriendMinder" parent="Theme.Material3.DayNight.NoActionBar" />
 </resources>
