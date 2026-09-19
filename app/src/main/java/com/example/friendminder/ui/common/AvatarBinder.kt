@@ -1,6 +1,5 @@
 package com.example.friendminder.ui.common
 
-import android.content.res.Configuration
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.ImageView
@@ -31,10 +30,7 @@ object AvatarBinder {
         photoLoader: ContactPhotoLoader,
         scope: CoroutineScope
     ): Job? {
-        val isDarkTheme = (photoView.context.resources.configuration.uiMode and
-            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-        showInitialsFallback(photoView, initialsView, contact, isDarkTheme)
+        showInitialsFallback(photoView, initialsView, contact)
 
         val photoUri = contact.photoUri ?: return null
         return scope.launch {
@@ -50,15 +46,14 @@ object AvatarBinder {
     private fun showInitialsFallback(
         photoView: ImageView,
         initialsView: TextView,
-        contact: Contact,
-        isDarkTheme: Boolean
+        contact: Contact
     ) {
         photoView.visibility = View.GONE
         initialsView.visibility = View.VISIBLE
         initialsView.text = contact.name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
-        val avatarColor = AvatarPalette.colorFor(photoView.context, contact.id, isDarkTheme)
-        val textColor = AvatarPalette.initialsTextColorFor(photoView.context, contact.id, isDarkTheme)
+        val avatarColor = AvatarPalette.colorFor(photoView.context, contact.id)
+        val textColor = AvatarPalette.initialsTextColorFor(photoView.context, contact.id)
 
         initialsView.background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL

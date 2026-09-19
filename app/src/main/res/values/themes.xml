@@ -1,13 +1,42 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Material 3 theme with Phase 2 brand colors applied (FRM-42, Designer
-         spec §1). Dynamic color (Material You) is intentionally NOT enabled:
-         the whole point of Designer's palette is a consistent, curated brand
-         look, which a per-device dynamic scheme would override. Dark theme
-         counterpart is values-night/themes.xml. -->
-    <style name="Theme.FriendMinder" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Warm Circle Material 3 theme (FRM-60, DESIGN-SYSTEM-PHASE2.md). Dynamic
+         color (Material You) is intentionally NOT enabled: the whole point of
+         Designer's palette is a consistent, curated brand look, which a
+         per-device dynamic scheme would override.
+
+         Light mode only, by explicit product decision
+         (DESIGN-SYSTEM-PHASE2.md §0/§9: "there is no dark theme, no *-dark
+         token, and no dark-mode QA item anywhere in this document"). Parent
+         is Theme.Material3.Light.NoActionBar (not ...DayNight...), which
+         forces light mode regardless of the system setting, and there is no
+         values-night/themes.xml counterpart - it was deleted as part of this
+         change and should not be reintroduced.
+
+         Every Material3 color role the app actually references via
+         ?attr/color* (per a full grep of app/src/main/res and
+         app/src/main/java) is mapped explicitly below, rather than left to
+         inherit stock Material3 defaults. -->
+    <style name="Theme.FriendMinder" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/fm_primary</item>
+        <item name="colorOnPrimary">@color/fm_on_primary</item>
+        <item name="colorPrimaryContainer">@color/fm_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/fm_on_primary_container</item>
+
         <item name="colorSecondary">@color/fm_secondary</item>
-        <item name="colorOnPrimary">@color/fm_avatar_initials_light</item>
-        <item name="colorOnSecondary">@color/fm_avatar_initials_light</item>
+        <item name="colorOnSecondary">@color/fm_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/fm_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/fm_on_secondary_container</item>
+
+        <item name="colorSurface">@color/fm_surface</item>
+        <item name="colorOnSurface">@color/fm_ink</item>
+        <item name="colorSurfaceVariant">@color/fm_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/fm_on_surface_variant</item>
+
+        <item name="colorOutline">@color/fm_outline</item>
+        <item name="colorOutlineVariant">@color/fm_outline_variant</item>
+
+        <item name="colorError">@color/fm_error</item>
+        <item name="colorErrorContainer">@color/fm_error_container</item>
+        <item name="colorOnErrorContainer">@color/fm_on_error_container</item>
     </style>
 </resources>
