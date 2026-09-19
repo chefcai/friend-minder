@@ -43,4 +43,16 @@
         <item name="colorErrorContainer">@color/fm_error_container</item>
         <item name="colorOnErrorContainer">@color/fm_on_error_container</item>
     </style>
+    <!-- FRM-65: splash screen (DESIGN-SYSTEM-PHASE2.md §8.3). Uses the
+         Android 12+ SplashScreen API via androidx.core.splashscreen, which
+         back-fills the same behavior on API 26-30 (this app's minSdk is 26)
+         instead of a custom splash Activity - keeps the dependency count at
+         zero beyond the one androidx.core.splashscreen artifact. Set as
+         MainActivity's theme; installSplashScreen() in MainActivity.onCreate()
+         swaps to postSplashScreenTheme (the real app theme) once ready. -->
+    <style name="Theme.FriendMinder.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/fm_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.FriendMinder</item>
+    </style>
 </resources>
