@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Warm Circle</string>
+    <string name="app_name">Friend-Minder</string>
 
     <!-- Friend List (FriendListFragment) -->
     <string name="title_add_friends">Add Friends</string>
@@ -52,7 +52,7 @@
     <string name="checkbox_birthday_check">Birthday &amp; special date reminders</string>
 
     <!-- Home (HomeFragment) -->
-    <string name="title_home">Warm Circle</string>
+    <string name="title_home">Friend-Minder</string>
     <string name="label_preview_header">You\'ll get a reminder like this:</string>
     <string name="label_preview_chip">Preview</string>
     <string name="action_test_notification">Send a test notification</string>
@@ -171,16 +171,19 @@
     <string name="hint_outreach_note">Note (optional)</string>
     <string name="toast_outreach_logged">Outreach logged</string>
 
-    <!-- TalkBack names for the group swatch palette (DESIGN-SYSTEM-PHASE2.md §2.5),
-         in the same order as fm_group_color_1..8 in colors.xml. -->
+    <!-- TalkBack names for the group swatch palette (DESIGN-SYSTEM-PHASE2.md §2.5,
+         cool-rebrand edition), in the same order as fm_group_color_1..8 in
+         colors.xml. Corrected from an earlier "Warm Circle" pass
+         (Terracotta/Amber/Gold/Rust/Clay/Cocoa/Ivory/Espresso), which was
+         superseded before it should have shipped. -->
     <string-array name="group_color_names">
-        <item>Terracotta</item>
-        <item>Amber</item>
-        <item>Gold</item>
-        <item>Rust</item>
-        <item>Clay</item>
-        <item>Cocoa</item>
-        <item>Ivory</item>
-        <item>Espresso</item>
+        <item>Teal</item>
+        <item>Cyan</item>
+        <item>Sky</item>
+        <item>Deep Teal</item>
+        <item>Slate</item>
+        <item>Ink Blue</item>
+        <item>Mist</item>
+        <item>Midnight</item>
     </string-array>
 </resources>

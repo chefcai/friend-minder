@@ -209,17 +209,18 @@
         </ScrollView>
     </FrameLayout>
 
-    <!-- Warm Circle rebrand (SCREENS-PHASE2.md §4): the primary outreach
-         entry point is gold (secondary), not the default primary-fill
-         Widget.Material3.Button style, so it's explicitly re-tinted here
-         rather than relying on the style default. -->
+    <!-- Friend-Minder cool rebrand (SCREENS-PHASE2.md §4): the primary
+         outreach entry point is sky blue (secondary), not the default
+         primary-fill Widget.Material3.Button style, so it's explicitly
+         re-tinted here via the btn_secondary_background/btn_secondary_label
+         color selectors rather than relying on the style default. -->
     <Button
         android:id="@+id/logOutreachButton"
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_margin="@dimen/fm_space_4"
-        android:backgroundTint="@color/btn_gold_background"
-        android:textColor="@color/btn_gold_label"
+        android:backgroundTint="@color/btn_secondary_background"
+        android:textColor="@color/btn_secondary_label"
         android:text="@string/action_log_outreach" />
 </LinearLayout>
