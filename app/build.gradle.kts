@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.friendminder"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.friendminder"
