@@ -10,8 +10,9 @@ import kotlin.math.abs
  * Deterministic avatar fallback color assignment (FRM-61), per Designer's
  * DESIGN-SYSTEM-PHASE2.md §2.4:
  *
- * - 10 warm-family colors (`R.color.fm_avatar_1`..`fm_avatar_10`), assigned
- *   by `abs(contactId.hashCode()) % 10` so the same contact always gets the
+ * - 10 colors within a single cool hue band (~166-212 deg, teal through
+ *   blue; `R.color.fm_avatar_1`..`fm_avatar_10`), assigned by
+ *   `abs(contactId.hashCode()) % 10` so the same contact always gets the
  *   same color across app runs and screens.
  * - Light mode only (explicit product decision - see
  *   DESIGN-SYSTEM-PHASE2.md §0/§9): each swatch pairs with a single fixed
@@ -19,6 +20,13 @@ import kotlin.math.abs
  *   not computed at runtime. There is no dark-theme variant or lightness
  *   shift to compute, so the HSL math this object previously carried
  *   (`lighten`/`rgbToHsl`/`hslToRgb`) has been removed along with it.
+ * - The index-to-text-color pairing below is unchanged from an earlier
+ *   "Warm Circle" pass of this palette (chefcai/friend-minder#67, since
+ *   superseded before it should have shipped): the current cool palette was
+ *   produced by a luminance-matched hue rotation of the Warm Circle values,
+ *   which preserves which indices need dark-ink text vs white text exactly.
+ *   Only the color resource values (in colors.xml) and the ratios in the
+ *   comments below changed.
  */
 object AvatarPalette {
 
@@ -43,16 +51,16 @@ object AvatarPalette {
      * not derived, just looked up.
      */
     private val initialsTextColorRes = intArrayOf(
-        R.color.fm_avatar_initials_white, // 0 #A2522F - WHITE (5.55:1)
-        R.color.fm_avatar_initials_ink,   // 1 #CC8C33 - INK (5.10:1)
-        R.color.fm_avatar_initials_white, // 2 #944438 - WHITE (6.68:1)
-        R.color.fm_avatar_initials_ink,   // 3 #D4AC35 - INK (6.75:1)
-        R.color.fm_avatar_initials_white, // 4 #855E47 - WHITE (5.69:1)
-        R.color.fm_avatar_initials_white, // 5 #A34643 - WHITE (5.98:1)
-        R.color.fm_avatar_initials_white, // 6 #7C673C - WHITE (5.44:1)
-        R.color.fm_avatar_initials_ink,   // 7 #DF8F49 - INK (5.65:1)
-        R.color.fm_avatar_initials_white, // 8 #68443B - WHITE (8.47:1)
-        R.color.fm_avatar_initials_ink    // 9 #D1BB61 - INK (7.61:1)
+        R.color.fm_avatar_initials_white, // 0 #227376 - WHITE (5.55:1)
+        R.color.fm_avatar_initials_ink,   // 1 #41A2D0 - INK (5.05:1)
+        R.color.fm_avatar_initials_white, // 2 #26665D - WHITE (6.69:1)
+        R.color.fm_avatar_initials_ink,   // 3 #83B5E5 - INK (6.71:1)
+        R.color.fm_avatar_initials_white, // 4 #3E6E74 - WHITE (5.70:1)
+        R.color.fm_avatar_initials_white, // 5 #2D6E5F - WHITE (5.99:1)
+        R.color.fm_avatar_initials_white, // 6 #446E8C - WHITE (5.45:1)
+        R.color.fm_avatar_initials_ink,   // 7 #25AFD2 - INK (5.63:1)
+        R.color.fm_avatar_initials_white, // 8 #2F5451 - WHITE (8.37:1)
+        R.color.fm_avatar_initials_ink    // 9 #9FBFE3 - INK (7.63:1)
     )
 
     /** Stable palette index for a contact. */

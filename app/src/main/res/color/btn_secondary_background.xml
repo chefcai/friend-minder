@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Friend-Minder cool rebrand (DESIGN-SYSTEM-PHASE2.md §5, SCREENS-PHASE2.md
+     §4/§5): backgroundTint for a sky-blue/secondary-filled button
+     (logOutreachButton, OutreachLogDialog's saveButton). Disabled state
+     follows the same on-surface-at-12%-container pattern Material3's own
+     default button background selector uses, just swapped to reference the
+     app's colorSecondary/colorOnSurface tokens instead of colorPrimary.
+     Renamed from btn_gold_background.xml - an earlier "Warm Circle" pass
+     used a gold secondary color; this file's actual color references
+     (?attr/colorSecondary, etc.) never hardcoded gold and need no value
+     change, only the filename/comments to stop saying "gold". -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:alpha="0.12"
+        android:color="?attr/colorOnSurface"
+        android:state_enabled="false" />
+    <item android:color="?attr/colorSecondary" />
+</selector>

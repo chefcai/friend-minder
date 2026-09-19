@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Friend-Minder cool rebrand (DESIGN-SYSTEM-PHASE2.md §5: "disabled =
+     on-surface 38% opacity"). Label/icon color for a sky-blue/secondary-filled
+     button (logOutreachButton, OutreachLogDialog's saveButton). Renamed from
+     btn_gold_label.xml - see btn_secondary_background.xml for why. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:alpha="0.38"
+        android:color="?attr/colorOnSurface"
+        android:state_enabled="false" />
+    <item android:color="?attr/colorOnSecondary" />
+</selector>

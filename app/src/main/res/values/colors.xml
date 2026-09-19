@@ -1,95 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Warm Circle rebrand palette (FRM-60). Values are Designer's
-  DESIGN-SYSTEM-PHASE2.md §2 color table, WCAG-verified (see that doc's §7
-  contrast table) against the light-only surface tokens below.
+  Friend-Minder cool rebrand palette (FRM-60, corrected). Values are
+  Designer's DESIGN-SYSTEM-PHASE2.md §2 color table (cool-rebrand edition),
+  WCAG-verified (see that doc's §7 contrast table) against the light-only
+  surface tokens below.
 
-  Light mode only, by explicit product decision (see DESIGN-SYSTEM-PHASE2.md
-  §0/§9): there is no values-night variant of this file and none should be
-  reintroduced. The 10-color avatar fallback palette (FRM-61) has a single
-  fixed text-color pairing per swatch (see the table below and
-  AvatarPalette.kt) rather than a runtime dark-mode flip.
+  This supersedes an earlier pass of this file that used the "Warm Circle"
+  terracotta/gold/ember palette (chefcai/friend-minder#67) - that direction
+  was itself superseded by Designer before/while #67 was being implemented,
+  so it never should have shipped. Every value below is teal/cyan/blue -
+  no warm hue should appear anywhere in this file.
+
+  Light mode only, by explicit product decision: there is no values-night
+  variant of this file and none should be reintroduced. The 10-color avatar
+  fallback palette (FRM-61) has a single fixed text-color pairing per swatch
+  (see the table below and AvatarPalette.kt) rather than a runtime
+  dark-mode flip.
 -->
 <resources>
     <!-- Adaptive icon background (FRM-65, DESIGN-SYSTEM-PHASE2.md §8.2): solid
-         cream, matches fm_surface. -->
-    <color name="ic_launcher_background">#FBF1E4</color>
+         light blue, matches fm_surface. -->
+    <color name="ic_launcher_background">#E6F5FB</color>
 
     <!-- Brand colors (DESIGN-SYSTEM-PHASE2.md §2.1) -->
-    <color name="fm_primary">#C1502E</color>
+    <color name="fm_primary">#1F817D</color>
     <color name="fm_on_primary">#FFFFFF</color>
-    <color name="fm_primary_container">#F1D8D0</color>
-    <color name="fm_on_primary_container">#7A3B23</color>
-    <color name="fm_secondary">#E8A33D</color>
-    <color name="fm_on_secondary">#42200E</color>
-    <color name="fm_secondary_container">#F6E6CB</color>
-    <color name="fm_on_secondary_container">#42200E</color>
-    <!-- Ember accent: used sparingly (e.g. a streak-flame icon tint), never
-         as a large fill - see DESIGN-SYSTEM-PHASE2.md §2.1. -->
-    <color name="fm_accent">#8B3A1F</color>
+    <color name="fm_primary_container">#B0E8E6</color>
+    <color name="fm_on_primary_container">#195556</color>
+    <color name="fm_secondary">#5ABBEB</color>
+    <color name="fm_on_secondary">#0A2E31</color>
+    <color name="fm_secondary_container">#D6EBF8</color>
+    <color name="fm_on_secondary_container">#0A2E31</color>
+    <!-- Deep-cyan accent: used sparingly (e.g. a streak-flame icon tint), never
+         a large fill - see DESIGN-SYSTEM-PHASE2.md §2.1. -->
+    <color name="fm_accent">#155D5B</color>
     <color name="fm_on_accent">#FFFFFF</color>
 
     <!-- Ink & surfaces (DESIGN-SYSTEM-PHASE2.md §2.2) -->
-    <color name="fm_ink">#7A3B23</color>
-    <color name="fm_on_surface_variant">#6B5647</color>
-    <color name="fm_surface">#FBF1E4</color>
-    <color name="fm_surface_variant">#F3E4CF</color>
-    <color name="fm_outline">#B29580</color>
+    <color name="fm_ink">#195556</color>
+    <color name="fm_on_surface_variant">#425F64</color>
+    <color name="fm_surface">#E6F5FB</color>
+    <color name="fm_surface_variant">#D3E9F4</color>
+    <color name="fm_outline">#74A3AB</color>
     <!-- Not specified by Designer's doc; derived as the midpoint between
-         fm_surface_variant (#F3E4CF) and fm_outline (#B29580) for a subtle
-         divider/border tone one step lighter than fm_outline. -->
-    <color name="fm_outline_variant">#D2BCA7</color>
+         fm_surface_variant (#D3E9F4) and fm_outline (#74A3AB) for a subtle
+         divider/border tone one step lighter than fm_outline - same
+         derivation method used (and left unaddressed by Designer again)
+         under the prior Warm Circle pass. -->
+    <color name="fm_outline_variant">#A4C6D0</color>
 
     <!-- Error: unchanged from Material baseline (DESIGN-SYSTEM-PHASE2.md
-         §2.2 - "already warm-red, no rebrand conflict"). Container pair is
-         the standard Material3 baseline error-container pairing. -->
+         §2.2 - genuinely stands apart from an all-cool palette now).
+         Container pair is the standard Material3 baseline error-container
+         pairing, hue-independent, so it carries over unchanged from before. -->
     <color name="fm_error">#B3261E</color>
     <color name="fm_error_container">#F9DEDC</color>
     <color name="fm_on_error_container">#410E0B</color>
 
     <!-- Status colors (DESIGN-SYSTEM-PHASE2.md §2.3) -->
-    <color name="fm_status_healthy">#865C13</color>
-    <color name="fm_status_attention">#884430</color>
-    <color name="fm_status_neglected">#8B2E1A</color>
-    <color name="fm_status_new">#71573D</color>
+    <color name="fm_status_healthy">#16699B</color>
+    <color name="fm_status_attention">#22615E</color>
+    <color name="fm_status_neglected">#105750</color>
+    <color name="fm_status_new">#3B626D</color>
 
     <!-- Avatar fallback palette (FRM-61, DESIGN-SYSTEM-PHASE2.md §2.4): 10
-         warm-family colors. abs(contactId.hashCode()) % 10 picks the index;
+         colors within a single cool hue band (~166-212 deg, teal through
+         blue). abs(contactId.hashCode()) % 10 picks the index;
          AvatarPalette.kt is the single place that indexes into this list and
          pairs each with its fixed initials-text color (see
          fm_avatar_initials_white / fm_avatar_initials_ink below and that
          class's per-index text-color table). No dark-mode variant. -->
-    <color name="fm_avatar_1">#A2522F</color>
-    <color name="fm_avatar_2">#CC8C33</color>
-    <color name="fm_avatar_3">#944438</color>
-    <color name="fm_avatar_4">#D4AC35</color>
-    <color name="fm_avatar_5">#855E47</color>
-    <color name="fm_avatar_6">#A34643</color>
-    <color name="fm_avatar_7">#7C673C</color>
-    <color name="fm_avatar_8">#DF8F49</color>
-    <color name="fm_avatar_9">#68443B</color>
-    <color name="fm_avatar_10">#D1BB61</color>
+    <color name="fm_avatar_1">#227376</color>
+    <color name="fm_avatar_2">#41A2D0</color>
+    <color name="fm_avatar_3">#26665D</color>
+    <color name="fm_avatar_4">#83B5E5</color>
+    <color name="fm_avatar_5">#3E6E74</color>
+    <color name="fm_avatar_6">#2D6E5F</color>
+    <color name="fm_avatar_7">#446E8C</color>
+    <color name="fm_avatar_8">#25AFD2</color>
+    <color name="fm_avatar_9">#2F5451</color>
+    <color name="fm_avatar_10">#9FBFE3</color>
 
     <!-- Initials text colors for the avatar fallback circle. fm_avatar_initials_ink
-         (#3A2417) is deliberately distinct from the body-ink token fm_ink
-         (#7A3B23) - see DESIGN-SYSTEM-PHASE2.md §2.4. -->
+         (#132D30) is deliberately distinct from the body-ink token fm_ink
+         (#195556) - a few avatar tones need something darker than fm_ink to
+         clear 4.5:1 - see DESIGN-SYSTEM-PHASE2.md §2.4. -->
     <color name="fm_avatar_initials_white">#FFFFFF</color>
-    <color name="fm_avatar_initials_ink">#3A2417</color>
+    <color name="fm_avatar_initials_ink">#132D30</color>
 
-    <!-- Group identity palette (FRM-62, DESIGN-SYSTEM-PHASE2.md §2.5): a
+    <!-- Group identity palette (FRM-63, DESIGN-SYSTEM-PHASE2.md §2.5): a
          separate, more saturated 8-color set from the avatar-fallback
          palette above, so a group color never reads as a contact's avatar
          fallback color. Assigned round-robin at group-creation time (see
          GroupEditDialogFragment), not derived from a hash, since a user
          explicitly picks/keeps a color for a group. Names (for TalkBack,
-         see R.array.group_color_names) are Terracotta, Amber, Gold, Rust,
-         Clay, Cocoa, Ivory, Espresso, in this order. -->
-    <color name="fm_group_color_1">#D6371F</color>
-    <color name="fm_group_color_2">#E77423</color>
-    <color name="fm_group_color_3">#EEB32B</color>
-    <color name="fm_group_color_4">#A53D1D</color>
-    <color name="fm_group_color_5">#C07B59</color>
-    <color name="fm_group_color_6">#7A5229</color>
-    <color name="fm_group_color_7">#E8DBC9</color>
-    <color name="fm_group_color_8">#342219</color>
+         see R.array.group_color_names) are Teal, Cyan, Sky, Deep Teal,
+         Slate, Ink Blue, Mist, Midnight, in this order. -->
+    <color name="fm_group_color_1">#138173</color>
+    <color name="fm_group_color_2">#14A3BB</color>
+    <color name="fm_group_color_3">#83C3F5</color>
+    <color name="fm_group_color_4">#136967</color>
+    <color name="fm_group_color_5">#3C989F</color>
+    <color name="fm_group_color_6">#276274</color>
+    <color name="fm_group_color_7">#CCE0E9</color>
+    <color name="fm_group_color_8">#152A2B</color>
 </resources>
