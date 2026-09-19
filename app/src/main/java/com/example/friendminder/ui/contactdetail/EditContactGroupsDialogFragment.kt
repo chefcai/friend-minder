@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.DialogAddContactToGroupBinding
+import com.example.friendminder.ui.groups.GroupEditDialogFragment
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
@@ -45,7 +46,17 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
         binding.cancelButton.setOnClickListener { dismiss() }
         binding.addButton.text = getString(R.string.action_save)
         binding.addButton.setOnClickListener { applyChanges() }
+        binding.createGroupButton.setOnClickListener {
+            GroupEditDialogFragment.newInstance().show(childFragmentManager, GROUP_EDIT_TAG)
+        }
+        childFragmentManager.setFragmentResultListener(GroupEditDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ ->
+            loadGroups()
+        }
 
+        loadGroups()
+    }
+
+    private fun loadGroups() {
         viewLifecycleOwner.lifecycleScope.launch {
             val allGroups = ServiceLocator.groupService.getGroups().sortedBy { it.name.lowercase() }
             val currentGroupIds = ServiceLocator.groupService.getGroupsForContact(contactId).map { it.id }.toSet()
@@ -56,6 +67,8 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
                 binding.emptyText.text = getString(R.string.label_no_groups_to_add)
             }
 
+            checkboxesByGroup.clear()
+            binding.candidateContainer.removeAllViews()
             allGroups.forEach { group ->
                 val checkbox = CheckBox(requireContext()).apply {
                     text = group.name
@@ -92,6 +105,7 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
         const val RESULT_KEY = "edit_contact_groups_result"
         private const val ARG_CONTACT_ID = "arg_contact_id"
         private const val MIN_ROW_HEIGHT_DP = 48
+        private const val GROUP_EDIT_TAG = "edit_contact_groups_new_group"
 
         fun newInstance(contactId: String): EditContactGroupsDialogFragment =
             EditContactGroupsDialogFragment().apply {
