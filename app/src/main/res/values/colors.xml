@@ -1,55 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Phase 2 Material 3 palette (FRM-42), light theme. Values are Designer's
-  Confluence "Phase 2 UI Specs" §1 color table (FRM-36-41, Designer agent),
-  verified >=4.5:1 body / >=3:1 large text against Material 3 surface tokens.
-  Dark-theme counterparts are in values-night/colors.xml; the 8-color avatar
-  fallback palette (FRM-40) additionally has a dark-mode lightness shift and
-  initials-text-color flip computed at runtime by AvatarPalette rather than
-  hardcoded here (see that class's kdoc).
+  Warm Circle rebrand palette (FRM-60). Values are Designer's
+  DESIGN-SYSTEM-PHASE2.md §2 color table, WCAG-verified (see that doc's §7
+  contrast table) against the light-only surface tokens below.
+
+  Light mode only, by explicit product decision (see DESIGN-SYSTEM-PHASE2.md
+  §0/§9): there is no values-night variant of this file and none should be
+  reintroduced. The 10-color avatar fallback palette (FRM-61) has a single
+  fixed text-color pairing per swatch (see the table below and
+  AvatarPalette.kt) rather than a runtime dark-mode flip.
 -->
 <resources>
-    <color name="ic_launcher_background">#2E7D32</color>
+    <!-- Adaptive icon background (FRM-65, DESIGN-SYSTEM-PHASE2.md §8.2): solid
+         cream, matches fm_surface. -->
+    <color name="ic_launcher_background">#FBF1E4</color>
 
-    <!-- Brand / status tokens -->
-    <color name="fm_primary">#00695C</color>
-    <color name="fm_secondary">#E8871E</color>
-    <color name="fm_status_healthy">#2E7D32</color>
-    <color name="fm_status_attention">#B8860B</color>
-    <color name="fm_status_neglected">#C62828</color>
-    <color name="fm_status_new">#757575</color>
+    <!-- Brand colors (DESIGN-SYSTEM-PHASE2.md §2.1) -->
+    <color name="fm_primary">#C1502E</color>
+    <color name="fm_on_primary">#FFFFFF</color>
+    <color name="fm_primary_container">#F1D8D0</color>
+    <color name="fm_on_primary_container">#7A3B23</color>
+    <color name="fm_secondary">#E8A33D</color>
+    <color name="fm_on_secondary">#42200E</color>
+    <color name="fm_secondary_container">#F6E6CB</color>
+    <color name="fm_on_secondary_container">#42200E</color>
+    <!-- Ember accent: used sparingly (e.g. a streak-flame icon tint), never
+         as a large fill - see DESIGN-SYSTEM-PHASE2.md §2.1. -->
+    <color name="fm_accent">#8B3A1F</color>
+    <color name="fm_on_accent">#FFFFFF</color>
 
-    <!-- Avatar fallback palette (FRM-40): 8 HSL-distributed colors, light
-         theme values. abs(contactId.hashCode()) % 8 picks the index;
-         AvatarPalette.kt is the single place that indexes into this list
-         and derives the dark-theme variant, so it's the only code that
-         should reference these by position. -->
-    <color name="fm_avatar_1">#5C6BC0</color>
-    <color name="fm_avatar_2">#26A69A</color>
-    <color name="fm_avatar_3">#7E57C2</color>
-    <color name="fm_avatar_4">#EC7063</color>
-    <color name="fm_avatar_5">#5D8AA8</color>
-    <color name="fm_avatar_6">#8D6E63</color>
-    <color name="fm_avatar_7">#009688</color>
-    <color name="fm_avatar_8">#B0855C</color>
+    <!-- Ink & surfaces (DESIGN-SYSTEM-PHASE2.md §2.2) -->
+    <color name="fm_ink">#7A3B23</color>
+    <color name="fm_on_surface_variant">#6B5647</color>
+    <color name="fm_surface">#FBF1E4</color>
+    <color name="fm_surface_variant">#F3E4CF</color>
+    <color name="fm_outline">#B29580</color>
+    <!-- Not specified by Designer's doc; derived as the midpoint between
+         fm_surface_variant (#F3E4CF) and fm_outline (#B29580) for a subtle
+         divider/border tone one step lighter than fm_outline. -->
+    <color name="fm_outline_variant">#D2BCA7</color>
 
-    <!-- Initials text colors for the avatar fallback circle -->
-    <color name="fm_avatar_initials_light">#FFFFFF</color>
-    <color name="fm_avatar_initials_dark">#1C1B1F</color>
+    <!-- Error: unchanged from Material baseline (DESIGN-SYSTEM-PHASE2.md
+         §2.2 - "already warm-red, no rebrand conflict"). Container pair is
+         the standard Material3 baseline error-container pairing. -->
+    <color name="fm_error">#B3261E</color>
+    <color name="fm_error_container">#F9DEDC</color>
+    <color name="fm_on_error_container">#410E0B</color>
 
-    <!-- Group identity palette (FRM-56): a separate, more saturated 8-color
-         set from the avatar-fallback palette above, per Designer's
-         SCREENS-PHASE2.md §3 note ("use a separate...palette for group
-         identity chips" to avoid a group color reading as a contact's
-         avatar fallback color). Assigned round-robin at group-creation time
-         (see GroupEditDialogFragment), not derived from a hash, since a
-         user explicitly picks/keeps a color for a group. -->
-    <color name="fm_group_color_1">#E53935</color>
-    <color name="fm_group_color_2">#FB8C00</color>
-    <color name="fm_group_color_3">#FDD835</color>
-    <color name="fm_group_color_4">#43A047</color>
-    <color name="fm_group_color_5">#1E88E5</color>
-    <color name="fm_group_color_6">#8E24AA</color>
-    <color name="fm_group_color_7">#F5F5F5</color>
-    <color name="fm_group_color_8">#212121</color>
+    <!-- Status colors (DESIGN-SYSTEM-PHASE2.md §2.3) -->
+    <color name="fm_status_healthy">#865C13</color>
+    <color name="fm_status_attention">#884430</color>
+    <color name="fm_status_neglected">#8B2E1A</color>
+    <color name="fm_status_new">#71573D</color>
+
+    <!-- Avatar fallback palette (FRM-61, DESIGN-SYSTEM-PHASE2.md §2.4): 10
+         warm-family colors. abs(contactId.hashCode()) % 10 picks the index;
+         AvatarPalette.kt is the single place that indexes into this list and
+         pairs each with its fixed initials-text color (see
+         fm_avatar_initials_white / fm_avatar_initials_ink below and that
+         class's per-index text-color table). No dark-mode variant. -->
+    <color name="fm_avatar_1">#A2522F</color>
+    <color name="fm_avatar_2">#CC8C33</color>
+    <color name="fm_avatar_3">#944438</color>
+    <color name="fm_avatar_4">#D4AC35</color>
+    <color name="fm_avatar_5">#855E47</color>
+    <color name="fm_avatar_6">#A34643</color>
+    <color name="fm_avatar_7">#7C673C</color>
+    <color name="fm_avatar_8">#DF8F49</color>
+    <color name="fm_avatar_9">#68443B</color>
+    <color name="fm_avatar_10">#D1BB61</color>
+
+    <!-- Initials text colors for the avatar fallback circle. fm_avatar_initials_ink
+         (#3A2417) is deliberately distinct from the body-ink token fm_ink
+         (#7A3B23) - see DESIGN-SYSTEM-PHASE2.md §2.4. -->
+    <color name="fm_avatar_initials_white">#FFFFFF</color>
+    <color name="fm_avatar_initials_ink">#3A2417</color>
+
+    <!-- Group identity palette (FRM-62, DESIGN-SYSTEM-PHASE2.md §2.5): a
+         separate, more saturated 8-color set from the avatar-fallback
+         palette above, so a group color never reads as a contact's avatar
+         fallback color. Assigned round-robin at group-creation time (see
+         GroupEditDialogFragment), not derived from a hash, since a user
+         explicitly picks/keeps a color for a group. Names (for TalkBack,
+         see R.array.group_color_names) are Terracotta, Amber, Gold, Rust,
+         Clay, Cocoa, Ivory, Espresso, in this order. -->
+    <color name="fm_group_color_1">#D6371F</color>
+    <color name="fm_group_color_2">#E77423</color>
+    <color name="fm_group_color_3">#EEB32B</color>
+    <color name="fm_group_color_4">#A53D1D</color>
+    <color name="fm_group_color_5">#C07B59</color>
+    <color name="fm_group_color_6">#7A5229</color>
+    <color name="fm_group_color_7">#E8DBC9</color>
+    <color name="fm_group_color_8">#342219</color>
 </resources>

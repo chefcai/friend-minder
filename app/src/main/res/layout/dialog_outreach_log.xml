@@ -146,12 +146,20 @@
                 android:layout_height="wrap_content"
                 android:text="@string/action_cancel" />
 
+            <!-- Warm Circle rebrand (SCREENS-PHASE2.md §5): Save is gold
+                 (secondary), not the default primary-fill
+                 Widget.Material3.Button style, so it's explicitly re-tinted
+                 via the btn_gold_background/btn_gold_label color selectors
+                 (see res/color/), which also carry the "disabled = on-surface
+                 38%" spec from DESIGN-SYSTEM-PHASE2.md §5. -->
             <Button
                 android:id="@+id/saveButton"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/fm_space_2"
+                android:backgroundTint="@color/btn_gold_background"
+                android:textColor="@color/btn_gold_label"
                 android:text="@string/action_save" />
         </LinearLayout>
     </LinearLayout>

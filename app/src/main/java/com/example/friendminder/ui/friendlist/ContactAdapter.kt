@@ -1,7 +1,6 @@
 package com.example.friendminder.ui.friendlist
 
 import android.animation.ValueAnimator
-import android.content.res.Configuration
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
@@ -117,10 +116,8 @@ class ContactAdapter(
             binding.contactInitial.visibility = View.VISIBLE
             binding.contactInitial.text = initialFor(item)
 
-            val isDarkTheme = (binding.root.context.resources.configuration.uiMode and
-                Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            val avatarColor = AvatarPalette.colorFor(binding.root.context, item.contact.id, isDarkTheme)
-            val textColor = AvatarPalette.initialsTextColorFor(binding.root.context, item.contact.id, isDarkTheme)
+            val avatarColor = AvatarPalette.colorFor(binding.root.context, item.contact.id)
+            val textColor = AvatarPalette.initialsTextColorFor(binding.root.context, item.contact.id)
 
             binding.contactInitial.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
