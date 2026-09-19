@@ -54,7 +54,7 @@ object NotificationHelper {
         // notification itself rather than relying solely on setAutoCancel() below, which is
         // unreliable for action-button PendingIntents that launch an activity into a new task
         // (chefcai/friend-minder#35).
-        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, messageTemplate, notificationId)
+        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, messageTemplate, contact.id, notificationId)
         val pendingIntent = PendingIntent.getActivity(
             context,
             contact.id.hashCode(),
@@ -102,7 +102,7 @@ object NotificationHelper {
             context.getString(R.string.format_special_date_body, specialDate.label)
         }
 
-        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, message, notificationId)
+        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, message, contact.id, notificationId)
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
