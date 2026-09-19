@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.friendminder"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.friendminder"
@@ -91,7 +91,7 @@ kotlin {
 
 dependencies {
     // Jetpack / AndroidX only — no Play Services, no Firebase (F-Droid compatible)
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
