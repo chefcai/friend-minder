@@ -178,7 +178,12 @@ class FriendListFragment : Fragment() {
             }
         )
 
-        val noneAvailable = allItemsSource.isEmpty()
+        val noneAvailable = filtered.isEmpty()
+        binding.emptyStateText.text = if (searchQuery.isBlank()) {
+            getString(R.string.label_no_contacts_with_numbers)
+        } else {
+            getString(R.string.label_no_search_results)
+        }
         binding.emptyStateText.visibility = if (noneAvailable) View.VISIBLE else View.GONE
         binding.contactRecyclerView.visibility = if (noneAvailable) View.GONE else View.VISIBLE
 

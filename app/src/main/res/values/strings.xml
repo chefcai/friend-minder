@@ -10,6 +10,7 @@
     <string name="action_save_friends">Save Friends</string>
     <string name="label_not_found">Not found</string>
     <string name="label_no_contacts_with_numbers">No contacts with phone numbers found</string>
+    <string name="label_no_search_results">No contacts match your search</string>
     <string name="label_permission_denied">Enable contact access to add friends</string>
     <string name="action_open_settings">Open Settings</string>
     <string name="format_choose_phone_number">Which number for %1$s?</string>
@@ -156,7 +157,7 @@
     <string name="format_birthday_caption">🎂 %1$s</string>
     <string name="format_special_date_row">%1$s · %2$s</string>
     <string name="action_add_to_group_picker">Add to group</string>
-    <string name="label_no_groups_to_add">No other groups to add — create one from the Groups tab</string>
+    <string name="label_no_groups_to_add">No groups yet — tap "New Group" to create one</string>
 
     <!-- Outreach Log Dialog (FRM-58) -->
     <string name="title_log_outreach_dialog">Log Outreach</string>
