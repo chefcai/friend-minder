@@ -63,7 +63,7 @@ object NotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.ic_stat_friend_minder)
             .setContentTitle(firstName)
             .setContentText(context.getString(R.string.notif_body))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -111,7 +111,7 @@ object NotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.ic_stat_friend_minder)
             .setContentTitle(firstName)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

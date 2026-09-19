@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Friend-Minder monochrome notification/status-bar icon.
+     Android tints this to solid white (or the notification accent) at render time;
+     source fill is white-on-transparent per platform requirement.
+     Viewport 24x24dp, safe-area padded (union of the 3-circle brand mark, flattened
+     to a single silhouette by using one fill color with no gaps/strokes between shapes). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 5.67,12.89 a 4.54,4.54 0 1,0 9.08,0 a 4.54,4.54 0 1,0 -9.08,0 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 10.06,10.51 a 3.87,3.87 0 1,0 7.74,0 a 3.87,3.87 0 1,0 -7.74,0 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 9.24,13.93 a 3.65,3.65 0 1,0 7.30,0 a 3.65,3.65 0 1,0 -7.30,0 Z" />
+</vector>

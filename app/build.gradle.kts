@@ -100,6 +100,9 @@ dependencies {
     // Publisher (FRM-5): contact picker list + Material 3 components
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("com.google.android.material:material:1.14.0")
+    // FRM-65: androidx.core.splashscreen (Android 12+ SplashScreen API + compat back-fill,
+    // zero external dependency, matches DESIGN-SYSTEM-PHASE2.md §8.3)
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.code.gson:gson:2.14.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
