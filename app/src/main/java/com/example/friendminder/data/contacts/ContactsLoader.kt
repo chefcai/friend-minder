@@ -198,15 +198,35 @@ object ContactsLoader {
         }
 
     /**
-     * ContactsContract Event dates are either "--MM-DD" (no year — the
-     * common case for a birthday entered without one) or "yyyy-MM-dd".
-     * Returns null for anything else rather than guessing.
+     * ContactsContract Event dates are documented as either "--MM-DD" (no
+     * year) or "yyyy-MM-dd", but real sync adapters (Samsung, Exchange,
+     * imported vCards) are known to deviate: a trailing time/offset
+     * ("yyyy-MM-dd'T'HH:mm:ss.SSSZ" or "--MM-dd'T'..."), or a bare "MM-dd"
+     * with no leading dashes and no year at all. [MONTH_DAY_PATTERNS] tries
+     * each known shape in turn against just the date portion (text before
+     * a 'T', if present) and returns null only when none match, rather than
+     * guessing at a format we've never seen.
      */
-    private fun parseMonthDay(raw: String): Pair<Int, Int>? {
-        Regex("^--(\\d{2})-(\\d{2})$").find(raw)?.let { (m, d) -> return m.toInt() to d.toInt() }
-        Regex("^\\d{4}-(\\d{2})-(\\d{2})$").find(raw)?.let { (m, d) -> return m.toInt() to d.toInt() }
+    internal fun parseMonthDay(raw: String): Pair<Int, Int>? {
+        val datePart = raw.substringBefore('T')
+        for (pattern in MONTH_DAY_PATTERNS) {
+            pattern.find(datePart)?.let { (m, d) ->
+                val month = m.toInt()
+                val day = d.toInt()
+                if (month in 1..MAX_MONTH && day in 1..MAX_DAY) return month to day
+            }
+        }
         return null
     }
+
+    private val MONTH_DAY_PATTERNS = listOf(
+        Regex("^--(\\d{2})-(\\d{2})$"), // no year: "--MM-DD"
+        Regex("^\\d{4}-(\\d{2})-(\\d{2})$"), // with (possibly placeholder) year: "yyyy-MM-dd"
+        Regex("^(\\d{2})-(\\d{2})$") // no year, no leading dashes: "MM-dd" (seen from some OEM sync adapters)
+    )
+
+    private const val MAX_MONTH = 12
+    private const val MAX_DAY = 31
 
     private operator fun MatchResult.component1(): String = groupValues[1]
     private operator fun MatchResult.component2(): String = groupValues[2]
