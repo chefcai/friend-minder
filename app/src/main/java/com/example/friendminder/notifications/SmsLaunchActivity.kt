@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.friendminder.R
+import com.example.friendminder.data.models.OutreachType
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +41,7 @@ class SmsLaunchActivity : Activity() {
 
     private var phoneNumber: String? = null
     private var message: String? = null
+    private var contactId: String? = null
     private var notificationId: Int = NO_NOTIFICATION_ID
     private val activityScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -48,6 +50,7 @@ class SmsLaunchActivity : Activity() {
 
         phoneNumber = intent.getStringExtra(EXTRA_PHONE_NUMBER)
         message = intent.getStringExtra(EXTRA_MESSAGE)
+        contactId = intent.getStringExtra(EXTRA_CONTACT_ID)
         notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, NO_NOTIFICATION_ID)
 
         // Dismiss the source notification unconditionally, up front. Both the
@@ -83,7 +86,7 @@ class SmsLaunchActivity : Activity() {
         NotificationManagerCompat.from(this).cancel(notificationId)
     }
 
-    private fun sendDirectly() {
+    private suspend fun sendDirectly() {
         val number = phoneNumber
         val body = message
         if (number.isNullOrBlank() || body.isNullOrBlank()) {
@@ -92,7 +95,7 @@ class SmsLaunchActivity : Activity() {
             launchSmsAppFallback()
             return
         }
-        try {
+        val sent = try {
             // getSystemService(SmsManager::class.java) needs API 31+ (minSdk here is 26);
             // SmsManager.getDefault() is deprecated but still the only option below that.
             val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -107,24 +110,42 @@ class SmsLaunchActivity : Activity() {
             } else {
                 smsManager.sendTextMessage(number, null, body, null, null)
             }
-            Toast.makeText(this, R.string.toast_sms_sent, Toast.LENGTH_SHORT).show()
-            finish()
+            true
         } catch (e: Exception) {
             // SmsManager can throw IllegalArgumentException (malformed number)
             // or a SecurityException in rare OEM/permission-revocation edge
             // cases; don't silently drop the user's message on the floor.
             Log.w(TAG, "Direct send to $number failed, falling back to SMS app", e)
+            false
+        }
+        if (sent) {
+            // FRM-68: SmsManager confirmed the message was handed off, so this is a
+            // real outreach - record it the same way OutreachLogDialogFragment does
+            // for a manual entry, and invalidate the cached stats so the
+            // Dashboard/ContactDetail reflect it immediately rather than up to 24h
+            // later.
+            recordOutreach()
+            Toast.makeText(this, R.string.toast_sms_sent, Toast.LENGTH_SHORT).show()
+            finish()
+        } else {
             launchSmsAppFallback()
         }
     }
 
-    private fun launchSmsAppFallback() {
+    private suspend fun launchSmsAppFallback() {
         val smsIntent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("sms:$phoneNumber")
             if (!message.isNullOrBlank()) putExtra("sms_body", message)
         }
         try {
             startActivity(smsIntent)
+            // FRM-68: there's no completion signal once we hand off to the user's SMS
+            // app - we can't confirm they actually hit send. Logging optimistically
+            // anyway: tapping this action is a clear expression of intent to contact
+            // this person, matching how the direct-send path is logged, and matches
+            // the product decision to prefer counting real attempts over strict
+            // confirmation.
+            recordOutreach()
         } catch (e: ActivityNotFoundException) {
             // Log the original exception — the catch is scoped to "no SMS app installed", but a
             // malformed sms: URI or other cause would otherwise be silently swallowed.
@@ -134,10 +155,17 @@ class SmsLaunchActivity : Activity() {
         finish()
     }
 
+    private suspend fun recordOutreach() {
+        val id = contactId ?: return
+        ServiceLocator.outreachLogService.logOutreach(id, OutreachType.SMS)
+        ServiceLocator.statisticsService.invalidate(id)
+    }
+
     companion object {
         private const val TAG = "SmsLaunchActivity"
         private const val EXTRA_PHONE_NUMBER = "extra_phone_number"
         private const val EXTRA_MESSAGE = "extra_message"
+        private const val EXTRA_CONTACT_ID = "extra_contact_id"
         private const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
         private const val NO_NOTIFICATION_ID = -1
 
@@ -145,11 +173,13 @@ class SmsLaunchActivity : Activity() {
             context: Context,
             phoneNumber: String,
             message: String,
+            contactId: String,
             notificationId: Int = NO_NOTIFICATION_ID
         ): Intent =
             Intent(context, SmsLaunchActivity::class.java).apply {
                 putExtra(EXTRA_PHONE_NUMBER, phoneNumber)
                 putExtra(EXTRA_MESSAGE, message)
+                putExtra(EXTRA_CONTACT_ID, contactId)
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
