@@ -92,7 +92,6 @@
     <string name="label_dashboard_empty">Reach out to a few friends to see your stats here</string>
     <string name="label_today">Today</string>
     <string name="label_never_contacted">Never contacted</string>
-    <string name="action_reach_out">Reach out</string>
     <plurals name="format_days_ago">
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>

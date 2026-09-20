@@ -21,6 +21,7 @@ import com.example.friendminder.domain.services.BirthdayService
 import com.example.friendminder.domain.services.OutreachLogService
 import com.example.friendminder.domain.services.StatisticsService
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.notifications.SmsLaunchActivity
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
 import com.example.friendminder.ui.home.HomeFragment
 import com.example.friendminder.ui.settings.AdvancedSettingsFragment
@@ -190,9 +191,35 @@ class DashboardFragment : Fragment() {
             itemBinding.neglectedName.text = contact.name
             itemBinding.neglectedDays.text = formatDaysAgo(days)
             bindAvatar(itemBinding.contactPhoto, itemBinding.contactInitial, contact)
+            // GH #82: the row itself (everywhere outside the trailing icon
+            // button's hit box) is the "view history" action - it already
+            // opened ContactDetailFragment, which already surfaces the
+            // outreach History tab, so no separate history affordance is
+            // needed here (Designer decision on the issue).
             itemBinding.root.setOnClickListener { openContactDetail(contact.id) }
-            itemBinding.reachOutButton.setOnClickListener { openContactDetail(contact.id) }
+            itemBinding.reachOutButton.contentDescription =
+                getString(R.string.format_notif_action_text, contact.name)
+            itemBinding.reachOutButton.setOnClickListener { textContact(contact) }
             binding.neglectedContainer.addView(itemBinding.root)
+        }
+    }
+
+    // GH #82: replaces the old "Reach out ->" button, which just navigated to
+    // ContactDetailFragment same as the row tap - it never actually sent
+    // anything. This fires the same one-tap-SMS entry point the notification
+    // quick-action uses (FRM-68/SmsLaunchActivity), including its
+    // direct-send-vs-prefill fallback and optimistic outreach logging, so
+    // texting from here also updates stats/streak like the notification
+    // action already does.
+    private fun textContact(contact: Contact) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val settingsRepo = ServiceLocator.settingsRepository
+            val message = if (settingsRepo.isMessageEnabled()) {
+                settingsRepo.getMessageTemplates().random()
+            } else {
+                ""
+            }
+            startActivity(SmsLaunchActivity.intentFor(requireContext(), contact.phoneNumber, message, contact.id))
         }
     }
 
