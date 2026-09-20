@@ -186,8 +186,15 @@ class ContactDetailFragment : Fragment() {
     private fun bindHistory(contact: Contact) {
         viewLifecycleOwner.lifecycleScope.launch {
             val history = ServiceLocator.outreachLogService.getHistory(contact.id)
-            historyAdapter.submitList(history)
-            refreshHistoryEmptyState()
+            // ListAdapter.submitList() diffs off the main thread and applies the
+            // result asynchronously, so itemCount right after this call can still
+            // reflect the *previous* list (GH #81): calling refreshHistoryEmptyState()
+            // here was a race that usually - but not always - lost, leaving the
+            // empty-state text stuck over newly-logged rows until some other
+            // trigger (e.g. reopening the screen) called it again after the diff
+            // had caught up. The commit callback runs once the diff is actually
+            // applied, so itemCount is accurate every time.
+            historyAdapter.submitList(history) { refreshHistoryEmptyState() }
         }
     }
 
