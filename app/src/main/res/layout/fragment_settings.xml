@@ -227,4 +227,29 @@
         android:layout_marginBottom="16dp"
         android:text="@string/action_save_settings" />
 
+    <!--
+        FRM-79 (GH #90): Advanced moved here from being a direct toolbar
+        shortcut. No icon/chevron - this screen has no chevron convention to
+        match (unlike HomeFragment's navigation rows). Color + bold weight
+        are the only visual cues that this is a link, so accessibilityHeading
+        is deliberately not used; TalkBack's announcement that this opens a
+        new screen instead comes from SettingsFragment setting an
+        AccessibilityDelegate that reports ClassName.BUTTON (see
+        SettingsFragment.onViewCreated).
+    -->
+    <TextView
+        android:id="@+id/advancedRow"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:textColor="@color/fm_status_healthy"
+        android:textStyle="bold"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:text="@string/title_advanced_settings" />
+
 </LinearLayout>

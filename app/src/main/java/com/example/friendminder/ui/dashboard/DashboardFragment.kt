@@ -23,8 +23,8 @@ import com.example.friendminder.domain.services.StatisticsService
 import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.notifications.SmsLaunchActivity
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
+import com.example.friendminder.ui.friendlist.FriendListFragment
 import com.example.friendminder.ui.home.HomeFragment
-import com.example.friendminder.ui.settings.AdvancedSettingsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -82,18 +82,24 @@ class DashboardFragment : Fragment() {
         refresh(forceRefresh = false)
     }
 
+    // FRM-79 (GH #90): both toolbar destinations moved. action_manage now
+    // opens Edit Friends directly instead of the setup hub; action_setup
+    // (formerly action_advanced_settings, and formerly a direct link to
+    // AdvancedSettingsFragment) now opens the setup hub (HomeFragment) -
+    // the gear stays, repurposed as the way in rather than a shortcut past
+    // it. Advanced itself moved onto SettingsFragment.
     private fun onMenuItemClicked(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_manage -> {
                 parentFragmentManager.commit {
-                    replace(R.id.nav_host_container, HomeFragment())
+                    replace(R.id.nav_host_container, FriendListFragment.newInstance(isOnboarding = false))
                     addToBackStack(null)
                 }
                 return true
             }
-            R.id.action_advanced_settings -> {
+            R.id.action_setup -> {
                 parentFragmentManager.commit {
-                    replace(R.id.nav_host_container, AdvancedSettingsFragment.newInstance())
+                    replace(R.id.nav_host_container, HomeFragment())
                     addToBackStack(null)
                 }
                 return true

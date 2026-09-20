@@ -14,6 +14,9 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
@@ -31,6 +34,12 @@ import java.util.Locale
  * via the ordinary back stack); edit mode is reachable from HomeFragment.
  * GH #56: onboarding completion now lands on DashboardFragment (the app's
  * root screen), not HomeFragment.
+ *
+ * FRM-79 (GH #90): in edit mode only, this screen also carries the
+ * "Advanced" row (below the Save button) that opens
+ * [AdvancedSettingsFragment] - it used to be a direct shortcut from
+ * Dashboard's toolbar gear, which now opens HomeFragment (the setup hub)
+ * instead.
  */
 class SettingsFragment : Fragment() {
 
@@ -117,6 +126,23 @@ class SettingsFragment : Fragment() {
         })
 
         binding.saveSettingsButton.setOnClickListener { onSaveClicked() }
+
+        // FRM-79 (GH #90): Advanced is a set-once, edit-mode-only
+        // destination - not shown during onboarding, which flows straight
+        // into Dashboard on save (see onSaveClicked).
+        binding.advancedRow.visibility = if (isOnboarding) View.GONE else View.VISIBLE
+        ViewCompat.setAccessibilityDelegate(binding.advancedRow, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = "android.widget.Button"
+            }
+        })
+        binding.advancedRow.setOnClickListener {
+            parentFragmentManager.commit {
+                replace(R.id.nav_host_container, AdvancedSettingsFragment.newInstance())
+                addToBackStack(null)
+            }
+        }
 
         loadCurrentSettings()
     }
