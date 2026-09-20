@@ -41,7 +41,11 @@ class DefaultStatisticsService(
             totalFriends = friends.size,
             medianDaysSinceContact = StatisticsCalculator.median(stats.mapNotNull { it.daysSinceContact }),
             healthiestStreaks = stats.sortedByDescending { it.streak }.take(TOP_N),
-            mostNeglected = stats.sortedByDescending { it.daysSinceContact ?: Int.MAX_VALUE }.take(TOP_N),
+            // Randomized tiebreak (Cai, GH dashboard report): every never-contacted
+            // contact ties at Int.MAX_VALUE, so a plain sortedByDescending would
+            // always surface the same TOP_N contacts (whichever were added to the
+            // Friend List earliest) out of potentially many equally-neglected ones.
+            mostNeglected = StatisticsCalculator.topNRandomizedTies(stats, TOP_N) { it.daysSinceContact ?: Int.MAX_VALUE },
             monthlyOutreachCount = outreachLogService.countSince(monthAgo)
         )
     }
