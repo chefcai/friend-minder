@@ -8,11 +8,11 @@ import com.example.friendminder.notifications.NotificationHelper
 import com.example.friendminder.utils.ServiceLocator
 
 /**
- * Daily (or test-triggered, see HomeFragment's test button) background job.
- * [WorkManagerNotificationScheduler] (FRM-8) schedules one instance of this
- * per notification slot; this class implements the actual suggestion logic
- * (FRM-9) and cooldown bookkeeping (FRM-10): pick a Friend List contact that
- * isn't on cooldown, post the reminder notification via [NotificationHelper]
+ * Daily background job. [WorkManagerNotificationScheduler] (FRM-8) schedules
+ * one instance of this per notification slot; this class implements the
+ * actual suggestion logic (FRM-9) and cooldown bookkeeping (FRM-10): pick a
+ * Friend List contact that isn't on cooldown, post the reminder notification
+ * via [NotificationHelper]
  * (FRM-11/FRM-13, Publisher), and record the suggestion.
  *
  * The eligible-contact/fallback logic lives in [SuggestionSelector], a pure

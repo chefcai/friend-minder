@@ -56,7 +56,8 @@
     <string name="action_manage_menu">Manage</string>
     <string name="label_preview_header">You\'ll get a reminder like this:</string>
     <string name="label_preview_chip">Preview</string>
-    <string name="action_test_notification">Send a test notification</string>
+    <string name="action_test_notification">Send a test notification now</string>
+    <string name="caption_test_notification">Checks that notifications are working. Doesn\'t count toward your daily limit.</string>
     <string name="action_edit_friends_row">Edit Friends</string>
     <string name="action_settings_row">Settings</string>
     <string name="label_empty_friend_list">Add friends to get started</string>
@@ -71,6 +72,12 @@
     <string name="notif_channel_name">Daily Reminders</string>
     <string name="notif_channel_desc">Daily reminder to reach out to a friend</string>
     <string name="notif_body">Tap to send a message</string>
+
+    <!-- Test notification (FRM-78): distinct from a real reminder so it can never be mistaken for one -->
+    <string name="notif_test_channel_name">Test notifications</string>
+    <string name="notif_test_channel_desc">Diagnostic notifications sent by the \"Send a test notification now\" button</string>
+    <string name="notif_test_title">[Test] Friend-Minder</string>
+    <string name="notif_test_body">This is a test notification. No contact was suggested and nothing was logged.</string>
     <string name="format_notif_action_text">Text %1$s</string>
     <string name="toast_no_sms_app">No SMS app available.</string>
     <string name="toast_sms_sent">Message sent</string>

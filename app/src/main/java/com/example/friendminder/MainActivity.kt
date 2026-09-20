@@ -1,5 +1,6 @@
 package com.example.friendminder
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.databinding.ActivityMainBinding
 import com.example.friendminder.ui.dashboard.DashboardFragment
 import com.example.friendminder.ui.friendlist.FriendListFragment
+import com.example.friendminder.ui.settings.SettingsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -19,6 +21,10 @@ import kotlinx.coroutines.launch
  * FragmentTransactions. No Navigation-Component dependency — consistent
  * with the project's minimal, easy-to-audit dependency tree (see
  * ServiceLocator).
+ *
+ * FRM-78: also handles [ACTION_OPEN_SETTINGS], the tap action for the test
+ * notification (see NotificationHelper.postTestNotification) - the only
+ * external entry point into this activity today besides plain launch.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -46,15 +52,39 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            lifecycleScope.launch {
-                val hasFriends = ServiceLocator.friendListRepository.getFriendList().isNotEmpty()
-                supportFragmentManager.commit {
-                    replace(
-                        R.id.nav_host_container,
-                        if (hasFriends) DashboardFragment.newInstance() else FriendListFragment.newInstance(isOnboarding = true)
-                    )
+            if (intent?.action == ACTION_OPEN_SETTINGS) {
+                openSettings()
+            } else {
+                lifecycleScope.launch {
+                    val hasFriends = ServiceLocator.friendListRepository.getFriendList().isNotEmpty()
+                    supportFragmentManager.commit {
+                        replace(
+                            R.id.nav_host_container,
+                            if (hasFriends) DashboardFragment.newInstance() else FriendListFragment.newInstance(isOnboarding = true)
+                        )
+                    }
                 }
             }
         }
+    }
+
+    // FRM-78: reached when the activity is already running and the test
+    // notification's tap PendingIntent (FLAG_ACTIVITY_SINGLE_TOP) is
+    // delivered to the existing instance instead of creating a new one.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == ACTION_OPEN_SETTINGS) {
+            openSettings()
+        }
+    }
+
+    private fun openSettings() {
+        supportFragmentManager.commit {
+            replace(R.id.nav_host_container, SettingsFragment.newInstance(isOnboarding = false))
+        }
+    }
+
+    companion object {
+        const val ACTION_OPEN_SETTINGS = "com.example.friendminder.action.OPEN_SETTINGS"
     }
 }

@@ -133,6 +133,21 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="16dp"
                     android:text="@string/action_test_notification" />
+
+                <!--
+                    FRM-78: sets expectations before the tap, which is where
+                    the "is this a real reminder?" confusion actually starts.
+                    Real text, not a contentDescription-only hint, so it's
+                    visible to everyone and not just screen-reader users.
+                -->
+                <TextView
+                    android:id="@+id/testNotificationCaption"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/caption_test_notification"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
             </LinearLayout>
 
             <!-- Navigation shortcuts -->

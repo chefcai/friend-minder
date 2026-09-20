@@ -14,16 +14,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactsLoader
 import com.example.friendminder.databinding.FragmentHomeBinding
+import com.example.friendminder.notifications.NotificationHelper
 import com.example.friendminder.ui.friendlist.FriendListFragment
 import com.example.friendminder.ui.groups.GroupsFragment
 import com.example.friendminder.ui.settings.SettingsFragment
 import com.example.friendminder.utils.ServiceLocator
-import com.example.friendminder.work.SuggestionWorker
 import kotlinx.coroutines.launch
 
 /**
@@ -68,9 +66,15 @@ class HomeFragment : Fragment() {
                 addToBackStack(null)
             }
         }
+        // FRM-78: this used to enqueue the real SuggestionWorker, which posts a
+        // notification indistinguishable from a genuine reminder (same contact
+        // name, same SMS quick-action - tapping it created a real outreach log
+        // entry for a contact the app never actually suggested) and is invisible
+        // to any "how many reminders fired today" accounting. Post a dedicated,
+        // clearly-labeled diagnostic notification instead - see
+        // NotificationHelper.postTestNotification.
         binding.testNotificationButton.setOnClickListener {
-            WorkManager.getInstance(requireContext())
-                .enqueue(OneTimeWorkRequestBuilder<SuggestionWorker>().build())
+            NotificationHelper.postTestNotification(requireContext())
         }
         binding.notificationsDisabledBanner.setOnClickListener {
             startActivity(
