@@ -47,7 +47,9 @@ object NotificationHelper {
 
         ensureChannel(context)
 
-        val firstName = contact.name.trim().substringBefore(' ').ifBlank { contact.name }
+        // Full display name (GH #79): a first-name-only title/action label is ambiguous
+        // whenever the user has two or more contacts who share a first name.
+        val displayName = contact.name.trim().ifBlank { contact.name }
         val notificationId = contact.id.hashCode()
 
         // Passing our own notificationId through lets SmsLaunchActivity explicitly cancel this
@@ -64,12 +66,12 @@ object NotificationHelper {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_friend_minder)
-            .setContentTitle(firstName)
+            .setContentTitle(displayName)
             .setContentText(context.getString(R.string.notif_body))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(0, context.getString(R.string.format_notif_action_text, firstName), pendingIntent)
+            .addAction(0, context.getString(R.string.format_notif_action_text, displayName), pendingIntent)
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
@@ -90,7 +92,11 @@ object NotificationHelper {
 
         ensureChannel(context)
 
+        // First name only for the friendly in-message greeting ("Happy birthday, Mark!") -
+        // but the full display name for the title/action label, same disambiguation fix as
+        // postReminder above (GH #79).
         val firstName = contact.name.trim().substringBefore(' ').ifBlank { contact.name }
+        val displayName = contact.name.trim().ifBlank { contact.name }
         // Namespaced with the SpecialDate id (rather than reusing postReminder's
         // contact.id.hashCode()) so a birthday reminder never collides with, or gets
         // silently replaced by, a same-day daily suggestion for the same contact.
@@ -112,12 +118,12 @@ object NotificationHelper {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_friend_minder)
-            .setContentTitle(firstName)
+            .setContentTitle(displayName)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(0, context.getString(R.string.format_notif_action_text, firstName), pendingIntent)
+            .addAction(0, context.getString(R.string.format_notif_action_text, displayName), pendingIntent)
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
