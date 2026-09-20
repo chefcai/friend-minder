@@ -47,17 +47,48 @@
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:visibility="gone" />
 
-    <ScrollView
+    <!--
+      GH #72 / GH #76: this was a plain android.widget.ScrollView. Two
+      unrelated framework gaps in that class combined to make this dialog
+      unusable with a realistic (40+) contact list, both confirmed
+      on-device with a 45-contact candidate list:
+
+      1. Neither android.widget.ScrollView NOR androidx.core.widget.
+         NestedScrollView honors android:maxHeight - the attribute is
+         silently ignored by both (this was verified empirically after an
+         earlier attempt at this fix assumed NestedScrollView supported it
+         and it measured 507dp tall instead of the intended 360dp cap), so
+         the list grew to its full wrap_content height (one row per
+         candidate) instead of capping. That pushed the Cancel/Save row
+         (below, in this same LinearLayout) far past the bottom of the
+         screen, with no scroll path to reach it, because the *outer*
+         LinearLayout is not itself scrollable - only this inner element
+         was. Fixed here with a genuine fixed height instead of a
+         maxHeight that neither ScrollView class actually applies. This
+         does mean a very short candidate list leaves some empty space
+         below it rather than shrinking to fit - an acceptable trade-off
+         against the footer being completely unreachable.
+
+      2. Plain ScrollView does not implement NestedScrollingChild, so it
+         never negotiates scroll ownership with the enclosing
+         BottomSheetBehavior. Every swipe over the list was consumed by the
+         sheet's own expand/collapse drag instead of by the list, so once
+         scrolled down there was no gesture left to scroll back up - the
+         same swipe that should scroll the list just collapsed the sheet.
+         androidx.core.widget.NestedScrollView fixes this by implementing
+         NestedScrollingChild, so BottomSheetBehavior lets it scroll
+         internally before taking over the drag.
+    -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="360dp">
+        android:layout_height="360dp">
 
         <LinearLayout
             android:id="@+id/candidateContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
