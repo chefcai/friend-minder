@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -105,10 +107,20 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.code.gson:gson:2.14.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    // FRM-81: partial Room migration (OutreachLog, ContactGroup/membership, SpecialDate)
+    implementation("androidx.room:room-runtime:2.8.5")
+    implementation("androidx.room:room-ktx:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.test:rules:1.7.0") // GrantPermissionRule (FRM-47)
     androidTestImplementation("androidx.work:work-testing:2.8.1") // TestListenableWorkerBuilder (FRM-47), matches work-runtime-ktx above
+    androidTestImplementation("androidx.room:room-testing:2.8.5") // Room.inMemoryDatabaseBuilder for DAO/migration tests (FRM-81)
 }
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
