@@ -62,8 +62,10 @@
     <string name="action_settings_row">Settings</string>
     <string name="label_empty_friend_list">Add friends to get started</string>
     <string name="action_add_friends">Add Friends</string>
-    <string name="format_banner_missing_contacts">%1$d contacts in your friend list no longer exist.</string>
-    <string name="action_view_details">View details</string>
+    <string name="format_banner_missing_contacts">%1$d contacts in your friend list no longer exist. Tap to see which.</string>
+    <string name="title_missing_contacts">Contacts no longer in your list</string>
+    <string name="label_missing_contacts_explainer">These friends were removed from your phone\'s contacts. Remove them from Friend-Minder too, or leave them if you expect the contact to come back.</string>
+    <string name="format_action_remove_missing_contact">Remove %1$s from friend list</string>
     <string name="banner_notifications_disabled">Notifications are disabled.</string>
     <string name="action_enable_notifications">Enable in settings</string>
     <string name="placeholder_contact_name">Alex</string>

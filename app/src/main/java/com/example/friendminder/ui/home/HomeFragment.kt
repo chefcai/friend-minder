@@ -36,6 +36,13 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
+    /**
+     * IDs backing the current missingContactsBanner text (GH #89) - kept
+     * around so tapping the banner can open [MissingContactsDialogFragment]
+     * without a second query, and re-populated on every [refresh].
+     */
+    private var missingContactIds: Set<String> = emptySet()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -83,7 +90,20 @@ class HomeFragment : Fragment() {
                 }
             )
         }
-        binding.missingContactsBanner.setOnClickListener { openFriendList() }
+        // GH #89: used to just jump to Edit Friends, leaving the user to spot
+        // and remove the stale entry themselves by comparing two lists. Now
+        // opens a dialog that names the affected contact(s) and removes them
+        // directly.
+        binding.missingContactsBanner.setOnClickListener {
+            if (missingContactIds.isNotEmpty()) {
+                MissingContactsDialogFragment.newInstance(missingContactIds)
+                    .show(childFragmentManager, MISSING_CONTACTS_DIALOG_TAG)
+            }
+        }
+        childFragmentManager.setFragmentResultListener(
+            MissingContactsDialogFragment.RESULT_KEY,
+            viewLifecycleOwner
+        ) { _, _ -> refresh() }
     }
 
     override fun onResume() {
@@ -121,15 +141,17 @@ class HomeFragment : Fragment() {
                 == PackageManager.PERMISSION_GRANTED
             ) {
                 val existingIds = ContactsLoader.loadExistingContactIds(requireContext())
-                val missingCount = friends.count { it.id !in existingIds }
-                if (missingCount > 0) {
+                val missing = friends.filter { it.id !in existingIds }
+                missingContactIds = missing.map { it.id }.toSet()
+                if (missing.isNotEmpty()) {
                     binding.missingContactsBanner.text =
-                        getString(R.string.format_banner_missing_contacts, missingCount)
+                        getString(R.string.format_banner_missing_contacts, missing.size)
                     binding.missingContactsBanner.visibility = View.VISIBLE
                 } else {
                     binding.missingContactsBanner.visibility = View.GONE
                 }
             } else {
+                missingContactIds = emptySet()
                 binding.missingContactsBanner.visibility = View.GONE
             }
         }
@@ -138,5 +160,9 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val MISSING_CONTACTS_DIALOG_TAG = "missing_contacts_dialog"
     }
 }
