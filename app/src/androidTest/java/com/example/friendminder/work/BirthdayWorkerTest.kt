@@ -82,9 +82,14 @@ class BirthdayWorkerTest {
             "expected a notification (id=$expectedNotificationId) for the special date due today",
             posted
         )
-        // First-name-only + the festive birthday template (NotificationHelper.postSpecialDateReminder),
-        // not the generic special-date body used for non-birthday labels.
-        assertEquals("Alex", posted!!.notification.extras.getCharSequence(android.app.Notification.EXTRA_TITLE).toString())
+        // Full display name in the title (GH #79 - disambiguates same-first-name contacts),
+        // but the festive birthday message body still greets by first name only
+        // (NotificationHelper.postSpecialDateReminder), not the generic special-date body
+        // used for non-birthday labels.
+        assertEquals(
+            "Alex Testerson",
+            posted!!.notification.extras.getCharSequence(android.app.Notification.EXTRA_TITLE).toString()
+        )
         assertEquals(
             context.getString(com.example.friendminder.R.string.format_birthday_message, "Alex"),
             posted.notification.extras.getCharSequence(android.app.Notification.EXTRA_TEXT).toString()
