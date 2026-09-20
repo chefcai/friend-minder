@@ -1,0 +1,8 @@
+Cool rebrand, real icons & splash screen, and bug fixes
+
+- Refreshed visual identity: cool teal/cyan/blue palette throughout, plus a real app icon, notification icon, and splash screen (previously placeholders)
+- Fixed: the "New Group" button on the toolbar was invisible
+- Fixed: searching could leave the screen blank when there were no matches
+- Create a new group directly from the group-picker screen, no need to switch tabs
+- Fixed: birthdays weren't calculating correctly for some contacts
+- The notification's quick-action (send text) now logs outreach and updates your stats, same as the in-app Log Outreach flow
