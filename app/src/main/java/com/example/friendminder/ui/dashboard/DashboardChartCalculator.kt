@@ -18,12 +18,24 @@ object DashboardChartCalculator {
     /**
      * @param cumulativeCounts counts from each week boundary to now, most
      *   recent boundary (0 days ago) first — i.e. `cumulativeCounts[i]` is
-     *   `outreachLogService.countSince(now - i * 7 days)`. Must have at
-     *   least 2 entries; returns one fewer bucket than there are boundaries.
+     *   `outreachLogService.countSince(now - i * 7 days)`. Since `countSince`
+     *   counts everything at or after its cutoff, a *later* cutoff (larger
+     *   `i`, further into the past) can only match as many or more logs than
+     *   an earlier one — this list is non-decreasing as `i` grows (e.g.
+     *   `[0, 1, 3, 4, 4]`), never the reverse. Must have at least 2 entries;
+     *   returns one fewer bucket than there are boundaries.
      */
     fun weeklyBuckets(cumulativeCounts: List<Int>): List<Int> {
         require(cumulativeCounts.size >= 2) { "need at least 2 cumulative counts to derive 1 weekly bucket" }
-        val perWeek = (0 until cumulativeCounts.size - 1).map { cumulativeCounts[it] - cumulativeCounts[it + 1] }
+        // cumulativeCounts[it + 1] (the wider, further-back window) minus
+        // cumulativeCounts[it] (the narrower one) isolates just the logs that
+        // fall in that week — cumulativeCounts[it] - cumulativeCounts[it + 1]
+        // (the previous version of this code) computed it backwards and
+        // produced negative/zero buckets for every real call site, which
+        // BarChartView then silently failed to render as visible bars
+        // (FRM-77-adjacent dashboard bug, found via Cai's "chart looks empty
+        // despite non-zero Monthly outreach count" report).
+        val perWeek = (0 until cumulativeCounts.size - 1).map { cumulativeCounts[it + 1] - cumulativeCounts[it] }
         return perWeek.reversed()
     }
 }
