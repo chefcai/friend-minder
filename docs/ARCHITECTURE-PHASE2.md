@@ -4,16 +4,35 @@ Covers FRM-30 through FRM-35: the Phase 2 data model, storage layer, statistics
 service, and WorkManager extensions. See `claude/friend-minder-phase-2-PRD.md`
 (project docs) for feature requirements this implements.
 
-## Storage layer decision: staying with SharedPreferences + JSON, not Room
+## Storage layer decision: SharedPreferences + JSON, then a partial Room migration (FRM-81)
 
 The PRD (§8.1) left this open ("Room database (preferred) or SharedPreferences +
-JSON if Room adds too much overhead"). The MVP codebase already uses
+JSON if Room adds too much overhead"). The MVP codebase already used
 SharedPreferences + Gson exclusively — `SharedPrefsFriendListRepository`,
 `SharedPrefsCooldownRepository`, `SharedPrefsSettingsRepository` — with no Room
 dependency, no `kapt`/`ksp`, and a stated F-Droid philosophy of "a small,
-inspectable dependency tree" (see `ServiceLocator`'s KDoc).
+inspectable dependency tree" (see `ServiceLocator`'s KDoc). Phase 2 initially
+kept that pattern for all five of its new repositories, for the reasons below.
 
-Phase 2 continues that pattern rather than introducing Room:
+**Update (FRM-81, after beta with a single confirmed user, no production data
+at stake): `ContactGroupRepository`, `SpecialDateRepository`, and
+`OutreachLogRepository` moved to Room.** The original "zero migration risk"
+rationale below no longer applied once there was no real user data to put at
+risk, and the Dashboard chart bug (`DashboardChartCalculator.weeklyBuckets()`
+subtracting cumulative counts backwards) was the kind of correctness bug a
+hand-rolled JSON store makes easier to introduce than a real relational store
+with actual FK/CASCADE semantics would have. `Settings`, `Cooldown`,
+`ReminderFrequency`, `StatisticsCache`, and Contact/FriendList **stayed on
+SharedPreferences+JSON** — deliberately scoped down from "migrate everything"
+to just the three repositories with real relational shape (M:N membership,
+append-mostly logs, replace-by-source dates). See "Room migration (FRM-81)"
+below for the mechanics; the reasoning that follows here is the original
+Phase 2 rationale for *not* migrating, kept for the historical record and
+because it still applies to the five repositories that stayed on
+SharedPreferences.
+
+Phase 2 originally continued the MVP's pattern rather than introducing Room,
+for these reasons:
 
 - **Consistency.** Every new repository (`ContactGroupRepository`,
   `SpecialDateRepository`, `OutreachLogRepository`, `ReminderFrequencyRepository`,
@@ -74,13 +93,13 @@ so it can never drift out of sync with actual membership.
 
 ## Storage layer (`data/storage/`)
 
-| Repository | Backing prefs file | Notes |
+| Repository | Backing store | Notes |
 |---|---|---|
-| `ContactGroupRepository` | `friend_minder_groups` | Group list + `contactId -> Set<groupId>` membership, as two independent JSON blobs |
-| `ReminderFrequencyRepository` | `friend_minder_reminder_frequency` | `contactId -> Int` override; null/absent = use `SettingsRepository.getCooldownDays()` |
-| `SpecialDateRepository` | `friend_minder_special_dates` | Birthdays (`source = CONTACTS`) and custom dates (`source = CUSTOM`) in one list; `replaceContactsSourced` reconciles birthdays without touching custom entries |
-| `OutreachLogRepository` | `friend_minder_outreach_log` | Append-mostly log list |
-| `StatisticsCacheRepository` | `friend_minder_statistics_cache` | `contactId -> ContactStatistics`, with `computedAt` for staleness checks |
+| `ContactGroupRepository` | Room (`contact_groups` + `contact_group_membership`, FRM-81) | Group list + M:N membership; `deleteGroup` cascades to membership rows via `ForeignKey(onDelete = CASCADE)`. Was `friend_minder_groups` SharedPreferences until FRM-81. |
+| `ReminderFrequencyRepository` | `friend_minder_reminder_frequency` (SharedPreferences) | `contactId -> Int` override; null/absent = use `SettingsRepository.getCooldownDays()`. Out of scope for the FRM-81 migration. |
+| `SpecialDateRepository` | Room (`special_dates`, FRM-81) | Birthdays (`source = CONTACTS`) and custom dates (`source = CUSTOM`) in one table; `replaceContactsSourced` is a `@Transaction` delete-then-insert DAO method. Was `friend_minder_special_dates` SharedPreferences until FRM-81. |
+| `OutreachLogRepository` | Room (`outreach_logs`, FRM-81) | Append-mostly log table. Was `friend_minder_outreach_log` SharedPreferences until FRM-81. |
+| `StatisticsCacheRepository` | `friend_minder_statistics_cache` (SharedPreferences) | `contactId -> ContactStatistics`, with `computedAt` for staleness checks. Out of scope for the FRM-81 migration. |
 
 `CooldownRepository` (existing, MVP) gained two new methods —
 `getReminderCount` / `incrementReminderCount` — because reach rate (PRD §6.5)
@@ -202,6 +221,37 @@ SharedPreferences-based system rather than Room):
   correctly and every new Phase 2 repository returns safe empty defaults for
   that same pre-existing contact.
 
+## Room migration (FRM-81)
+
+`data/room/` holds the Room side: `OutreachLogEntity`, `ContactGroupEntity` +
+`ContactGroupMembershipEntity` (the M:N join table, `groupId` foreign-keyed
+with `CASCADE` delete), `SpecialDateEntity`, their three DAOs, and
+`AppDatabase` (version 1, `exportSchema = true` — see `app/schemas/`).
+`RoomOutreachLogRepository`/`RoomContactGroupRepository`/`RoomSpecialDateRepository`
+(in `data/storage/`, alongside the `SharedPrefs*` classes they replaced)
+implement the same, unchanged repository interfaces — no caller outside
+`ServiceLocator` needed to change.
+
+**Migration mechanics** (`data/storage/RoomMigration.kt`): a one-time, blocking
+copy (`runBlocking`, not fire-and-forget) in `FriendMinderApplication.onCreate()`,
+gated by a new `SchemaVersion.ROOM_MIGRATION_V1` so it runs exactly once. It
+reads old data through the existing `SharedPrefsOutreachLogRepository`/
+`SharedPrefsContactGroupRepository`/`SharedPrefsSpecialDateRepository` classes'
+own public methods (so it can't drift from their (de)serialization logic) and
+writes it into Room via the DAOs. **The old SharedPreferences data is
+deliberately never deleted** — kept as a rollback safety net. It runs before
+`ServiceLocator.init()` so nothing can read from the (possibly still-empty)
+Room database before migration completes.
+
+**Build wrinkle worth recording:** KSP (Room's annotation processor) does not
+support AGP 9's built-in Kotlin support, and the classic
+`org.jetbrains.kotlin.android` plugin isn't compatible with AGP 9's new DSL
+either (`BaseExtension` cast failure). `gradle.properties` sets
+`android.builtInKotlin=false` and `android.newDsl=false` — AGP's own
+documented bridge — until KSP adds built-in-Kotlin support upstream. This is
+why this migration's PR touches Gradle plugin wiring at all, despite being
+otherwise a pure storage-layer change.
+
 ## Testing
 
 - **Unit tests** (`app/src/test`, plain JUnit, no Android/mocking
@@ -216,6 +266,12 @@ SharedPreferences-based system rather than Room):
   Robolectric/Mockito dependency, so anything needing a real `Context` is an
   instrumented test rather than a JVM unit test): `SharedPrefsContactGroupRepositoryTest`
   (CRUD + M:N membership) and `Phase1CompatibilityTest` (see above).
+- **Room tests** (FRM-81, `app/src/androidTest/.../data/room/` and
+  `RoomMigrationTest`): `ContactGroupDaoTest` (including the CASCADE-delete
+  behavior), `SpecialDateDaoTest` (`replaceContactsSourced` atomicity),
+  `OutreachLogDaoTest`, using `Room.inMemoryDatabaseBuilder`; `RoomMigrationTest`
+  verifies the migration copies data correctly, is idempotent, and never
+  deletes the old SharedPreferences data.
 - Both `./gradlew testDebugUnitTest` and `./gradlew compileDebugAndroidTestKotlin`
   pass; `./gradlew assembleDebug` and `./gradlew detekt` are clean. Running
   the androidTest suite itself needs a connected device/emulator, which
