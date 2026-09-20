@@ -1,0 +1,3 @@
+Bug fix: the missing-contact banner now names the contact and lets you remove it
+
+- Fixed: the "N contacts in your friend list no longer exist" banner never said which contact and had no way to resolve it. Tapping it now shows exactly which friend(s) were removed from your phone's contacts, with a button to remove each one from Friend-Minder directly.
