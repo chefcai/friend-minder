@@ -1,0 +1,4 @@
+Bug fixes: search visibility and group creation
+
+- Fixed: searching your contacts could leave earlier matches hidden or stuck invisible, especially after scrolling and typing quickly
+- Fixed: the "+ New Group" button inside "Add contact to group" did nothing when tapped
