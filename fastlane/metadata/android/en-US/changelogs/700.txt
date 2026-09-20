@@ -1,0 +1,8 @@
+Faster dashboard, on-device screenshots, and a safer test notification
+
+- The Dashboard's stats and streaks now load noticeably faster, and contact photos use less memory, especially with a large friend list or a long outreach history.
+- The Dashboard's "Manage" menu now goes straight to Edit Friends, and the gear icon opens a new setup hub for onboarding-style tasks; Settings gained an "Advanced" entry for the options that used to live behind the gear.
+- Fixed: the "Needs attention" list on Dashboard always broke ties the same way, so the same contact could get stuck at the top indefinitely - ties are now broken randomly.
+- Fixed: the monthly outreach chart could render blank even when outreach had actually been logged.
+- The "Send a test notification" button now posts a clearly-labeled test notification instead of a real reminder - it no longer creates an outreach log entry, can be muted independently of real reminders, and taps through to Settings instead of a contact's messaging app.
+- Added Play Store/F-Droid screenshots.
