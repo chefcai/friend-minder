@@ -118,6 +118,13 @@
     <string name="format_frequency_default">Every %1$d days (default)</string>
     <string name="format_frequency_custom">Every %1$d days (custom)</string>
     <string name="format_chart_bar_count">%1$d contacts</string>
+    <!-- Chart axis labels (GH #101): persistent per-bar labels, distinct from the
+         tap-to-reveal value shown by format_chart_bar_count above. -->
+    <string name="label_chart_axis_this_week">This wk</string>
+    <plurals name="format_chart_axis_weeks_ago">
+        <item quantity="one">%1$d wk ago</item>
+        <item quantity="other">%1$d wks ago</item>
+    </plurals>
     <string name="format_streak_badge_overflow">9+</string>
 
     <!-- Groups (GroupsFragment, FRM-56) -->
