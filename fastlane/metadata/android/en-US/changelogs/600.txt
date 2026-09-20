@@ -1,0 +1,5 @@
+Dashboard is now your home screen, plus notification and history fixes
+
+- The Dashboard (your stats, streaks, and who needs attention) is now the first thing you see when you open the app, instead of the friend-management screen. Friend management, groups, and settings are one tap away from Dashboard's new "Manage" menu.
+- Fixed: reminder notifications showed only a contact's first name, making it hard to tell apart two contacts who share one - notifications and their "Text" action now show the full name.
+- Fixed: a contact's outreach history could look like it hadn't updated right after logging a new entry, with the "No outreach logged yet" message stuck on screen even though the entry was actually saved.
