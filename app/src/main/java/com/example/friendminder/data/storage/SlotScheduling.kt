@@ -1,9 +1,12 @@
 package com.example.friendminder.data.storage
 
+import java.util.Calendar
+
 /**
  * Pure time-math for FRM-8, factored out of [WorkManagerNotificationScheduler]
- * so it is unit-testable without WorkManager/Calendar. All times are 24h
- * device-local hour/minute pairs.
+ * so it is unit-testable without WorkManager. All times are 24h device-local
+ * hour/minute pairs. [delayMillisUntil] takes "now" as a parameter (rather than
+ * reading the system clock itself) specifically so it stays unit-testable too.
  */
 object SlotScheduling {
 
@@ -35,5 +38,30 @@ object SlotScheduling {
         val targetHour = (startHour + offsetMinutes / 60) % 24
         val targetMinute = offsetMinutes % 60
         return targetHour to targetMinute
+    }
+
+    /**
+     * Milliseconds from [nowMillis] until the next occurrence of ([hour], [minute]).
+     * Rolls over to tomorrow if that time has already passed today, or
+     * unconditionally when [forceNextDay] is true.
+     *
+     * [forceNextDay] exists for FRM-77: a random-mode slot re-arms itself right
+     * after it fires by drawing a fresh random time from the *full* window
+     * ([randomTimeInWindow]) and scheduling it here. Without forcing next-day,
+     * a freshly-drawn time that hasn't happened yet today would fire again
+     * later the *same* day the slot already fired, producing an extra,
+     * unexpected notification.
+     */
+    fun delayMillisUntil(hour: Int, minute: Int, nowMillis: Long, forceNextDay: Boolean = false): Long {
+        val now = Calendar.getInstance().apply { timeInMillis = nowMillis }
+        val target = Calendar.getInstance().apply {
+            timeInMillis = nowMillis
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            if (forceNextDay || before(now)) add(Calendar.DAY_OF_MONTH, 1)
+        }
+        return target.timeInMillis - now.timeInMillis
     }
 }
