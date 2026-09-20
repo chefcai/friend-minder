@@ -51,8 +51,9 @@
     <string name="helper_birthday_check_explanation">Get a reminder notification on a contact\'s birthday or other special date, based on what\'s in your contacts. Turn this off if you\'d rather not be notified.</string>
     <string name="checkbox_birthday_check">Birthday &amp; special date reminders</string>
 
-    <!-- Home (HomeFragment) -->
+    <!-- Home (HomeFragment, reached from Dashboard's "Manage" menu action - GH #56) -->
     <string name="title_home">Friend-Minder</string>
+    <string name="action_manage_menu">Manage</string>
     <string name="label_preview_header">You\'ll get a reminder like this:</string>
     <string name="label_preview_chip">Preview</string>
     <string name="action_test_notification">Send a test notification</string>
@@ -79,7 +80,6 @@
 
     <!-- Dashboard (DashboardFragment, FRM-55) -->
     <string name="title_dashboard">Dashboard</string>
-    <string name="action_dashboard_row">Dashboard</string>
     <plurals name="format_dashboard_key_metric">
         <item quantity="zero">You haven\'t reached out to anyone this month yet</item>
         <item quantity="one">You\'ve reached out to %1$d contact this month</item>

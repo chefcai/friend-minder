@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:title="@string/title_home"
-        app:menu="@menu/menu_home" />
+        app:navigationIcon="@drawable/ic_arrow_back" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -136,33 +136,6 @@
             </LinearLayout>
 
             <!-- Navigation shortcuts -->
-            <LinearLayout
-                android:id="@+id/dashboardRow"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/action_dashboard_row"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:contentDescription="@null" />
-            </LinearLayout>
-
             <LinearLayout
                 android:id="@+id/groupsRow"
                 android:layout_width="match_parent"

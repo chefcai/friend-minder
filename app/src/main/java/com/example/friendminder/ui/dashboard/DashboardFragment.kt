@@ -3,6 +3,7 @@ package com.example.friendminder.ui.dashboard
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -21,6 +22,8 @@ import com.example.friendminder.domain.services.OutreachLogService
 import com.example.friendminder.domain.services.StatisticsService
 import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
+import com.example.friendminder.ui.home.HomeFragment
+import com.example.friendminder.ui.settings.AdvancedSettingsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -46,6 +49,13 @@ import java.util.concurrent.TimeUnit
  * deliberate choice rather than a shortcut (contrast with GroupAdapter/
  * GroupMemberAdapter/OutreachHistoryAdapter, which back genuinely
  * unbounded lists and do use RecyclerView).
+ *
+ * GH #56: this is now the app's root/launch screen for returning users
+ * (see MainActivity, SettingsFragment's onboarding-completion branch), so
+ * its toolbar has no back arrow and instead shows a menu ("Manage" opens
+ * HomeFragment for friend/group/settings management; the gear opens
+ * AdvancedSettingsFragment) - mirroring the menu HomeFragment used to own
+ * when it was the root screen.
  */
 class DashboardFragment : Fragment() {
 
@@ -63,14 +73,32 @@ class DashboardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
+        binding.toolbar.setOnMenuItemClickListener { item -> onMenuItemClicked(item) }
     }
 
     override fun onResume() {
         super.onResume()
         refresh(forceRefresh = false)
+    }
+
+    private fun onMenuItemClicked(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_manage -> {
+                parentFragmentManager.commit {
+                    replace(R.id.nav_host_container, HomeFragment())
+                    addToBackStack(null)
+                }
+                return true
+            }
+            R.id.action_advanced_settings -> {
+                parentFragmentManager.commit {
+                    replace(R.id.nav_host_container, AdvancedSettingsFragment.newInstance())
+                    addToBackStack(null)
+                }
+                return true
+            }
+            else -> return false
+        }
     }
 
     private fun refresh(forceRefresh: Boolean) {
