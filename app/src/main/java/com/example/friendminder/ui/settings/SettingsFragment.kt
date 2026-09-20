@@ -19,7 +19,7 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentSettingsBinding
-import com.example.friendminder.ui.home.HomeFragment
+import com.example.friendminder.ui.dashboard.DashboardFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -29,6 +29,8 @@ import java.util.Locale
  * Reminder configuration (Designer spec §3.2). Onboarding mode is the second
  * step of first launch (no back arrow — back returns to FriendListFragment
  * via the ordinary back stack); edit mode is reachable from HomeFragment.
+ * GH #56: onboarding completion now lands on DashboardFragment (the app's
+ * root screen), not HomeFragment.
  */
 class SettingsFragment : Fragment() {
 
@@ -233,10 +235,11 @@ class SettingsFragment : Fragment() {
 
             if (isOnboarding) {
                 // Collapse the onboarding back-stack (FriendList -> Settings)
-                // so Home becomes the new root; back from Home exits the app.
+                // so Dashboard becomes the new root (GH #56); back from
+                // Dashboard exits the app.
                 parentFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 parentFragmentManager.commit {
-                    replace(R.id.nav_host_container, HomeFragment())
+                    replace(R.id.nav_host_container, DashboardFragment.newInstance())
                 }
             } else {
                 parentFragmentManager.popBackStack()

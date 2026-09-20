@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:title="@string/title_dashboard"
-        app:navigationIcon="@drawable/ic_arrow_back" />
+        app:menu="@menu/menu_dashboard" />
 
     <ProgressBar
         android:id="@+id/loadingIndicator"

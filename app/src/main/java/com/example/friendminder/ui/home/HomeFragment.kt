@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.app.NotificationManagerCompat
@@ -21,20 +20,18 @@ import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactsLoader
 import com.example.friendminder.databinding.FragmentHomeBinding
 import com.example.friendminder.ui.friendlist.FriendListFragment
-import com.example.friendminder.ui.dashboard.DashboardFragment
 import com.example.friendminder.ui.groups.GroupsFragment
-import com.example.friendminder.ui.settings.AdvancedSettingsFragment
 import com.example.friendminder.ui.settings.SettingsFragment
 import com.example.friendminder.utils.ServiceLocator
 import com.example.friendminder.work.SuggestionWorker
 import kotlinx.coroutines.launch
 
 /**
- * Landing screen for a returning user (Designer spec §3.3): notification
- * preview + test button, edit-friends/settings shortcuts, and the two status
- * banners (§4.7, §4.4). The toolbar's gear icon (chefcai/friend-minder#38)
- * opens AdvancedSettingsFragment, kept separate from the regular Settings
- * screen since it's the one place SEND_SMS gets requested from.
+ * Friend-management screen (Designer spec §3.3), reached from Dashboard's
+ * "Manage" menu action (GH #56): notification preview + test button,
+ * edit-friends/settings shortcuts, and the two status banners (§4.7, §4.4).
+ * No longer the app's root screen - Dashboard is - so the toolbar shows a
+ * back arrow instead of its own menu.
  */
 class HomeFragment : Fragment() {
 
@@ -53,16 +50,12 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setOnMenuItemClickListener { item -> onMenuItemClicked(item) }
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
 
         binding.addFriendsButton.setOnClickListener { openFriendList() }
         binding.editFriendsRow.setOnClickListener { openFriendList() }
-        binding.dashboardRow.setOnClickListener {
-            parentFragmentManager.commit {
-                replace(R.id.nav_host_container, DashboardFragment.newInstance())
-                addToBackStack(null)
-            }
-        }
         binding.groupsRow.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.nav_host_container, GroupsFragment.newInstance())
@@ -92,15 +85,6 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         refresh()
-    }
-
-    private fun onMenuItemClicked(item: MenuItem): Boolean {
-        if (item.itemId != R.id.action_advanced_settings) return false
-        parentFragmentManager.commit {
-            replace(R.id.nav_host_container, AdvancedSettingsFragment.newInstance())
-            addToBackStack(null)
-        }
-        return true
     }
 
     private fun openFriendList() {

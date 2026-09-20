@@ -7,17 +7,18 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.databinding.ActivityMainBinding
+import com.example.friendminder.ui.dashboard.DashboardFragment
 import com.example.friendminder.ui.friendlist.FriendListFragment
-import com.example.friendminder.ui.home.HomeFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
 /**
  * Navigation shell (Designer spec §2): decides first-launch (onboarding) vs.
- * returning-user (Home) start destination, then hosts FriendListFragment /
- * SettingsFragment / HomeFragment via plain FragmentTransactions. No
- * Navigation-Component dependency — consistent with the project's minimal,
- * easy-to-audit dependency tree (see ServiceLocator).
+ * returning-user (Dashboard, GH #56) start destination, then hosts
+ * FriendListFragment / SettingsFragment / DashboardFragment via plain
+ * FragmentTransactions. No Navigation-Component dependency — consistent
+ * with the project's minimal, easy-to-audit dependency tree (see
+ * ServiceLocator).
  */
 class MainActivity : AppCompatActivity() {
 
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                 supportFragmentManager.commit {
                     replace(
                         R.id.nav_host_container,
-                        if (hasFriends) HomeFragment() else FriendListFragment.newInstance(isOnboarding = true)
+                        if (hasFriends) DashboardFragment.newInstance() else FriendListFragment.newInstance(isOnboarding = true)
                     )
                 }
             }

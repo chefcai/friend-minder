@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 /**
  * Explicit opt-in for direct SMS sending (chefcai/friend-minder#38), plus the
  * birthday/special-date reminder toggle (FRM-54). Reached via the gear icon
- * on HomeFragment's toolbar, deliberately separate from the tap-to-send
+ * on DashboardFragment's toolbar (GH #56; formerly HomeFragment's, before
+ * Dashboard became the app's root screen), deliberately separate from the tap-to-send
  * flow: SEND_SMS is now only ever requested here, after the user has read
  * the explanation and turned the setting on themselves, never as an
  * automatic side effect of tapping a reminder notification.
