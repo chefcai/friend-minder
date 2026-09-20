@@ -57,10 +57,11 @@
             android:textAppearance="?attr/textAppearanceBodySmall" />
     </LinearLayout>
 
-    <Button
+    <ImageButton
         android:id="@+id/reachOutButton"
-        style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/action_reach_out" />
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_message"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@null" />
 </LinearLayout>
