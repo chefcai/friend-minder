@@ -46,6 +46,18 @@ class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
         binding.cancelButton.setOnClickListener { dismiss() }
         binding.addButton.setOnClickListener { addSelected() }
 
+        // GH #72: this dialog's layout is shared with
+        // EditContactGroupsDialogFragment (which lets a contact be added to a
+        // *new* group, so "+ New Group" belongs there), but this fragment is
+        // reached from a specific group's detail screen to add existing
+        // friends to *that* group. "+ New Group" here had no click listener
+        // at all - tapping it silently did nothing, which is what got
+        // reported as groups not saving. Creating an unrelated group
+        // mid-"add contacts to this group" flow isn't meaningful UX, so
+        // rather than invent a "create and immediately add" behavior, hide
+        // the button in this context instead of leaving it dead.
+        binding.createGroupButton.visibility = View.GONE
+
         viewLifecycleOwner.lifecycleScope.launch {
             val allFriends = ServiceLocator.friendListRepository.getFriendList()
             val existingMemberIds = ServiceLocator.contactGroupRepository.getContactIdsInGroup(groupId)
