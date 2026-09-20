@@ -92,12 +92,28 @@ class FriendListFragment : Fragment() {
         ) { item -> onRowClicked(item) }
         binding.contactRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.contactRecyclerView.adapter = adapter
+        // GH #71: RecyclerView's default ItemAnimator runs its own add/move/change
+        // alpha+translation animations on top of ContactAdapter's manual staggered
+        // fade-in (bind() below). Search filtering resubmits the list on every
+        // keystroke, so the two animators fight over the same view properties -
+        // a row can end up stuck at an intermediate (sometimes fully transparent)
+        // alpha when DefaultItemAnimator's change/move animation is interrupted by
+        // a rebind mid-flight. The adapter already owns list-change animation via
+        // its own fade-in, so the built-in one is redundant as well as unsafe here.
+        binding.contactRecyclerView.itemAnimator = null
 
         binding.searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 searchQuery = s?.toString().orEmpty()
                 renderList()
+                // GH #71: a filtered result set is a fresh view, not an
+                // incremental update - without this, a scroll position left
+                // over from before the user started typing can put the
+                // viewport past the first several matches, making them look
+                // missing even though they're in the (correctly filtered)
+                // adapter list.
+                binding.contactRecyclerView.scrollToPosition(0)
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })

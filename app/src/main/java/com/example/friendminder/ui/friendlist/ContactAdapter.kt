@@ -131,7 +131,13 @@ class ContactAdapter(
 
         private fun playFadeInIfNeeded(contactId: String, position: Int, restingAlpha: Float) {
             if (!alreadyAnimated.add(contactId)) {
+                // Reset every property the animation below can touch, not just
+                // alpha - a row rebound here may be a recycled ViewHolder whose
+                // previous fade-in animator was cancelled mid-flight (bind()'s
+                // animate().cancel() above), which leaves translationY wherever
+                // it was interrupted rather than back at its resting 0f (GH #71).
                 binding.contactRow.alpha = restingAlpha
+                binding.contactRow.translationY = 0f
                 return
             }
             if (!ValueAnimator.areAnimatorsEnabled()) {
