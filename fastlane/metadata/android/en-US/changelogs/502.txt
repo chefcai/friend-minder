@@ -1,0 +1,2 @@
+Bug fixes:
+- Fixed "Add contact to group": the Save button is now always reachable and the contact list scrolls properly, even with a large contact list. The earlier fix in v0.5.1 addressed a related but different bug and didn't fully resolve this.
