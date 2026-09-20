@@ -1,9 +1,18 @@
 package com.example.friendminder.data.storage
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Calendar
 
 class SlotSchedulingTest {
+
+    /** Builds an epoch-millis timestamp for a specific device-local date/time, for deterministic "now" fixtures. */
+    private fun millisAt(year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
+        Calendar.getInstance().apply {
+            set(year, month - 1, day, hour, minute, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
     @Test
     fun `single slot keeps the base time unchanged`() {
@@ -67,5 +76,46 @@ class SlotSchedulingTest {
         }
         assertEquals(9, hour)
         assertEquals(0, minute)
+    }
+
+    @Test
+    fun `delayMillisUntil targets later today when the time has not passed yet`() {
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        val delay = SlotScheduling.delayMillisUntil(hour = 14, minute = 0, nowMillis = now)
+        assertEquals(4 * 60 * 60 * 1000L, delay) // 4 hours from now, later today
+    }
+
+    @Test
+    fun `delayMillisUntil rolls to tomorrow when the time has already passed today`() {
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        val delay = SlotScheduling.delayMillisUntil(hour = 9, minute = 0, nowMillis = now)
+        assertEquals(23 * 60 * 60 * 1000L, delay) // 23 hours from now, tomorrow at 9:00
+    }
+
+    @Test
+    fun `forceNextDay rolls to tomorrow even when the time has not passed yet today (FRM-77)`() {
+        // This is the exact re-arm scenario from FRM-77 / GitHub #80: a random-mode
+        // slot fires, then re-arms with a freshly drawn time that happens to still be
+        // later today. Without forceNextDay this would return a same-day delay,
+        // letting the slot fire twice in one day.
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        val delay = SlotScheduling.delayMillisUntil(hour = 14, minute = 0, nowMillis = now, forceNextDay = true)
+        assertEquals(28 * 60 * 60 * 1000L, delay) // tomorrow at 14:00, not today at 14:00
+    }
+
+    @Test
+    fun `forceNextDay still rolls to tomorrow when the time has already passed today`() {
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        val delayForced = SlotScheduling.delayMillisUntil(hour = 9, minute = 0, nowMillis = now, forceNextDay = true)
+        val delayUnforced = SlotScheduling.delayMillisUntil(hour = 9, minute = 0, nowMillis = now, forceNextDay = false)
+        // Already in the past today either way, so forcing changes nothing here.
+        assertEquals(delayUnforced, delayForced)
+    }
+
+    @Test
+    fun `delayMillisUntil is always positive`() {
+        val now = millisAt(2026, 9, 20, hour = 23, minute = 59)
+        val delay = SlotScheduling.delayMillisUntil(hour = 0, minute = 0, nowMillis = now)
+        assertTrue(delay > 0)
     }
 }

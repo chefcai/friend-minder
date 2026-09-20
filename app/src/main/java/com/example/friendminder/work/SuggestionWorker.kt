@@ -83,12 +83,18 @@ class SuggestionWorker(
         return Result.success()
     }
 
-    /** Random-mode slots are one-time work; re-arm tomorrow's run with a fresh random minute. */
+    /**
+     * Random-mode slots are one-time work; re-arm tomorrow's run with a fresh
+     * random minute. forceNextDay = true (FRM-77): without it, the freshly
+     * drawn random minute could still be later today, firing this same slot
+     * twice in one day.
+     */
     private fun rearmIfRandom() {
         if (!inputData.getBoolean(KEY_RANDOM_MODE, false)) return
         val slot = inputData.getInt(KEY_SLOT, 0)
         val startHour = inputData.getInt(KEY_RANDOM_START_HOUR, 9)
         val endHour = inputData.getInt(KEY_RANDOM_END_HOUR, 21)
-        WorkManagerNotificationScheduler(appContext).enqueueRandomOneTime(slot, startHour, endHour)
+        WorkManagerNotificationScheduler(appContext)
+            .enqueueRandomOneTime(slot, startHour, endHour, forceNextDay = true)
     }
 }

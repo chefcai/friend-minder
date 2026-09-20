@@ -10,7 +10,6 @@ import androidx.work.WorkManager
 import com.example.friendminder.work.SuggestionWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -63,8 +62,15 @@ class WorkManagerNotificationScheduler(private val context: Context) : Notificat
      * enqueues a one-time work request for it. Public (non-suspend, called
      * directly from [SuggestionWorker.doWork]) so a random-mode slot can
      * re-arm itself for tomorrow right after it fires.
+     *
+     * [forceNextDay] must be true for that re-arm call (FRM-77): the random
+     * draw comes from the full window with no floor relative to "now", so
+     * without forcing next-day, a freshly-drawn time later today would fire
+     * again the same day the slot already fired. Fresh (non-rearm) calls from
+     * [scheduleWithRandomTime] leave it false, letting today's slot still fire
+     * today if its random time hasn't passed yet.
      */
-    fun enqueueRandomOneTime(slot: Int, startHour: Int, endHour: Int) {
+    fun enqueueRandomOneTime(slot: Int, startHour: Int, endHour: Int, forceNextDay: Boolean = false) {
         val (targetHour, targetMinute) = SlotScheduling.randomTimeInWindow(startHour, endHour) { windowMinutes ->
             Random.nextInt(windowMinutes)
         }
@@ -77,7 +83,7 @@ class WorkManagerNotificationScheduler(private val context: Context) : Notificat
             .build()
 
         val request = OneTimeWorkRequestBuilder<SuggestionWorker>()
-            .setInitialDelay(delayUntilNext(targetHour, targetMinute), TimeUnit.MILLISECONDS)
+            .setInitialDelay(delayUntilNext(targetHour, targetMinute, forceNextDay), TimeUnit.MILLISECONDS)
             .setInputData(input)
             .build()
 
@@ -107,17 +113,8 @@ class WorkManagerNotificationScheduler(private val context: Context) : Notificat
         }
     }
 
-    private fun delayUntilNext(hour: Int, minute: Int): Long {
-        val now = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            if (before(now)) add(Calendar.DAY_OF_MONTH, 1)
-        }
-        return target.timeInMillis - now.timeInMillis
-    }
+    private fun delayUntilNext(hour: Int, minute: Int, forceNextDay: Boolean = false): Long =
+        SlotScheduling.delayMillisUntil(hour, minute, System.currentTimeMillis(), forceNextDay)
 
     override suspend fun cancelSchedule() {
         withContext(Dispatchers.IO) {
