@@ -5,17 +5,21 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.friendminder.MainActivity
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
 import com.example.friendminder.data.models.SpecialDate
 
 private const val CHANNEL_ID = "daily_reminders"
+private const val TEST_CHANNEL_ID = "test_notifications"
+private const val TEST_NOTIFICATION_ID = -1
 private const val TAG = "NotificationHelper"
 
 object NotificationHelper {
@@ -31,6 +35,77 @@ object NotificationHelper {
             }
             context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
         }
+    }
+
+    /**
+     * FRM-78: a separate channel from [CHANNEL_ID], at default (not high)
+     * importance, so a user can mute test notifications independently
+     * without silencing real reminders - and so the channel name itself
+     * labels a test notification in the shade, on top of the "[Test] "
+     * title prefix.
+     */
+    fun ensureTestChannel(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                TEST_CHANNEL_ID,
+                context.getString(R.string.notif_test_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = context.getString(R.string.notif_test_channel_desc)
+            }
+            context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
+        }
+    }
+
+    /**
+     * FRM-78: "Send a test notification now" (HomeFragment) used to fire the
+     * real [com.example.friendminder.work.SuggestionWorker], producing a
+     * notification indistinguishable from a genuine reminder - same contact
+     * name, same SMS quick-action - and tapping that action created a real
+     * outreach log entry for a contact the app never actually suggested.
+     * This posts a diagnostic-only notification instead: no contact
+     * identity anywhere, no SMS action (tapping it opens Settings, via
+     * [MainActivity]'s EXTRA_OPEN_SETTINGS handling), and its own
+     * low-importance channel so it can't be mistaken for, or inflate a
+     * user's count of, real reminders.
+     */
+    fun postTestNotification(context: Context) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i(TAG, "Skipping test notification: POST_NOTIFICATIONS not granted")
+            return
+        }
+
+        ensureTestChannel(context)
+
+        val openSettingsIntent = Intent(context, MainActivity::class.java).apply {
+            action = MainActivity.ACTION_OPEN_SETTINGS
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            TEST_NOTIFICATION_ID,
+            openSettingsIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // FRM-78 a11y requirement: the test notification's content description must
+        // carry the "[Test]" marker, not just the visual title - satisfied here since
+        // the title itself (read by TalkBack as the notification's announced text) is
+        // "[Test] Friend-Minder" rather than a bare "Friend-Minder".
+        val notification = NotificationCompat.Builder(context, TEST_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_friend_minder)
+            .setContentTitle(context.getString(R.string.notif_test_title))
+            .setContentText(context.getString(R.string.notif_test_body))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        NotificationManagerCompat.from(context).notify(TEST_NOTIFICATION_ID, notification)
     }
 
     fun postReminder(context: Context, contact: Contact, messageTemplate: String) {
