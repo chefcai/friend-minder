@@ -47,4 +47,29 @@ object StatisticsCalculator {
         val sorted = values.sorted()
         return sorted[sorted.size / 2]
     }
+
+    /**
+     * Top [n] items by descending [key], with ties broken randomly rather than by
+     * whatever incidental order [items] arrived in.
+     *
+     * Motivating case (dashboard "Needs attention"): every never-contacted contact
+     * ties at the same "most neglected" key, and a plain `sortedByDescending` is
+     * stable, so those ties would otherwise always resolve to insertion order (in
+     * practice, whichever contacts were added to the Friend List earliest) -- the
+     * same 5 names forever, regardless of how many other contacts are equally
+     * neglected. Shuffling first, then doing a stable sort by [key], keeps the
+     * *ordering between different keys* correct while randomizing which of several
+     * tied items ends up in the visible top [n] on each call.
+     *
+     * [shuffle] is injectable (default: [List.shuffled]) purely for
+     * unit-testability without relying on real randomness, matching
+     * [com.example.friendminder.data.storage.SlotScheduling]'s
+     * `randomMinuteOfWindow` pattern.
+     */
+    fun <T> topNRandomizedTies(
+        items: List<T>,
+        n: Int,
+        shuffle: (List<T>) -> List<T> = List<T>::shuffled,
+        key: (T) -> Int
+    ): List<T> = shuffle(items).sortedByDescending(key).take(n)
 }

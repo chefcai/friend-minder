@@ -3,6 +3,7 @@ package com.example.friendminder.domain.services
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -130,5 +131,52 @@ class StatisticsCalculatorTest {
     @Test
     fun `median handles a single-element list`() {
         assertEquals(42, StatisticsCalculator.median(listOf(42)))
+    }
+
+    // --- topNRandomizedTies ---
+
+    @Test
+    fun `topNRandomizedTies orders strictly by key regardless of shuffle order`() {
+        // A no-op "shuffle" (identity) still must not affect ordering between
+        // genuinely different keys - only ties should be order-dependent.
+        val result = StatisticsCalculator.topNRandomizedTies(
+            items = listOf("low" to 1, "high" to 9, "mid" to 5),
+            n = 3,
+            shuffle = { it }
+        ) { (_, key) -> key }
+        assertEquals(listOf("high" to 9, "mid" to 5, "low" to 1), result)
+    }
+
+    @Test
+    fun `topNRandomizedTies breaks ties using the injected shuffle, not input order`() {
+        // Three items tie at the same key; a reversing "shuffle" should flip
+        // which ones land in the top N versus a plain stable sort.
+        val items = listOf("a" to 5, "b" to 5, "c" to 5, "d" to 5)
+        val result = StatisticsCalculator.topNRandomizedTies(
+            items = items,
+            n = 2,
+            shuffle = { it.reversed() }
+        ) { (_, key) -> key }
+        assertEquals(listOf("d" to 5, "c" to 5), result)
+    }
+
+    @Test
+    fun `topNRandomizedTies respects n`() {
+        val result = StatisticsCalculator.topNRandomizedTies(
+            items = listOf(1, 2, 3, 4, 5),
+            n = 2,
+            shuffle = { it }
+        ) { it }
+        assertEquals(listOf(5, 4), result)
+    }
+
+    @Test
+    fun `topNRandomizedTies with the default shuffle still returns exactly n items with the top key`() {
+        // Not asserting a specific order (that's the point - it's randomized),
+        // just that the default (real) shuffle doesn't break correctness.
+        val items = listOf(1, 5, 5, 5, 2)
+        val result = StatisticsCalculator.topNRandomizedTies(items, n = 2) { it }
+        assertEquals(2, result.size)
+        assertTrue(result.all { it == 5 })
     }
 }
