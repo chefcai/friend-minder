@@ -87,11 +87,13 @@
     <!-- Phase 2 holdover contact-health colors. Not part of Phase 3's
          status system (DESIGN-SYSTEM-PHASE3.md §2.5 replaces per-row status
          entirely with the two-state badge - see HomeFragment /
-         item_home_contact.xml) - kept only because Settings' advancedRow
-         still references them (fm_status_healthy). The orphaned
-         Dashboard's item_dashboard_neglected.xml, the only other
-         consumer, was deleted on FRM-101 along with the rest of that
-         screen; full retirement of these four colors is FRM-103 scope. -->
+         item_home_contact.xml). fm_status_healthy was Settings' advancedRow/
+         notificationsDiagnosticsRow color until GH #131 replaced it with
+         fm_ink (a Phase 2 status color reading as stock-Android link blue,
+         not a brand token, was exactly #131's bug). The Dashboard's
+         item_dashboard_neglected.xml, the only other consumer, was deleted
+         on FRM-101 along with the rest of that screen - all four colors are
+         now fully unreferenced; full retirement is still FRM-103 scope. -->
     <color name="fm_status_healthy">#16699B</color>
     <color name="fm_status_attention">#22615E</color>
     <color name="fm_status_neglected">#105750</color>

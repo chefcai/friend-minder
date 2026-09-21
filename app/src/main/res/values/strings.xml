@@ -36,7 +36,6 @@
     <string name="label_message_templates">Message Templates</string>
     <string name="hint_message_templates">One message per line — a random one is used each time</string>
     <string name="checkbox_include_message">Include a pre-filled message</string>
-    <string name="action_save_settings">Save Settings</string>
     <plurals name="format_template_counter">
         <item quantity="zero">No templates yet — a default will be used</item>
         <item quantity="one">%1$d template</item>
@@ -84,7 +83,9 @@
     <string name="format_notif_action_text">Text %1$s</string>
     <string name="toast_no_sms_app">No SMS app available.</string>
     <string name="toast_sms_sent">Message sent</string>
-    <string name="toast_settings_saved">Saved</string>
+    <!-- FRM-130: Settings' transient auto-save confirmation pill, not a
+         Toast (see SettingsFragment.showSavedPill). -->
+    <string name="label_settings_saved_pill">Saved</string>
     <string name="format_birthday_message">Happy birthday, %1$s! 🎉</string>
     <string name="format_special_date_body">%1$s today</string>
 

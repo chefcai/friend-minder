@@ -10,13 +10,10 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.AccessibilityDelegateCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
@@ -24,23 +21,33 @@ import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentSettingsBinding
 import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
 
 /**
- * Reminder configuration (Designer spec §3.2), reachable from the bottom
- * nav (FRM-100). Carries the "Advanced" row (below the Save button) that
- * opens [AdvancedSettingsFragment].
+ * Reminder configuration (Designer spec section 3.2), reachable from the
+ * bottom nav (FRM-100). Carries the "Advanced" row (below the reminder
+ * form) that opens [AdvancedSettingsFragment].
  *
- * FRM-102 (SCREENS-PHASE3.md §9.0, "onboarding is dropped"): this screen
+ * FRM-102 (SCREENS-PHASE3.md 9.0, "onboarding is dropped"): this screen
  * used to run in two modes - a forward-only first-launch step reached from
  * FriendListFragment with no back arrow, landing on HomeFragment on save,
  * versus an edit mode reachable from the bottom nav. The app now always
  * launches to Home (MainActivity no longer branches on "do you have
  * friends yet"), so onboarding mode can never be entered and is retired
  * here rather than left as dead, unreachable code - see MainActivity's own
- * §9.0 update for the other half of this change.
+ * 9.0 update for the other half of this change.
+ *
+ * FRM-130 (SCREENS-PHASE3.md 7.2, "there is no Save Settings button"):
+ * every control below writes to [ServiceLocator.settingsRepository] on
+ * change, via [scheduleAutoSaveUnlessLoading]'s 600ms debounce (7.4's
+ * decided value), confirmed by the settingsSavedPill overlay fading
+ * in/out rather than a Toast. [isLoadingSettings] guards the programmatic
+ * field population in [loadCurrentSettings] from triggering a spurious
+ * autosave (and pill) the moment the screen opens.
  */
 class SettingsFragment : Fragment() {
 
@@ -52,8 +59,12 @@ class SettingsFragment : Fragment() {
     private var randomStartHour = 7
     private var randomEndHour = 9
 
+    private var isLoadingSettings = false
+    private var autoSaveJob: Job? = null
+    private var savedPillJob: Job? = null
+
     private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op: see §3.3 banner for persistent denial */ }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op: see 3.3 banner for persistent denial */ }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -76,6 +87,7 @@ class SettingsFragment : Fragment() {
         binding.contactsPerDaySpinner.adapter = ArrayAdapter(
             requireContext(), android.R.layout.simple_spinner_dropdown_item, (1..5).toList()
         )
+        binding.contactsPerDaySpinner.onItemSelectedListener = autoSaveOnItemSelected()
 
         // Simple, locale-agnostic labels without relying on plural resources for MVP.
         val cooldownOptions = listOf(3, 7, 14)
@@ -84,32 +96,59 @@ class SettingsFragment : Fragment() {
             android.R.layout.simple_spinner_dropdown_item,
             cooldownOptions.map { "$it days" }
         )
+        binding.cooldownSpinner.onItemSelectedListener = autoSaveOnItemSelected()
 
+        setUpReminderTimeControls()
+        setUpMessageTemplateControls()
+        setUpNavigationRows()
+
+        ensureNotificationPermission()
+        loadCurrentSettings()
+    }
+
+    // A Spinner's OnItemSelectedListener fires once as soon as it's attached
+    // to an already-populated adapter, not only on a genuine user pick - the
+    // isLoadingSettings guard is what keeps that initial fire silent.
+    private fun autoSaveOnItemSelected() = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            scheduleAutoSaveUnlessLoading()
+        }
+        override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+    }
+
+    private fun setUpReminderTimeControls() {
         binding.timeModeGroup.setOnCheckedChangeListener { _, checkedId ->
             val isRandom = checkedId == binding.randomWindowRadio.id
             binding.fixedTimeGroup.visibility = if (isRandom) View.GONE else View.VISIBLE
             binding.randomWindowGroup.visibility = if (isRandom) View.VISIBLE else View.GONE
             validateTimeRange()
+            scheduleAutoSaveUnlessLoading()
         }
 
         binding.fixedTimeButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, minute ->
                 fixedHour = hour; fixedMinute = minute; renderFixedTimeButton()
+                scheduleAutoSaveUnlessLoading()
             }, fixedHour, fixedMinute, false).show()
         }
         binding.randomFromButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, _ ->
                 randomStartHour = hour; renderRandomButtons(); validateTimeRange()
+                scheduleAutoSaveUnlessLoading()
             }, randomStartHour, 0, false).show()
         }
         binding.randomToButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, _ ->
                 randomEndHour = hour; renderRandomButtons(); validateTimeRange()
+                scheduleAutoSaveUnlessLoading()
             }, randomEndHour, 0, false).show()
         }
+    }
 
+    private fun setUpMessageTemplateControls() {
         binding.includeMessageCheckbox.setOnCheckedChangeListener { _, checked ->
             binding.messageTemplateInput.isEnabled = checked
+            scheduleAutoSaveUnlessLoading()
         }
         // One template per line (chefcai/friend-minder#30); the char counter
         // now reports how many usable templates that resolves to rather than
@@ -118,18 +157,18 @@ class SettingsFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 updateTemplateCounter(s?.toString().orEmpty())
+                scheduleAutoSaveUnlessLoading()
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })
+    }
 
-        binding.saveSettingsButton.setOnClickListener { onSaveClicked() }
-
-        ViewCompat.setAccessibilityDelegate(binding.advancedRow, object : AccessibilityDelegateCompat() {
-            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
-                super.onInitializeAccessibilityNodeInfo(host, info)
-                info.className = "android.widget.Button"
-            }
-        })
+    // FRM-99: interim wiring for the retired setup-hub's remaining content -
+    // see LegacyDiagnosticsFragment's kdoc. notificationsDiagnosticsRow is
+    // not a Designer-P3 spec, just wired here so the functionality stays
+    // reachable pending the FRM-103 pass that's meant to design its real
+    // home. Mirrors advancedRow's row pattern rather than a new one.
+    private fun setUpNavigationRows() {
         binding.advancedRow.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.nav_host_container, AdvancedSettingsFragment.newInstance())
@@ -137,21 +176,6 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        setUpNotificationsDiagnosticsRow()
-
-        loadCurrentSettings()
-    }
-
-    // FRM-99: interim wiring for the retired setup-hub's remaining content -
-    // see LegacyDiagnosticsFragment's kdoc. Split out of onViewCreated to
-    // keep that function under detekt's LongMethod threshold.
-    private fun setUpNotificationsDiagnosticsRow() {
-        ViewCompat.setAccessibilityDelegate(binding.notificationsDiagnosticsRow, object : AccessibilityDelegateCompat() {
-            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
-                super.onInitializeAccessibilityNodeInfo(host, info)
-                info.className = "android.widget.Button"
-            }
-        })
         binding.notificationsDiagnosticsRow.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.nav_host_container, LegacyDiagnosticsFragment.newInstance())
@@ -160,7 +184,26 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun scheduleAutoSaveUnlessLoading() {
+        if (isLoadingSettings) return
+        autoSaveJob?.cancel()
+        autoSaveJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(AUTO_SAVE_DEBOUNCE_MS)
+            performSave()
+        }
+    }
+
+    private fun ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     private fun loadCurrentSettings() {
+        isLoadingSettings = true
         viewLifecycleOwner.lifecycleScope.launch {
             val repo = ServiceLocator.settingsRepository
 
@@ -189,6 +232,7 @@ class SettingsFragment : Fragment() {
             updateTemplateCounter(templatesText)
 
             validateTimeRange()
+            isLoadingSettings = false
         }
     }
 
@@ -209,7 +253,7 @@ class SettingsFragment : Fragment() {
     private fun renderRandomButtons() {
         // NotificationScheduler.scheduleWithRandomTime only accepts whole
         // hours, so these pickers intentionally show/store hour granularity
-        // only (minute is discarded) — flagged for Architect/Designer, see
+        // only (minute is discarded) - flagged for Architect/Designer, see
         // FRM-5 status notes.
         binding.randomFromButton.text = hourLabel(randomStartHour)
         binding.randomToButton.text = hourLabel(randomEndHour)
@@ -224,21 +268,12 @@ class SettingsFragment : Fragment() {
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val valid = !isRandom || randomEndHour > randomStartHour
         binding.timeRangeErrorText.visibility = if (valid) View.GONE else View.VISIBLE
-        binding.saveSettingsButton.isEnabled = valid
         return valid
     }
 
-    private fun onSaveClicked() {
+    private fun performSave() {
         if (!validateTimeRange()) return
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-
-        binding.saveSettingsButton.isEnabled = false
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val contactsPerDay = (binding.contactsPerDaySpinner.selectedItemPosition + 1).coerceIn(1, 5)
         val cooldownDays = listOf(3, 7, 14)[binding.cooldownSpinner.selectedItemPosition.coerceIn(0, 2)]
@@ -247,11 +282,6 @@ class SettingsFragment : Fragment() {
             .lines()
             .map { it.trim() }
             .filter { it.isNotBlank() }
-
-        // Captured before the coroutine's suspend points so a fast fragment
-        // transition (see navigation below) can't tear down the view before
-        // the confirmation toast is shown (chefcai/friend-minder#31).
-        val appContext = requireContext().applicationContext
 
         viewLifecycleOwner.lifecycleScope.launch {
             val settingsRepo = ServiceLocator.settingsRepository
@@ -270,18 +300,44 @@ class SettingsFragment : Fragment() {
                 scheduler.scheduleDaily(fixedHour, fixedMinute, contactsPerDay)
             }
 
-            Toast.makeText(appContext, R.string.toast_settings_saved, Toast.LENGTH_SHORT).show()
+            showSavedPill()
+        }
+    }
 
-            parentFragmentManager.popBackStack()
+    // FRM-130 7.4: fades in, holds, fades out - never a layout shift, since
+    // settingsSavedPill is an overlay sibling in the root FrameLayout rather
+    // than a LinearLayout child that others reflow around.
+    private fun showSavedPill() {
+        val pill = binding.settingsSavedPill
+        savedPillJob?.cancel()
+        pill.animate().cancel()
+        pill.alpha = 0f
+        pill.visibility = View.VISIBLE
+        pill.animate().alpha(1f).setDuration(PILL_FADE_IN_MS).start()
+
+        savedPillJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(PILL_VISIBLE_MS)
+            pill.animate()
+                .alpha(0f)
+                .setDuration(PILL_FADE_OUT_MS)
+                .withEndAction { pill.visibility = View.INVISIBLE }
+                .start()
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        autoSaveJob?.cancel()
+        savedPillJob?.cancel()
         _binding = null
     }
 
     companion object {
+        private const val AUTO_SAVE_DEBOUNCE_MS = 600L
+        private const val PILL_FADE_IN_MS = 150L
+        private const val PILL_VISIBLE_MS = 1500L
+        private const val PILL_FADE_OUT_MS = 200L
+
         fun newInstance(): SettingsFragment = SettingsFragment()
     }
 }
