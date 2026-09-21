@@ -8,14 +8,14 @@ import com.example.friendminder.data.storage.FriendListRepository
 import com.example.friendminder.data.storage.NotificationScheduler
 import com.example.friendminder.data.storage.OutreachLogRepository
 import com.example.friendminder.data.storage.ReminderFrequencyRepository
+import com.example.friendminder.data.storage.RoomContactGroupRepository
+import com.example.friendminder.data.storage.RoomOutreachLogRepository
+import com.example.friendminder.data.storage.RoomSpecialDateRepository
 import com.example.friendminder.data.storage.SettingsRepository
-import com.example.friendminder.data.storage.SharedPrefsContactGroupRepository
 import com.example.friendminder.data.storage.SharedPrefsCooldownRepository
 import com.example.friendminder.data.storage.SharedPrefsFriendListRepository
-import com.example.friendminder.data.storage.SharedPrefsOutreachLogRepository
 import com.example.friendminder.data.storage.SharedPrefsReminderFrequencyRepository
 import com.example.friendminder.data.storage.SharedPrefsSettingsRepository
-import com.example.friendminder.data.storage.SharedPrefsSpecialDateRepository
 import com.example.friendminder.data.storage.SharedPrefsStatisticsCacheRepository
 import com.example.friendminder.data.storage.SpecialDateRepository
 import com.example.friendminder.data.storage.StatisticsCacheRepository
@@ -71,8 +71,12 @@ object ServiceLocator {
 
     // --- Phase 2 (FRM-30..35) ---
 
+    // FRM-81: Room-backed as of the partial migration (OutreachLog, ContactGroup/
+    // membership, SpecialDate) - see RoomMigration and ARCHITECTURE-PHASE2.md.
+    // Settings/Cooldown/ReminderFrequency/StatisticsCache/FriendList below stay on
+    // SharedPreferences+JSON; this is the only file that needed to change for the swap.
     val contactGroupRepository: ContactGroupRepository by lazy {
-        SharedPrefsContactGroupRepository(requireContext())
+        RoomContactGroupRepository(requireContext())
     }
 
     val reminderFrequencyRepository: ReminderFrequencyRepository by lazy {
@@ -80,11 +84,11 @@ object ServiceLocator {
     }
 
     val specialDateRepository: SpecialDateRepository by lazy {
-        SharedPrefsSpecialDateRepository(requireContext())
+        RoomSpecialDateRepository(requireContext())
     }
 
     val outreachLogRepository: OutreachLogRepository by lazy {
-        SharedPrefsOutreachLogRepository(requireContext())
+        RoomOutreachLogRepository(requireContext())
     }
 
     val statisticsCacheRepository: StatisticsCacheRepository by lazy {

@@ -17,6 +17,12 @@ object SchemaVersion {
     const val MVP = 1
     const val PHASE_2 = 2
 
+    /**
+     * FRM-81: the one-time copy of OutreachLog/ContactGroup/SpecialDate data
+     * from SharedPreferences+JSON into Room. See [com.example.friendminder.data.storage.RoomMigration].
+     */
+    const val ROOM_MIGRATION_V1 = 3
+
     fun current(context: Context): Int =
         prefs(context).getInt(KEY_VERSION, MVP)
 
