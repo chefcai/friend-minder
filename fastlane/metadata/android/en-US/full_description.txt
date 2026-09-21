@@ -21,4 +21,4 @@ Birthdays & special dates
 Friend-minder can pull birthdays from your phone's contacts and combine them with custom dates you add (anniversaries, and anything else worth remembering), with optional reminder notifications.
 
 Privacy-first
-No accounts, no cloud sync, no ads, no trackers. Everything lives on your device, backed up via Android's own Auto Backup if you have that enabled. Friend-minder is free and open source, built for F-Droid.
+No accounts, no cloud sync, no ads, no trackers. Everything lives on your device, backed up via Android's own Auto Backup if you have that enabled. Friend-minder is free and open source, with no accounts and no trackers.

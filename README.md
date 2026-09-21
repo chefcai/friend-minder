@@ -43,11 +43,11 @@ app/src/main/java/com/example/friendminder/
 **Requirements:** JDK 17, Android SDK with `compileSdk`/`targetSdk` 34
 installed, `minSdk` 26 (Android 8.0+).
 
-## F-Droid compliance
+## Dependency constraints
 
 - No Google Play Services, Firebase, Crashlytics, or proprietary/ad SDKs.
 - Dependencies are all AndroidX/Jetpack, Kotlin stdlib, and Gson — all
-  available via Maven Central / F-Droid's build tooling.
+  available via Maven Central.
 - `gradle.properties` sets `android.useNewApkStructure=true`.
 - All data is local to the device; no backend, no accounts, no analytics.
 
@@ -58,8 +58,8 @@ on `<application>`, wired to `res/xml/backup_rules.xml` for API 23-30 via
 `android:fullBackupContent` and `res/xml/data_extraction_rules.xml` for API 31+
 via `android:dataExtractionRules`). No custom `BackupAgent` code and no
 Play Services dependency are required — it's the OS's own backup transport,
-tied to whatever Google account is signed in on the device, and stays within
-F-Droid's constraints.
+tied to whatever Google account is signed in on the device, and requires
+no backend of our own.
 
 Both rule files default to "back up everything the app owns" and only
 exclude WorkManager's internal job-queue database (`androidx.work.workdb`):
