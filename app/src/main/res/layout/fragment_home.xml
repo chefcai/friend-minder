@@ -141,6 +141,19 @@
         FRM-102 isn't implemented yet, so this is the closest working
         equivalent in the interim (flagged on FRM-99's ticket).
     -->
+    <!--
+        FRM-123: Material 3's default FAB style (?attr/floatingActionButtonStyle
+        -> Widget.Material3.FloatingActionButton.Primary) sets its own
+        shapeAppearance to the M3 "large component" token, a rounded
+        square, not a circle - shapeAppearanceOverlay="@null" there also
+        strips the plain MaterialComponents FAB style's circular 50%
+        cornerSize it would otherwise inherit. SCREENS-PHASE3.md SS1.7 is
+        explicit that the FAB's one visual justification for existing
+        outside "nothing floats and nothing is boxed" is "it is a circle
+        rather than a box", so this restores the pre-M3 circular shape
+        (also fixes the mismatched-shadow "ghost" edge, which is the
+        compat elevation shadow drawn for a circle underneath what had
+        been a squircle foreground). -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addContactFab"
         android:layout_width="wrap_content"
@@ -152,6 +165,7 @@
         app:elevation="3dp"
         app:backgroundTint="@color/fm_primary"
         app:tint="@color/fm_on_primary"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
         app:srcCompat="@drawable/ic_add" />
 
 </FrameLayout>

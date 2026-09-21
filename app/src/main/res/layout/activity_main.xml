@@ -32,12 +32,22 @@
         android:background="@drawable/bg_bottom_nav_divider"
         android:visibility="gone" />
 
+    <!--
+        FRM-115: layout_height here is the bar's un-eclipsed content height
+        (SCREENS-PHASE3.md SS2.1) - MainActivity.applyBottomNavInsets grows
+        the view by the real bottom system-bar inset and adds that inset
+        back as bottom padding, so the fill extends behind the gesture bar
+        while the items themselves stay within the top @dimen/fm_bottom_nav_height,
+        matching statusBarSpacer's pattern in fragment_home.xml for the top
+        inset. itemIconSize overrides the default M3 unlabeled-item 24dp
+        icon up to the spec's 28dp. -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="@dimen/fm_bottom_nav_height"
         android:background="@color/fm_surface"
         app:elevation="0dp"
+        app:itemIconSize="@dimen/fm_bottom_nav_icon_size"
         app:itemIconTint="@null"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/menu_bottom_nav"

@@ -210,12 +210,33 @@ class HomeFragment : Fragment() {
 
     /** Feeds the real status-bar inset into statusBarSpacer, so the teal fill spans it with no seam (§5). */
     private fun applyHeaderInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.headerContainer) { _, insets ->
-            val topInset = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            binding.statusBarSpacer.layoutParams = binding.statusBarSpacer.layoutParams.apply {
-                height = topInset
+        // FRM-122: seed statusBarSpacer synchronously from whatever inset
+        // value the window already has, rather than leaving it at its XML
+        // default (0dp) until the listener below gets its first
+        // dispatch. ViewCompat.setOnApplyWindowInsetsListener only fires on
+        // the next actual inset pass, which on some devices lands after
+        // this fragment's first frame is already up - during that gap
+        // statusBarSpacer (and so the whole header) is shorter than its
+        // real, final height, which is exactly the window for the first
+        // list row to render as if it started underneath the header. A
+        // local lambda (not a class method - detekt TooManyFunctions is
+        // already at HomeFragment's limit) keeps the seed and the listener
+        // funneling through one resize instead of two copies that could
+        // drift.
+        val updateStatusBarSpacerHeight = { topInset: Int ->
+            if (binding.statusBarSpacer.layoutParams.height != topInset) {
+                binding.statusBarSpacer.layoutParams = binding.statusBarSpacer.layoutParams.apply {
+                    height = topInset
+                }
+                binding.statusBarSpacer.requestLayout()
             }
-            binding.statusBarSpacer.requestLayout()
+        }
+
+        ViewCompat.getRootWindowInsets(binding.root)?.let { current ->
+            updateStatusBarSpacerHeight(current.getInsets(WindowInsetsCompat.Type.statusBars()).top)
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.headerContainer) { _, insets ->
+            updateStatusBarSpacerHeight(insets.getInsets(WindowInsetsCompat.Type.statusBars()).top)
             insets
         }
         ViewCompat.requestApplyInsets(binding.headerContainer)

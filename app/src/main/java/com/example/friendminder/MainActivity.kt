@@ -6,6 +6,9 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.appcompat.widget.TooltipCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
@@ -123,6 +126,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUpBottomNav() {
+        applyBottomNavInsets()
+
         // DESIGN-SYSTEM-PHASE3.md §6: "No Material 3 active-indicator pill."
         // Not available as an XML attribute in this project's Material
         // Components version (1.14.0 rejects itemActiveIndicatorEnabled in
@@ -154,6 +159,35 @@ class MainActivity : AppCompatActivity() {
                 TooltipCompat.setTooltipText(it, getString(labelRes))
             }
         }
+    }
+
+    /**
+     * FRM-115: the bar's items must stay within a real, un-eclipsed
+     * @dimen/fm_bottom_nav_height (64dp) even on a gesture-nav device,
+     * where the system's own nav-bar/gesture-pill chrome is drawn over
+     * the bottom of whatever's there - previously nothing accounted for
+     * that inset at all, so it silently ate into the bar's fixed height
+     * instead of being added on top of it, and left the items visually
+     * cramped against the top divider. Mirrors HomeFragment's
+     * statusBarSpacer idiom for the header's top inset: grow the view by
+     * the bottom inset and give the extra space back as bottom padding,
+     * so the fill extends behind the gesture area while the items
+     * themselves are laid out in the untouched top 64dp. A zero inset
+     * (non-gesture-nav devices, or a screen where the bar's insets are
+     * already consumed higher up) is a no-op - height and padding both
+     * collapse back to exactly what the XML declared.
+     */
+    private fun applyBottomNavInsets() {
+        val barContentHeight = binding.bottomNav.layoutParams.height
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { view, insets ->
+            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            view.updatePadding(bottom = bottomInset)
+            view.layoutParams = view.layoutParams.apply {
+                height = barContentHeight + bottomInset
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.bottomNav)
     }
 
     /**

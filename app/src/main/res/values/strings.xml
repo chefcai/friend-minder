@@ -95,7 +95,11 @@
          HomeLastTouchFormatter instead (reusing Home's row exactly, per
          SCREENS-PHASE3.md §4.6), not this elapsed-based ladder. -->
     <string name="label_today">Today</string>
-    <string name="label_never_contacted">Never contacted</string>
+    <!-- FRM-126: SCREENS-PHASE3.md SS1.4/SS6.2 - the never-logged rung of the
+         last-touch ladder is "Never", one word, matching every other rung
+         being a duration rather than a sentence. Shared by Home
+         (HomeLastTouchFormatter) and Contact Detail (formatDaysAgo). -->
+    <string name="label_never_contacted">Never</string>
     <plurals name="format_days_ago">
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>
