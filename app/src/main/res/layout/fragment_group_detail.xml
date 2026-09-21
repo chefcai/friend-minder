@@ -68,6 +68,52 @@
         </FrameLayout>
     </LinearLayout>
 
+    <!-- GH #121: per-group check-in interval. No SCREENS-PHASE3 addendum
+         specs this row's placement on this screen (§5.2 predates GH #121
+         and only covers member rows/FAB/empty state), so this follows the
+         "label + trailing value + chevron" row shape already established
+         by fragment_add_contacts_step2.xml's checkInEveryRow/groupsRow
+         rather than inventing a new one. -->
+    <LinearLayout
+        android:id="@+id/checkInFrequencyRow"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/fm_space_4"
+        android:paddingEnd="@dimen/fm_space_4"
+        android:background="@drawable/bg_home_row_ripple"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_group_checkin_frequency"
+            android:textSize="17sp"
+            android:textColor="@color/fm_ink" />
+
+        <TextView
+            android:id="@+id/groupFrequencyValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/fm_space_2"
+            android:textSize="16sp"
+            android:textColor="@color/fm_ink_dim" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_chevron_right"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/fm_divider" />
+
     <TextView
         android:id="@+id/emptyStateText"
         android:layout_width="match_parent"

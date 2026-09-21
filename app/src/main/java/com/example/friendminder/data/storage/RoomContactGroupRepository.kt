@@ -30,11 +30,14 @@ class RoomContactGroupRepository(context: Context) : ContactGroupRepository {
     }
 
     override suspend fun createGroup(group: ContactGroup) = withContext(Dispatchers.IO) {
-        dao.upsertGroup(group.toEntity())
+        dao.insertGroup(group.toEntity())
     }
 
+    // Must be a real UPDATE, not an insert-with-REPLACE - see the kdoc on
+    // ContactGroupDao.insertGroup for why REPLACE here would silently wipe
+    // the group's membership rows via the CASCADE foreign key.
     override suspend fun updateGroup(group: ContactGroup) = withContext(Dispatchers.IO) {
-        dao.upsertGroup(group.toEntity())
+        dao.updateGroup(group.toEntity())
     }
 
     override suspend fun deleteGroup(groupId: String) = withContext(Dispatchers.IO) {

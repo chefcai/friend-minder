@@ -33,6 +33,21 @@
     <string name="cooldown_option_3">3 days</string>
     <string name="cooldown_option_7">7 days</string>
     <string name="cooldown_option_14">14 days</string>
+    <string name="title_edit_cooldown">Don\'t repeat a contact within</string>
+
+    <!-- Shared interval picker (ValuePickerDialogFragment, GH #98): the
+         "Custom..." entry path used by the global cooldown, per-contact
+         frequency, add-contact bulk default and per-group interval
+         pickers - one component, one custom-value flow (SCREENS-PHASE3.md
+         §8.4). -->
+    <string name="label_custom_option">Custom\u2026</string>
+    <string name="label_days_section">Days</string>
+    <string name="action_set">Set</string>
+    <string name="format_custom_days_range">Enter a number from %1$d to %2$d</string>
+    <plurals name="format_days_option">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
     <string name="label_message_templates">Message Templates</string>
     <string name="hint_message_templates">One message per line — a random one is used each time</string>
     <string name="checkbox_include_message">Include a pre-filled message</string>
@@ -111,8 +126,6 @@
         <item quantity="other">Streak: %1$d days</item>
     </plurals>
     <string name="format_reach_rate">Reach rate: %1$.0f%%</string>
-    <string name="format_frequency_default">Every %1$d days (default)</string>
-    <string name="format_frequency_custom">Every %1$d days (custom)</string>
     <string name="format_chart_bar_count">%1$d contacts</string>
     <!-- Chart axis labels (GH #101): persistent per-bar labels, distinct from the
          tap-to-reveal value shown by format_chart_bar_count above. -->
@@ -143,6 +156,16 @@
     <string name="action_save">Save</string>
     <string name="label_group_no_members">No members yet</string>
     <string name="action_add_contact_to_group">Add contact to group</string>
+
+    <!-- GH #121: per-group check-in interval, set from Group Detail's new
+         value row (no SCREENS-PHASE3 addendum specs this row's screen
+         placement, so it follows §7.2/§9.4's established "tappable value
+         row, same shape everywhere" convention rather than inventing a
+         new one). Value 0 is this row's own sentinel for "no override" -
+         GroupService.setReminderFrequency itself only ever sees null,
+         never 0; see GroupDetailFragment.showFrequencyPicker. -->
+    <string name="label_group_checkin_frequency">Check in every</string>
+    <string name="label_group_frequency_no_override">Uses app default</string>
     <string name="label_add_to_group_empty">All your friends are already in this group</string>
     <string name="action_remove_from_group">Remove from group</string>
     <string name="toast_removed_from_group">Removed from group</string>
@@ -163,6 +186,45 @@
     <string name="action_pick_date">Pick date</string>
     <string name="label_special_dates_empty">No special dates yet</string>
     <string name="title_edit_frequency">Reminder Frequency</string>
+
+    <!-- GH #121: Contact Detail's CHECK-IN FREQUENCY row (SCREENS-PHASE3.md
+         §6.2a) shows the *effective* interval - the minimum across the
+         contact's own override, its groups, and the global default - and
+         names its source whenever the source is not this contact. A group
+         tying with the contact's own value is deliberately NOT one of
+         these: per §6.2a's last table row, a tie is attributed to the
+         contact's own setting, which just uses format_effective_interval
+         with no suffix. -->
+    <string name="label_checkin_frequency_header">Check-in frequency</string>
+    <!-- Plurals rather than plain strings: GH #98's Custom... entry makes
+         a 1-day effective interval reachable for the first time (every
+         preset in the app was already 3+), so "Every 1 days" would have
+         been a real, reachable grammar bug rather than a hypothetical
+         one. -->
+    <plurals name="format_effective_interval">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %1$d days</item>
+    </plurals>
+    <plurals name="format_effective_interval_default">
+        <item quantity="one">Every day \u00b7 default</item>
+        <item quantity="other">Every %1$d days \u00b7 default</item>
+    </plurals>
+    <plurals name="format_effective_interval_from_group">
+        <item quantity="one">Every day \u00b7 from %2$s</item>
+        <item quantity="other">Every %1$d days \u00b7 from %2$s</item>
+    </plurals>
+    <plurals name="format_effective_interval_from_groups">
+        <item quantity="one">Every day \u00b7 from %2$d groups</item>
+        <item quantity="other">Every %1$d days \u00b7 from %2$d groups</item>
+    </plurals>
+
+    <!-- §6.2a's picker warning: shown beneath the frequency sheet's title
+         only when a group the contact belongs to has a shorter interval
+         than at least one selectable option, naming the shortest such
+         group. Reused for the per-group picker's own sheet is NOT
+         applicable there (a group can't be shadowed by itself), so this
+         is wired only from ContactDetailFragment. -->
+    <string name="format_frequency_sheet_warning">%1$s checks in every %2$d days, so anything longer won\'t change when you\'re nudged.</string>
     <string name="format_birthday_caption">🎂 %1$s</string>
     <string name="format_special_date_row">%1$s · %2$s</string>
     <string name="action_add_to_group_picker">Add to group</string>
