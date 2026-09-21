@@ -102,7 +102,7 @@ kotlin {
 }
 
 dependencies {
-    // Jetpack / AndroidX only — no Play Services, no Firebase (F-Droid compatible)
+    // Jetpack / AndroidX only — no Play Services, no Firebase (Google Play is our only distribution channel)
     implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("androidx.work:work-runtime-ktx:2.8.1")
