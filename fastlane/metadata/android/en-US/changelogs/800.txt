@@ -1,0 +1,4 @@
+Dashboard chart gets axis labels, and tapping a bar finally works
+
+- The monthly outreach chart on Dashboard now shows labels under each bar ("3wk ago" ... "This wk") instead of unlabeled bars.
+- Fixed: tapping a bar to reveal its value did nothing. It's fixed now, and works reliably even with the small amount of finger movement a real tap usually has.
