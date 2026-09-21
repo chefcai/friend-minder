@@ -10,9 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.example.friendminder.R
 import com.example.friendminder.data.storage.BirthdayWorkScheduler
 import com.example.friendminder.databinding.FragmentAdvancedSettingsBinding
+import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -65,11 +65,10 @@ class AdvancedSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.title = getString(R.string.title_advanced_settings)
-        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
-        binding.toolbar.setNavigationOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+        EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         binding.directSendCheckbox.setOnCheckedChangeListener { _, isChecked ->
             if (isSyncingUi) return@setOnCheckedChangeListener
@@ -95,7 +94,13 @@ class AdvancedSettingsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        EdgeToEdgeHeader.applyEdgeToEdgeHeader(this)
         viewLifecycleOwner.lifecycleScope.launch { refresh() }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        EdgeToEdgeHeader.restoreStandardStatusBar(this)
     }
 
     private fun isSendSmsGranted(): Boolean =

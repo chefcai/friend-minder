@@ -2,7 +2,6 @@ package com.example.friendminder.ui.groups
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -12,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.FragmentGroupsBinding
+import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
@@ -42,10 +42,11 @@ class GroupsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.toolbar.setOnMenuItemClickListener { onMenuItemClicked(it) }
+        binding.headerActionButton.setOnClickListener { openEditDialog(null) }
+        EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         adapter = GroupAdapter(
             onClick = { group -> openGroupDetail(group) },
@@ -63,13 +64,13 @@ class GroupsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        EdgeToEdgeHeader.applyEdgeToEdgeHeader(this)
         refresh()
     }
 
-    private fun onMenuItemClicked(item: MenuItem): Boolean {
-        if (item.itemId != R.id.action_new_group) return false
-        openEditDialog(null)
-        return true
+    override fun onPause() {
+        super.onPause()
+        EdgeToEdgeHeader.restoreStandardStatusBar(this)
     }
 
     private fun openEditDialog(groupId: String?) {

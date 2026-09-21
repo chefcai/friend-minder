@@ -3,7 +3,6 @@ package com.example.friendminder.ui.contactdetail
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
@@ -16,6 +15,7 @@ import com.example.friendminder.data.models.SpecialDateSource
 import com.example.friendminder.databinding.FragmentContactDetailBinding
 import com.example.friendminder.databinding.ItemSpecialDateBinding
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.outreach.OutreachLogDialogFragment
 import com.example.friendminder.utils.FeatureFlags
@@ -59,10 +59,11 @@ class ContactDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.toolbar.setOnMenuItemClickListener { onMenuItemClicked(it) }
+        binding.headerActionButton.setOnClickListener { openEditFrequencyDialog() }
+        EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         historyAdapter = OutreachHistoryAdapter()
         binding.historyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -104,20 +105,26 @@ class ContactDetailFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        EdgeToEdgeHeader.applyEdgeToEdgeHeader(this)
         refresh()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        EdgeToEdgeHeader.restoreStandardStatusBar(this)
     }
 
     // FRM-102: rebuilt to SCREENS-PHASE3.md §8.4's shape (a flat list of
     // options, tap-to-select-and-dismiss, no confirm button) via the shared
     // ValuePickerDialogFragment - see that class's kdoc for why the picker
     // itself knows nothing about frequencies. The entry point stays this
-    // screen's existing toolbar menu item rather than becoming the §6.2
+    // screen's existing header action button rather than becoming the §6.2
     // tappable value row: re-laying-out Contact Detail as value rows is
-    // FRM-103's full re-skin of this screen, not this ticket's. Inlined
-    // into onMenuItemClicked (rather than its own function) to keep this
-    // class under detekt's TooManyFunctions threshold.
-    private fun onMenuItemClicked(item: MenuItem): Boolean {
-        if (item.itemId != R.id.action_edit_frequency) return false
+    // FRM-103's full re-skin of this screen, not this ticket's. GH #132
+    // gave this its own named function (previously inlined into the
+    // MaterialToolbar's onMenuItemClicked) since the extended teal header
+    // has no menu to hang an item off of.
+    private fun openEditFrequencyDialog() {
         viewLifecycleOwner.lifecycleScope.launch {
             val globalDefault = ServiceLocator.settingsRepository.getCooldownDays()
             val override = ServiceLocator.reminderFrequencyRepository.getOverride(contactId)
@@ -136,7 +143,6 @@ class ContactDetailFragment : Fragment() {
                 selectedValue = effective
             ).show(childFragmentManager, "edit_frequency")
         }
-        return true
     }
 
     private fun showHistory() {
@@ -174,7 +180,7 @@ class ContactDetailFragment : Fragment() {
                 return@launch
             }
 
-            binding.toolbar.title = contact.name
+            binding.headerTitle.text = contact.name
             binding.contactNameText.text = contact.name
             AvatarBinder.bind(
                 binding.contactPhoto,
@@ -300,8 +306,15 @@ class ContactDetailFragment : Fragment() {
         val pickDateButton = dialogView.findViewById<android.widget.Button>(R.id.pickDateButton)
         val reminderGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.reminderRadioGroup)
 
+        // updatePickDateButtonText folded into a local lambda (only used
+        // here) to make room for GH #132's onResume/onPause under detekt's
+        // TooManyFunctions threshold.
+        val updatePickDateButtonText = { calendar: Calendar ->
+            pickDateButton.text = MONTH_DAY_FORMAT.format(calendar.time)
+        }
+
         val calendar = Calendar.getInstance()
-        updatePickDateButtonText(pickDateButton, calendar)
+        updatePickDateButtonText(calendar)
         pickDateButton.setOnClickListener {
             DatePickerDialog(
                 requireContext(),
@@ -309,7 +322,7 @@ class ContactDetailFragment : Fragment() {
                     calendar.set(Calendar.YEAR, year)
                     calendar.set(Calendar.MONTH, month)
                     calendar.set(Calendar.DAY_OF_MONTH, day)
-                    updatePickDateButtonText(pickDateButton, calendar)
+                    updatePickDateButtonText(calendar)
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
@@ -341,10 +354,6 @@ class ContactDetailFragment : Fragment() {
             }
             .setNegativeButton(R.string.action_cancel, null)
             .show()
-    }
-
-    private fun updatePickDateButtonText(button: android.widget.Button, calendar: Calendar) {
-        button.text = MONTH_DAY_FORMAT.format(calendar.time)
     }
 
     override fun onDestroyView() {

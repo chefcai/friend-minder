@@ -17,12 +17,53 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!--
+        GH #132: extended teal header (DESIGN-SYSTEM-PHASE3.md §5), matching
+        fragment_overall_history.xml's established pattern - see
+        EdgeToEdgeHeader's kdoc.
+    -->
+    <LinearLayout
+        android:id="@+id/headerContainer"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        app:title="@string/title_notifications_diagnostics"
-        app:navigationIcon="@drawable/ic_arrow_back" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/fm_header">
+
+        <View
+            android:id="@+id/statusBarSpacer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/fm_home_header_height">
+
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="16dp"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/fm_on_primary"
+                android:contentDescription="@string/content_desc_back" />
+
+            <TextView
+                android:id="@+id/headerTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="72dp"
+                android:layout_marginEnd="@dimen/fm_space_6"
+                android:text="@string/title_notifications_diagnostics"
+                android:textColor="@color/fm_on_primary"
+                android:textSize="@dimen/fm_header_title_size"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </FrameLayout>
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

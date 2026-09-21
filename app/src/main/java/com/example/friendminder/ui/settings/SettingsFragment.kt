@@ -19,6 +19,7 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentSettingsBinding
+import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.Job
@@ -78,11 +79,10 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.title = getString(R.string.title_settings)
-        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
-        binding.toolbar.setNavigationOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+        EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         binding.contactsPerDaySpinner.adapter = ArrayAdapter(
             requireContext(), android.R.layout.simple_spinner_dropdown_item, (1..5).toList()
@@ -254,14 +254,15 @@ class SettingsFragment : Fragment() {
         // NotificationScheduler.scheduleWithRandomTime only accepts whole
         // hours, so these pickers intentionally show/store hour granularity
         // only (minute is discarded) - flagged for Architect/Designer, see
-        // FRM-5 status notes.
+        // FRM-5 status notes. hourLabel folded into a local lambda (only
+        // used here) to make room for GH #132's onResume/onPause under
+        // detekt's TooManyFunctions threshold.
+        val hourLabel = { hour: Int ->
+            val cal = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, 0) }
+            java.text.SimpleDateFormat("h a", Locale.getDefault()).format(cal.time)
+        }
         binding.randomFromButton.text = hourLabel(randomStartHour)
         binding.randomToButton.text = hourLabel(randomEndHour)
-    }
-
-    private fun hourLabel(hour: Int): String {
-        val cal = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, 0) }
-        return java.text.SimpleDateFormat("h a", Locale.getDefault()).format(cal.time)
     }
 
     private fun validateTimeRange(): Boolean {
@@ -323,6 +324,16 @@ class SettingsFragment : Fragment() {
                 .withEndAction { pill.visibility = View.INVISIBLE }
                 .start()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        EdgeToEdgeHeader.applyEdgeToEdgeHeader(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        EdgeToEdgeHeader.restoreStandardStatusBar(this)
     }
 
     override fun onDestroyView() {
