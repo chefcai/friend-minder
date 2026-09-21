@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom-nav "Groups" glyph, active/filled state - same two-circle motif
-     as ic_nav_groups_outline.xml, solid instead of stroked (DESIGN-SYSTEM-
-     PHASE3.md §6: active state is a shape change, not just a color one). -->
+<!-- Bottom-nav "Groups" glyph, active/filled state. Same three figures as
+     ic_nav_groups_outline.xml, solid instead of stroked - the active state
+     is a shape change, not just a colour one (DESIGN-SYSTEM-PHASE3.md §6.9).
+     Heads are larger here to compensate for the lost stroke width; the open
+     shoulder arcs become closed wedges. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="28"
+    android:viewportHeight="28">
     <path
-        android:pathData="M5.5,10 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:pathData="M2,8.2 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
         android:fillColor="@color/fm_primary" />
     <path
-        android:pathData="M11.5,10 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:pathData="M20,8.2 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:fillColor="@color/fm_primary" />
+    <path
+        android:pathData="M1.2,19.2c0,-2.9 1.9,-4.4 4.4,-4.4v4.4z"
+        android:fillColor="@color/fm_primary" />
+    <path
+        android:pathData="M26.8,19.2c0,-2.9 -1.9,-4.4 -4.4,-4.4v4.4z"
+        android:fillColor="@color/fm_primary" />
+    <path
+        android:pathData="M10.1,10.2 a3.9,3.9 0 1,0 7.8,0 a3.9,3.9 0 1,0 -7.8,0"
+        android:fillColor="@color/fm_primary" />
+    <path
+        android:pathData="M6.4,22.6c0,-3.5 3.4,-5.6 7.6,-5.6s7.6,2.1 7.6,5.6z"
         android:fillColor="@color/fm_primary" />
 </vector>
