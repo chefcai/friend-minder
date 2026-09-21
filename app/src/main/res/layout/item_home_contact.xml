@@ -20,6 +20,7 @@
 -->
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/homeContactRow"
     android:layout_width="match_parent"
     android:layout_height="@dimen/fm_home_row_height"
@@ -78,6 +79,24 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/fm_on_primary"
+            android:importantForAccessibility="no" />
+
+        <!-- FRM-112 (§10.3): selection mode swaps this same 28dp slot from
+             the streak numeral above to this check glyph - nothing moves,
+             nothing resizes, same bg_status_badge_ring/filled ring/fill the
+             numeral already uses. Verbatim reuse of
+             item_add_contact_candidate.xml's selectionCheck (see that
+             file), just living inside statusBadge instead of a second
+             FrameLayout, since this is the same visual slot wearing two
+             hats rather than a separate control. -->
+        <ImageView
+            android:id="@+id/selectionCheck"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:src="@drawable/ic_check"
+            app:tint="@color/fm_on_primary"
+            android:visibility="gone"
             android:importantForAccessibility="no" />
     </FrameLayout>
 

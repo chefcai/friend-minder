@@ -229,6 +229,42 @@
     </plurals>
     <string name="format_home_no_streak_description">No streak, last contact %1$s</string>
 
+    <!-- Bulk removal - selection mode on Home (FRM-112, SCREENS-PHASE3.md
+         §10). Header title reuses format_selected_count verbatim (already
+         "%1$d selected", same wording §10.3 calls for) rather than a new
+         resource. Row selection-state announcements reuse
+         content_desc_candidate_selected/not_selected too - §10.1 is
+         explicit that this feature needs no new components, and that
+         extends to not inventing new copy for a state that already has
+         some. -->
+    <string name="content_desc_close_selection_mode">Exit selection</string>
+    <plurals name="content_desc_bulk_removal_fab">
+        <item quantity="one">Stop tracking %1$d selected contact</item>
+        <item quantity="other">Stop tracking %1$d selected contacts</item>
+    </plurals>
+    <string name="content_desc_row_select_action">Select</string>
+
+    <!-- Confirmation sheet (§10.4): "Stop tracking 3 people? This deletes
+         37 logged outreaches. They stay in your phone's contacts." Title
+         and the outreach clause are separately pluralized (two independent
+         counts in one sentence - see ConfirmBulkRemovalDialogFragment's
+         kdoc) and joined into format_bulk_removal_confirm_body. -->
+    <plurals name="format_bulk_removal_confirm_people">
+        <item quantity="one">Stop tracking %1$d person?</item>
+        <item quantity="other">Stop tracking %1$d people?</item>
+    </plurals>
+    <plurals name="format_bulk_removal_confirm_outreaches">
+        <item quantity="one">%1$d logged outreach</item>
+        <item quantity="other">%1$d logged outreaches</item>
+    </plurals>
+    <string name="format_bulk_removal_confirm_body">This deletes %1$s. They stay in your phone\'s contacts.</string>
+    <string name="action_stop_tracking">Stop tracking</string>
+
+    <plurals name="format_bulk_removal_removed_snackbar">
+        <item quantity="one">%1$d person removed</item>
+        <item quantity="other">%1$d people removed</item>
+    </plurals>
+
     <!-- Bottom navigation (FRM-100): exactly three icon-only destinations.
          Each string doubles as the menu item's accessibility label and its
          long-press tooltip (DESIGN-SYSTEM-PHASE3.md §8: "every icon-only

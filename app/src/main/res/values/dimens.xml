@@ -50,4 +50,11 @@
     <dimen name="fm_dialog_handle_height">4dp</dimen>
     <dimen name="fm_dialog_handle_margin_top">12dp</dimen>
 
+    <!-- Bulk removal selection mode (FRM-112, SCREENS-PHASE3.md §10.3):
+         header title's start margin when the leading ✕ is shown, matching
+         the same 72dp value fragment_overall_history.xml's back-arrow case
+         hardcodes inline - this one's a dimen (not inline) because
+         HomeFragment toggles it at runtime rather than fixing it in XML. -->
+    <dimen name="fm_header_title_margin_with_leading_icon">72dp</dimen>
+
 </resources>

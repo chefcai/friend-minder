@@ -1,10 +1,14 @@
 package com.example.friendminder.ui.home
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.ViewCompat
@@ -14,6 +18,7 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
+import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.FragmentHomeBinding
 import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
@@ -42,6 +47,16 @@ import java.util.Locale
  * rebuilt add-contact flow ([AddContactsStep1Fragment]) as of that ticket -
  * see [openAddContact] and [AddContactsStep1Fragment.BACK_STACK_NAME]'s
  * kdoc for why that push uses a named back-stack entry.
+ *
+ * FRM-112 (SCREENS-PHASE3.md §10): a row long-press (or the row's "Select"
+ * accessibility action, §10.5) enters bulk-removal selection mode.
+ * [selectedContactIds] is the single source of truth for both "are we in
+ * selection mode" ([isSelectionMode] - non-empty means yes) and "which
+ * rows are selected"; [baseRows] holds the last-fetched contact/stat data
+ * independent of selection state, and [renderRows] is what stamps the
+ * current selection onto it for the adapter. Splitting fetch (refresh)
+ * from render (renderRows) means toggling a selection never re-hits the
+ * repository layer.
  */
 class HomeFragment : Fragment() {
 
@@ -49,6 +64,11 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: HomeContactAdapter
+    private lateinit var selectionModeBackCallback: OnBackPressedCallback
+
+    private var baseRows: List<BaseContactRow> = emptyList()
+    private val selectedContactIds = mutableSetOf<String>()
+    private val isSelectionMode: Boolean get() = selectedContactIds.isNotEmpty()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,13 +84,21 @@ class HomeFragment : Fragment() {
 
         adapter = HomeContactAdapter(
             photoLoader = ServiceLocator.contactPhotoLoader,
-            scope = viewLifecycleOwner.lifecycleScope
-        ) { contact -> openContactDetail(contact.id) }
+            scope = viewLifecycleOwner.lifecycleScope,
+            // §10.2: tap either opens Contact Detail or toggles selection
+            // depending on mode; long-press (or the row's "Select"
+            // accessibility action, §10.5) always toggles either way -
+            // both are one-line branches, folded in here rather than
+            // given their own named functions (detekt TooManyFunctions).
+            onRowClicked = { contact -> if (isSelectionMode) toggleSelection(contact.id) else openContactDetail(contact.id) },
+            onRowLongPressed = { contact -> toggleSelection(contact.id) }
+        )
         binding.contactRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.contactRecyclerView.adapter = adapter
 
-        binding.addContactFab.setOnClickListener { openAddContact() }
         binding.emptyStateAddButton.setOnClickListener { openAddContact() }
+
+        setUpSelectionMode()
 
         // FRM-102: shown once, after Step 2's "Add N people" collapses the
         // whole flow's back-stack entries and lands back here (see
@@ -91,21 +119,68 @@ class HomeFragment : Fragment() {
             // of the screen and the nav bar slides in on top of it a moment
             // later - "Undo" ends up sitting under the nav bar's touch
             // target. Posting defers this to after that listener has run.
-            binding.root.post { showAddedSnackbar(addedIds) }
+            binding.root.post {
+                if (addedIds.isNotEmpty()) {
+                    showBottomAnchoredSnackbar(
+                        resources.getQuantityString(R.plurals.format_add_contacts_snackbar, addedIds.size, addedIds.size),
+                        undoAction = { undoAdd(addedIds) }
+                    )
+                }
+            }
         }
 
         applyHeaderInsets()
     }
 
+    /**
+     * FRM-112 setup, split out of onViewCreated (detekt LongMethod) -
+     * mirrors SettingsFragment.setUpNotificationsDiagnosticsRow's own
+     * reason for the same split.
+     */
+    private fun setUpSelectionMode() {
+        // §10.2: "Leave via the header's X, or system back, or by
+        // deselecting the last contact" - the third path is
+        // toggleSelection itself (isSelectionMode is derived from
+        // selectedContactIds), this local covers the first two. A local
+        // val rather than a member function keeps this class's function
+        // count under detekt's TooManyFunctions threshold.
+        val exit: () -> Unit = {
+            if (isSelectionMode) {
+                selectedContactIds.clear()
+                updateSelectionModeUi()
+                renderRows()
+            }
+        }
+        binding.headerCloseButton.setOnClickListener { exit() }
+        // §10.5: "the header's 'N selected' is a live region that
+        // announces on change" - set once; every later headerTitle.text
+        // write (updateSelectionModeUi) is then announced automatically.
+        ViewCompat.setAccessibilityLiveRegion(binding.headerTitle, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
+
+        // §10.2: "Leave via ... system back". Registered disabled and
+        // flipped on with the rest of the mode's UI state (see
+        // updateSelectionModeUi) - added after MainActivity's own
+        // activity-scoped callback, so it intercepts first while enabled.
+        selectionModeBackCallback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, enabled = false) {
+            exit()
+        }
+
+        childFragmentManager.setFragmentResultListener(
+            ConfirmBulkRemovalDialogFragment.RESULT_KEY, viewLifecycleOwner
+        ) { _, _ -> performBulkRemoval() }
+
+        updateSelectionModeUi() // establishes the normal-mode FAB click listener etc.
+    }
+
     override fun onResume() {
         super.onResume()
-        applyEdgeToEdgeHeader()
+        setEdgeToEdgeHeader(enabled = true)
         refresh()
     }
 
     override fun onPause() {
         super.onPause()
-        restoreStandardStatusBar()
+        setEdgeToEdgeHeader(enabled = false)
     }
 
     /**
@@ -119,20 +194,17 @@ class HomeFragment : Fragment() {
      * been re-skinned yet (FRM-103) and still expect the platform's normal,
      * non-edge-to-edge status bar behaviour.
      */
-    private fun applyEdgeToEdgeHeader() {
+    private fun setEdgeToEdgeHeader(enabled: Boolean) {
         val window = requireActivity().window
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = Color.TRANSPARENT
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
-    }
-
-    private fun restoreStandardStatusBar() {
-        val window = requireActivity().window
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
-        val typedValue = android.util.TypedValue()
-        if (requireContext().theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)) {
-            window.statusBarColor = typedValue.data
+        WindowCompat.setDecorFitsSystemWindows(window, !enabled)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !enabled
+        if (enabled) {
+            window.statusBarColor = Color.TRANSPARENT
+        } else {
+            val typedValue = android.util.TypedValue()
+            if (requireContext().theme.resolveAttribute(android.R.attr.statusBarColor, typedValue, true)) {
+                window.statusBarColor = typedValue.data
+            }
         }
     }
 
@@ -154,6 +226,14 @@ class HomeFragment : Fragment() {
             val friends = ServiceLocator.friendListRepository.getFriendList()
 
             if (friends.isEmpty()) {
+                // Defensive: bulk removal always exits selection mode before
+                // this can run empty, but a belt-and-braces reset here means
+                // this screen can never show "N selected" over an empty list.
+                if (isSelectionMode) {
+                    selectedContactIds.clear()
+                    updateSelectionModeUi()
+                }
+                baseRows = emptyList()
                 binding.contactRecyclerView.visibility = View.GONE
                 binding.emptyStateGroup.visibility = View.VISIBLE
                 binding.addContactFab.visibility = View.GONE // §1.7: FAB hidden in the empty state
@@ -167,19 +247,85 @@ class HomeFragment : Fragment() {
             val statisticsService = ServiceLocator.statisticsService
             val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.SECONDARY }
 
-            val rows = friends
+            baseRows = friends
                 .sortedWith(compareBy(collator) { it.name })
                 .map { contact ->
                     val stats = statisticsService.getStatistics(contact.id)
-                    HomeContactRow(
+                    BaseContactRow(
                         contact = contact,
                         streak = stats.streak,
                         lastTouchText = HomeLastTouchFormatter.format(requireContext(), stats.lastContacted)
                     )
                 }
-
-            adapter.submitList(rows)
+            // A selected contact could in principle vanish out from under
+            // selection mode (e.g. removed elsewhere) - drop any id that no
+            // longer has a row rather than let the header's count drift
+            // from what's actually selectable.
+            val stillPresent = baseRows.mapTo(mutableSetOf()) { it.contact.id }
+            if (selectedContactIds.retainAll(stillPresent)) {
+                updateSelectionModeUi()
+            }
+            renderRows()
         }
+    }
+
+    /** Stamps the current selection state onto [baseRows] for the adapter - see the class kdoc. */
+    private fun renderRows() {
+        val rows = baseRows.map { base ->
+            HomeContactRow(
+                contact = base.contact,
+                streak = base.streak,
+                lastTouchText = base.lastTouchText,
+                isSelectionMode = isSelectionMode,
+                isSelected = base.contact.id in selectedContactIds
+            )
+        }
+        adapter.submitList(rows)
+    }
+
+    private fun toggleSelection(contactId: String) {
+        if (!selectedContactIds.remove(contactId)) {
+            selectedContactIds.add(contactId)
+        }
+        // §10.2: "deselecting everything exits automatically rather than
+        // leaving an empty mode" - isSelectionMode is derived from the set,
+        // so this call already reflects that without a separate check.
+        updateSelectionModeUi()
+        renderRows()
+    }
+
+    /**
+     * §10.3's table, applied: header title/leading icon, the row-badge
+     * slot's mode (via [renderRows]'s isSelectionMode, not here), and the
+     * FAB's fill/glyph/contentDescription/click-target all swap together.
+     * Also the single place [selectionModeBackCallback] gets enabled or
+     * disabled, so "system back" only ever does this while the mode is on.
+     */
+    private fun updateSelectionModeUi() {
+        selectionModeBackCallback.isEnabled = isSelectionMode
+        val titleLayoutParams = binding.headerTitle.layoutParams as ViewGroup.MarginLayoutParams
+        if (isSelectionMode) {
+            binding.headerCloseButton.visibility = View.VISIBLE
+            titleLayoutParams.marginStart = resources.getDimensionPixelSize(R.dimen.fm_header_title_margin_with_leading_icon)
+            binding.headerTitle.text = getString(R.string.format_selected_count, selectedContactIds.size)
+            binding.addContactFab.setImageResource(R.drawable.ic_trash)
+            binding.addContactFab.backgroundTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.fm_error))
+            binding.addContactFab.contentDescription = resources.getQuantityString(
+                R.plurals.content_desc_bulk_removal_fab, selectedContactIds.size, selectedContactIds.size
+            )
+            binding.addContactFab.setOnClickListener { confirmBulkRemoval() }
+        } else {
+            binding.headerCloseButton.visibility = View.GONE
+            titleLayoutParams.marginStart = resources.getDimensionPixelSize(R.dimen.fm_space_6)
+            binding.headerTitle.text = getString(R.string.title_home)
+            binding.addContactFab.setImageResource(R.drawable.ic_add)
+            binding.addContactFab.backgroundTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.fm_primary))
+            binding.addContactFab.contentDescription = getString(R.string.content_desc_add_contact)
+            binding.addContactFab.setOnClickListener { openAddContact() }
+        }
+        binding.headerTitle.layoutParams = titleLayoutParams
     }
 
     private fun openAddContact() {
@@ -189,43 +335,34 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun showAddedSnackbar(addedIds: List<String>) {
-        if (addedIds.isEmpty()) return
-        // nav_host_container has no CoordinatorLayout ancestor (deliberately -
-        // see activity_main.xml's kdoc), so a plain Snackbar.make() doesn't
-        // know to avoid the bottom nav bar it lives beside: it ends up
-        // overlapping the nav bar's touch targets instead of sitting above
-        // them, which made "Undo" land on whichever tab was underneath it.
-        // Anchoring explicitly to the bottom nav (see the .post{} call site
-        // above for why this has to run after the nav bar is back to
-        // VISIBLE, not synchronously from the fragment-result callback) is
-        // what nav_host_container's own layout_weight trick can't do for an
-        // overlay view like this one.
+    /**
+     * Shared by the add-contacts Snackbar (ADD_CONTACTS_RESULT_KEY's
+     * listener, above) and bulk removal's (performBulkRemoval, below) -
+     * previously two near-identical bodies. nav_host_container has no
+     * CoordinatorLayout ancestor (deliberately - see activity_main.xml's
+     * kdoc), so a plain Snackbar.make() doesn't know to avoid the bottom
+     * nav bar it lives beside, and settles into the same bottom-right
+     * corner as addContactFab with no CoordinatorLayout to push the FAB
+     * out of the way - a tap that visually lands on the Snackbar's action
+     * can otherwise hit the FAB underneath instead. Anchoring to the nav
+     * bar plus hiding the FAB for the Snackbar's lifetime (restored via
+     * refresh() - already the source of truth for FAB visibility - on
+     * dismiss, however it dismissed) fixes both at once. [undoAction] is
+     * null for the no-Undo bulk-removal case (§10.4).
+     */
+    private fun showBottomAnchoredSnackbar(message: String, undoAction: (() -> Unit)? = null) {
         val anchor = requireActivity().findViewById<View>(R.id.bottomNav)
             ?.takeIf { it.visibility == View.VISIBLE }
-        // Anchoring gets the Snackbar above the nav bar, but it settles in
-        // the same bottom-right corner as addContactFab (no CoordinatorLayout
-        // here to push the FAB up out of the way, the way it would on a
-        // screen that has one) - the FAB stays underneath, mostly hidden but
-        // still very much alive for touch, so a tap that visually lands on
-        // "Undo" can actually hit the FAB and relaunch the add-contact flow
-        // instead. Hiding the FAB for the Snackbar's lifetime removes the
-        // ambiguity outright; refresh() (already the source of truth for
-        // whether the FAB should be showing at all) puts it back once the
-        // Snackbar is gone, whichever way it went away.
         binding.addContactFab.visibility = View.GONE
-        Snackbar.make(
-            binding.root,
-            resources.getQuantityString(R.plurals.format_add_contacts_snackbar, addedIds.size, addedIds.size),
-            Snackbar.LENGTH_LONG
-        ).setAnchorView(anchor)
-            .setAction(R.string.action_undo) { undoAdd(addedIds) }
-            .addCallback(object : Snackbar.Callback() {
-                override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
-                    if (_binding != null) refresh()
-                }
-            })
-            .show()
+        val snackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).setAnchorView(anchor)
+        if (undoAction != null) {
+            snackbar.setAction(R.string.action_undo) { undoAction() }
+        }
+        snackbar.addCallback(object : Snackbar.Callback() {
+            override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
+                if (_binding != null) refresh()
+            }
+        }).show()
     }
 
     private fun undoAdd(addedIds: List<String>) {
@@ -242,6 +379,58 @@ class HomeFragment : Fragment() {
         }
     }
 
+    /** §10.4: counts both the selected contacts and the outreach logs they'd take with them, before showing the sheet. */
+    private fun confirmBulkRemoval() {
+        val ids = selectedContactIds.toList()
+        if (ids.isEmpty()) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val outreachLogRepo = ServiceLocator.outreachLogRepository
+            val outreachCount = ids.sumOf { outreachLogRepo.getForContact(it).size }
+            ConfirmBulkRemovalDialogFragment.newInstance(ids.size, outreachCount)
+                .show(childFragmentManager, ConfirmBulkRemovalDialogFragment::class.java.simpleName)
+        }
+    }
+
+    /**
+     * Runs only after [ConfirmBulkRemovalDialogFragment] reports a
+     * confirmed result (§10.4) - deletes each selected contact's outreach
+     * logs (no cascade delete on [ServiceLocator.friendListRepository]),
+     * then mirrors [undoAdd]'s own group/frequency/friend-list cleanup, in
+     * reverse: this is genuine removal rather than "undo an add", but the
+     * same three stores need clearing either way. No Undo afterwards on
+     * the resulting Snackbar, unlike the add-contacts flow's - see the
+     * [showBottomAnchoredSnackbar] call at the end of this function.
+     */
+    private fun performBulkRemoval() {
+        val ids = selectedContactIds.toList()
+        if (ids.isEmpty()) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val friendListRepo = ServiceLocator.friendListRepository
+            val outreachLogRepo = ServiceLocator.outreachLogRepository
+            val groupService = ServiceLocator.groupService
+            val reminderFrequencyRepo = ServiceLocator.reminderFrequencyRepository
+
+            ids.forEach { id ->
+                outreachLogRepo.getForContact(id).forEach { log -> outreachLogRepo.delete(log.id) }
+                groupService.getGroupsForContact(id).forEach { group -> groupService.removeContactFromGroup(id, group.id) }
+                reminderFrequencyRepo.clearOverride(id)
+                friendListRepo.removeFriend(id)
+            }
+
+            val removedCount = ids.size
+            selectedContactIds.clear()
+            updateSelectionModeUi()
+            refresh()
+            // §10.4: "No Undo - the history is genuinely gone, and an Undo
+            // that cannot restore it would be a lie." undoAction stays
+            // null, deliberately, unlike the add-contacts Snackbar's Undo
+            // (see the ADD_CONTACTS_RESULT_KEY listener in onViewCreated).
+            showBottomAnchoredSnackbar(
+                resources.getQuantityString(R.plurals.format_bulk_removal_removed_snackbar, removedCount, removedCount)
+            )
+        }
+    }
+
     private fun openContactDetail(contactId: String) {
         parentFragmentManager.commit {
             replace(R.id.nav_host_container, ContactDetailFragment.newInstance(contactId))
@@ -253,6 +442,13 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    /** Fetched contact/stat data, independent of selection state - see the class kdoc. */
+    private data class BaseContactRow(
+        val contact: Contact,
+        val streak: Int,
+        val lastTouchText: String
+    )
 
     companion object {
         const val ADD_CONTACTS_RESULT_KEY = "home_add_contacts_result"
