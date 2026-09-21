@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FRM-130: Settings auto-save "Saved" confirmation pill (SCREENS-PHASE3
+     §7.4). Corner radius larger than any real dimension of the pill so it
+     always renders fully stadium-shaped regardless of text length. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/fm_accent" />
+    <corners android:radius="999dp" />
+</shape>
