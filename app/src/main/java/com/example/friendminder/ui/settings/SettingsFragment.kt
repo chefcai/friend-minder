@@ -168,6 +168,16 @@ class SettingsFragment : Fragment() {
     // not a Designer-P3 spec, just wired here so the functionality stays
     // reachable pending the FRM-103 pass that's meant to design its real
     // home. Mirrors advancedRow's row pattern rather than a new one.
+    //
+    // GH #120: advancedRow already sits directly above this row in
+    // fragment_settings.xml (only a 1dp divider between them), so
+    // "Advanced adjacent to Notifications" was already true going into
+    // this ticket - the actual gap was the row's own label, which still
+    // read "Notifications & diagnostics" ("diagnostics" names an
+    // implementation detail, not something a user came looking for, per
+    // the issue). title_notifications_diagnostics is now just
+    // "Notifications" - resource id kept as-is since renaming it touches
+    // nothing user-facing and isn't part of this ticket's ask.
     private fun setUpNavigationRows() {
         binding.advancedRow.setOnClickListener {
             parentFragmentManager.commit {

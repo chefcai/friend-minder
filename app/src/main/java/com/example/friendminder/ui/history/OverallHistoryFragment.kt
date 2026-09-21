@@ -21,6 +21,7 @@ import com.example.friendminder.databinding.FragmentOverallHistoryBinding
 import com.example.friendminder.databinding.ItemHomeContactBinding
 import com.example.friendminder.domain.services.OutreachLogService
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
 import com.example.friendminder.ui.dashboard.DashboardChartCalculator
 import com.example.friendminder.ui.home.HomeLastTouchFormatter
@@ -130,7 +131,9 @@ class OverallHistoryFragment : Fragment() {
             val statisticsService = ServiceLocator.statisticsService
             val outreachLogService = ServiceLocator.outreachLogService
 
-            val friends = friendListRepository.getFriendList()
+            // GH #116: enrich with each friend's live device-contact
+            // photo before building rows - see withLivePhotoUris' kdoc.
+            val friends = withLivePhotoUris(requireContext(), friendListRepository.getFriendList())
             binding.loadingIndicator.visibility = View.GONE
 
             if (friends.isEmpty()) {

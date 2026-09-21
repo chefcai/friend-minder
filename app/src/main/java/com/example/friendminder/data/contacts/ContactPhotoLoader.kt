@@ -82,10 +82,22 @@ class ContactPhotoLoader {
      * generally can't be rewound - the standard Android pattern for this.
      */
     private fun decodeSampled(context: Context, uri: Uri): Bitmap? {
+        // GH #116: this used to be
+        //   `contentResolver.openInputStream(uri)?.use { decodeStream(...) } ?: return null`
+        // - which looks like "return null if the stream couldn't be opened",
+        // but isn't: BitmapFactory.decodeStream ALWAYS returns null when
+        // inJustDecodeBounds is true (that's how it signals "bounds are in
+        // `options`, no Bitmap was allocated" - see the platform docs), so
+        // `.use { ... }` always evaluated to null here regardless of
+        // whether the stream opened fine, and `?: return null` fired on
+        // every single call. No contact photo has ever actually rendered
+        // in this app because of it - every call fell through to the
+        // initials fallback before reaching the real decode pass below.
+        // Opening the stream and checking for null explicitly (rather than
+        // reading it off the bounds-decode call's return value) fixes it.
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)?.use { stream ->
-            BitmapFactory.decodeStream(stream, null, bounds)
-        } ?: return null
+        val boundsStream = context.contentResolver.openInputStream(uri) ?: return null
+        boundsStream.use { stream -> BitmapFactory.decodeStream(stream, null, bounds) }
 
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
 

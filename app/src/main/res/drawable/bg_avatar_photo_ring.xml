@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  GH #116, rule 2: "Every photo takes the 1dp #CFE7EA hairline ... not
+  optional the way it is for dark fills." Set as an avatar ImageView's
+  foreground (never its background) once a photo successfully loads, so it
+  draws on top of the opaque bitmap rather than being hidden underneath it -
+  a centerCrop photo fills the view's entire bounds, so a background-only
+  stroke would sit behind the image and never be seen. Transparent fill
+  keeps the photo itself untouched; the stroke is inset from the bounds
+  (GradientDrawable's own behavior), so the avatar's overall diameter is
+  unchanged whether or not this ring is present, same as the initials
+  fallback's stroke in AvatarBinder.showInitialsFallback.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/fm_divider" />
+</shape>

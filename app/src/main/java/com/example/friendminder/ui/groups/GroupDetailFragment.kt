@@ -12,6 +12,7 @@ import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.FragmentGroupDetailBinding
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
+import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.snackbar.Snackbar
@@ -109,7 +110,11 @@ class GroupDetailFragment : Fragment() {
             }
             binding.headerTitle.text = group.name
 
-            val members = ServiceLocator.groupService.getContactsInGroup(groupId).sortedBy { it.name.lowercase() }
+            // GH #116: enrich with each member's live device-contact
+            // photo before building rows - see withLivePhotoUris' kdoc.
+            val members = withLivePhotoUris(
+                requireContext(), ServiceLocator.groupService.getContactsInGroup(groupId)
+            ).sortedBy { it.name.lowercase() }
             binding.emptyStateText.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
             binding.memberRecyclerView.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
             adapter.submitList(members)

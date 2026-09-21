@@ -1,7 +1,9 @@
 package com.example.friendminder.ui.common
 
+import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -24,6 +26,18 @@ import kotlinx.coroutines.launch
  * Callers are responsible for cancelling the returned [Job] when their view
  * is recycled/destroyed (same contract as those adapters' own
  * `cancelPendingPhotoLoad`).
+ *
+ * GH #116: a loaded photo is centre-cropped into a true circle via a custom
+ * [ViewOutlineProvider] (deliberately not [ViewOutlineProvider.BACKGROUND] -
+ * [AddContactsStep2Fragment][com.example.friendminder.ui.addcontacts.AddContactsStep2Fragment]
+ * builds its avatar `ImageView`s in code with no background at all, and
+ * that default provider clips to an *empty* outline when there's no
+ * background to read a shape from, which would hide the photo entirely
+ * rather than leave it square), and always takes the same 1dp hairline the
+ * initials fallback already had for its light fills - set as [photoView]'s
+ * *foreground* (bg_avatar_photo_ring.xml), not background, since an opaque
+ * centerCrop bitmap fully covers the view's background and would hide a
+ * stroke drawn there.
  */
 object AvatarBinder {
 
@@ -41,6 +55,9 @@ object AvatarBinder {
             val bitmap = photoLoader.load(photoView.context, contact.id, photoUri)
             if (bitmap != null) {
                 photoView.setImageBitmap(bitmap)
+                photoView.foreground = ContextCompat.getDrawable(
+                    photoView.context, R.drawable.bg_avatar_photo_ring
+                )
                 photoView.visibility = View.VISIBLE
                 initialsView.visibility = View.GONE
             }
@@ -52,6 +69,16 @@ object AvatarBinder {
         initialsView: TextView,
         contact: Contact
     ) {
+        // GH #116: the oval outline provider and clipToOutline stay set
+        // regardless of which state ends up showing - it's a no-op while
+        // photoView is GONE/showing no image, and it's what makes bind()'s
+        // centerCrop bitmap render as a circle rather than a square once a
+        // photo loads. foreground is cleared here too: a recycled
+        // RecyclerView ImageView can carry over the previous contact's
+        // photo ring otherwise.
+        photoView.outlineProvider = circularOutlineProvider
+        photoView.clipToOutline = true
+        photoView.foreground = null
         photoView.visibility = View.GONE
         initialsView.visibility = View.VISIBLE
         initialsView.text = contact.name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?"
@@ -77,5 +104,14 @@ object AvatarBinder {
             }
         }
         initialsView.setTextColor(textColor)
+    }
+
+    // GH #116: view-bounds-based oval, independent of whatever (if
+    // anything) photoView's own background happens to be - see the class
+    // kdoc for why ViewOutlineProvider.BACKGROUND isn't safe here.
+    private val circularOutlineProvider = object : ViewOutlineProvider() {
+        override fun getOutline(view: View, outline: Outline) {
+            outline.setOval(0, 0, view.width, view.height)
+        }
     }
 }
