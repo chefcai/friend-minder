@@ -44,6 +44,24 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+
+        // FRM-16: real release signing. release.yml sets these four env vars only
+        // when the repo secrets RELEASE_KEYSTORE_BASE64/RELEASE_KEYSTORE_PASSWORD/
+        // RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD exist (decoding the base64 into
+        // RELEASE_KEYSTORE_FILE itself) - previously nothing in this file actually
+        // read them, so setting those secrets alone did nothing: assembleRelease
+        // had no signingConfig at all and produced an unsigned APK regardless.
+        // Absent locally/in a PR build, so this config simply isn't created and
+        // release build behavior there is unchanged (still unsigned).
+        val releaseKeystoreFile = System.getenv("RELEASE_KEYSTORE_FILE")
+        if (!releaseKeystoreFile.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseKeystoreFile)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -53,6 +71,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 

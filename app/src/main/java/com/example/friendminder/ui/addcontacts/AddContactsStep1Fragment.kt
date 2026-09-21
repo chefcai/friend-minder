@@ -297,8 +297,7 @@ class AddContactsStep1Fragment : Fragment() {
         ValuePickerDialogFragment.newInstance(
             requestKey = NUMBER_PICKER_REQUEST_KEY,
             title = getString(R.string.format_choose_phone_number, contact.name),
-            values = numbers.indices.toList().toIntArray(),
-            labels = numbers,
+            options = numbers.indices.map { it to numbers[it] },
             selectedValue = 0
         ).show(childFragmentManager, "choose_phone_number")
     }

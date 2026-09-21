@@ -10,8 +10,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.FragmentGroupDetailBinding
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
+import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
 import com.example.friendminder.utils.ServiceLocator
@@ -26,6 +28,7 @@ class GroupDetailFragment : Fragment() {
 
     private val groupId: String by lazy { requireArguments().getString(ARG_GROUP_ID)!! }
     private lateinit var adapter: GroupMemberAdapter
+    private var currentGroup: ContactGroup? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,6 +62,7 @@ class GroupDetailFragment : Fragment() {
         binding.addContactButton.setOnClickListener {
             AddContactToGroupDialogFragment.newInstance(groupId).show(childFragmentManager, "add_to_group")
         }
+        binding.checkInFrequencyRow.setOnClickListener { showFrequencyPicker() }
 
         childFragmentManager.setFragmentResultListener(AddContactToGroupDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ ->
             refresh()
@@ -66,6 +70,47 @@ class GroupDetailFragment : Fragment() {
         childFragmentManager.setFragmentResultListener(GroupEditDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ ->
             refresh()
         }
+        childFragmentManager.setFragmentResultListener(FREQUENCY_PICKER_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            val picked = bundle.getInt(ValuePickerDialogFragment.RESULT_VALUE)
+            viewLifecycleOwner.lifecycleScope.launch {
+                // NO_OVERRIDE_SENTINEL (0) is this row's own convention for
+                // "clear the override" - GroupService.setReminderFrequency
+                // itself only ever sees null, never 0 (see the sentinel's
+                // own kdoc in strings.xml).
+                ServiceLocator.groupService.setReminderFrequency(
+                    groupId, if (picked == NO_OVERRIDE_SENTINEL) null else picked
+                )
+                refresh()
+            }
+        }
+    }
+
+    // GH #121: unlike ContactDetailFragment's frequency picker (which
+    // canonicalizes "equals the global default" down to "no override" so a
+    // contact keeps tracking future default changes), a group's own
+    // interval is deliberately NOT canonicalized that way here - a group
+    // explicitly set to the same number as today's global default should
+    // stay pinned at that number if the global default later changes,
+    // which is the whole point of setting a per-group interval rather than
+    // leaving the group unset. That's why this needs an explicit
+    // "no override" option in the list rather than reusing the
+    // equals-default trick.
+    private fun showFrequencyPicker() {
+        val group = currentGroup ?: return
+        val presetOptions = FREQUENCY_OPTIONS.map { days ->
+            days to when (days) {
+                FREQUENCY_OPTION_7 -> getString(R.string.cooldown_option_7)
+                FREQUENCY_OPTION_14 -> getString(R.string.cooldown_option_14)
+                else -> getString(R.string.cooldown_option_3)
+            }
+        }
+        ValuePickerDialogFragment.newInstance(
+            requestKey = FREQUENCY_PICKER_REQUEST_KEY,
+            title = getString(R.string.label_group_checkin_frequency),
+            options = listOf(NO_OVERRIDE_SENTINEL to getString(R.string.label_group_frequency_no_override)) + presetOptions,
+            selectedValue = group.reminderFrequencyDays ?: NO_OVERRIDE_SENTINEL,
+            customEntry = ValuePickerDialogFragment.CustomEntryOptions()
+        ).show(childFragmentManager, "group_frequency_picker")
     }
 
     override fun onResume() {
@@ -108,7 +153,9 @@ class GroupDetailFragment : Fragment() {
                 requireActivity().onBackPressedDispatcher.onBackPressed()
                 return@launch
             }
+            currentGroup = group
             binding.headerTitle.text = group.name
+            renderFrequencyValue(group)
 
             // GH #116: enrich with each member's live device-contact
             // photo before building rows - see withLivePhotoUris' kdoc.
@@ -121,6 +168,17 @@ class GroupDetailFragment : Fragment() {
         }
     }
 
+    private fun renderFrequencyValue(group: ContactGroup) {
+        val days = group.reminderFrequencyDays
+        binding.groupFrequencyValue.text = when {
+            days == null -> getString(R.string.label_group_frequency_no_override)
+            days == FREQUENCY_OPTION_3 -> getString(R.string.cooldown_option_3)
+            days == FREQUENCY_OPTION_7 -> getString(R.string.cooldown_option_7)
+            days == FREQUENCY_OPTION_14 -> getString(R.string.cooldown_option_14)
+            else -> resources.getQuantityString(R.plurals.format_days_option, days, days)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -128,6 +186,19 @@ class GroupDetailFragment : Fragment() {
 
     companion object {
         private const val ARG_GROUP_ID = "arg_group_id"
+
+        // GH #121: sentinel this row uses in the shared picker's value list
+        // to mean "clear the override" - GroupService.setReminderFrequency
+        // itself only ever sees this translated to null (see the click
+        // listener above). 0 is safe as a sentinel because
+        // GroupService.setReminderFrequency requires 1..30 for any real
+        // value.
+        private const val NO_OVERRIDE_SENTINEL = 0
+        private const val FREQUENCY_OPTION_3 = 3
+        private const val FREQUENCY_OPTION_7 = 7
+        private const val FREQUENCY_OPTION_14 = 14
+        private val FREQUENCY_OPTIONS = intArrayOf(FREQUENCY_OPTION_3, FREQUENCY_OPTION_7, FREQUENCY_OPTION_14)
+        private const val FREQUENCY_PICKER_REQUEST_KEY = "group_detail_frequency_picker"
 
         fun newInstance(groupId: String): GroupDetailFragment = GroupDetailFragment().apply {
             arguments = Bundle().apply { putString(ARG_GROUP_ID, groupId) }
