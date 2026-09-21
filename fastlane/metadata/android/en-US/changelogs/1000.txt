@@ -1,0 +1,7 @@
+Contact photos, group reminder intervals, and a navigation cleanup
+
+- Contact photos now actually appear as circular avatars throughout the app (Home, Contact Detail, Overall History) instead of always falling back to initials - a previously-broken photo loader is fixed.
+- Groups can now pin their own check-in interval, and Contact Detail shows exactly which interval is in effect and why (your own setting, a group's, or the app default) - with a "Custom..." option everywhere for entering any number of days.
+- Fixed: renaming, recoloring, or changing a group's check-in interval could silently remove everyone from that group. That's no longer possible.
+- Manual outreach logging has been replaced by a "Stop tracking" button on Contact Detail, and the bottom navigation bar is now visible on every screen instead of only four.
+- The teal header now looks consistent across Groups, Contact Detail, Settings, and Notifications; Settings saves automatically as you go, plus visual polish across Home and the add-contacts flow.
