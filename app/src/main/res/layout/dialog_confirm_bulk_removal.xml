@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bulk-removal confirmation sheet (FRM-112, SCREENS-PHASE3.md §10.4):
+  "One bottom sheet naming the real cost ... Confirm, or dismiss by
+  handle/scrim/back." Same §8.1 chrome as every other Phase 3 dialog
+  (rounded top corners, drag handle, no separate close/cancel - the handle
+  living outside the padded content block matches
+  dialog_add_contact_to_group.xml's split). The one filled button is
+  fm_error - the only destructive-styled button in the app - rather than
+  the usual fm_primary, since this is the one action that cannot be
+  undone (no Undo per §10.4; the confirmation carries the weight instead).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_surface">
+
+    <View
+        android:layout_width="@dimen/fm_dialog_handle_width"
+        android:layout_height="@dimen/fm_dialog_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/fm_dialog_handle_margin_top"
+        android:background="@drawable/bg_dialog_drag_handle"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/fm_space_6">
+
+        <TextView
+            android:id="@+id/confirmTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/fm_space_2"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="@color/fm_heading" />
+
+        <TextView
+            android:id="@+id/confirmBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/fm_space_6"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/fm_ink_dim" />
+
+        <Button
+            android:id="@+id/confirmButton"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:backgroundTint="@color/fm_error"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</LinearLayout>

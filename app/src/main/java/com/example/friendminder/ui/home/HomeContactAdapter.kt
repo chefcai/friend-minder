@@ -3,6 +3,7 @@ package com.example.friendminder.ui.home
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -16,14 +17,21 @@ import kotlinx.coroutines.Job
 
 /**
  * Home's flat, alphabetical contact list (FRM-99, SCREENS-PHASE3.md
- * §1.3/§1.5). No search, no long-press, no swipe - row tap is the only
- * interaction (§1.3: "Row long-press: nothing in v1. No context menu, no
- * swipe actions.").
+ * §1.3/§1.5). No search, no swipe. Row long-press enters bulk-removal
+ * selection mode (FRM-112, §10.2 - amending §1.3's original "Row
+ * long-press: nothing in v1" per Cai's proposal); tap either opens Contact
+ * Detail or toggles selection, and [HomeContactRow.isSelectionMode] is
+ * what tells this adapter which - see [HomeFragment] for the actual mode
+ * state and the branching logic behind [onRowClicked]/[onRowLongPressed].
+ * Every row also carries a custom "Select" accessibility action
+ * regardless of mode (§10.5), since long-press has no TalkBack-reachable
+ * equivalent.
  */
 class HomeContactAdapter(
     private val photoLoader: ContactPhotoLoader,
     private val scope: CoroutineScope,
-    private val onRowClicked: (Contact) -> Unit
+    private val onRowClicked: (Contact) -> Unit,
+    private val onRowLongPressed: (Contact) -> Unit
 ) : ListAdapter<HomeContactRow, HomeContactAdapter.ViewHolder>(DIFF) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -44,6 +52,21 @@ class HomeContactAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         private var photoLoadJob: Job? = null
+        private var currentRow: HomeContactRow? = null
+
+        init {
+            // Registered once per ViewHolder (not per bind, to avoid piling
+            // up duplicate custom actions across rebinds) and reads
+            // currentRow at invocation time rather than closing over the
+            // row passed to bind() - see §10.5.
+            ViewCompat.addAccessibilityAction(
+                binding.root,
+                binding.root.context.getString(R.string.content_desc_row_select_action)
+            ) { _, _ ->
+                currentRow?.let { onRowLongPressed(it.contact) }
+                true
+            }
+        }
 
         fun cancelPendingPhotoLoad() {
             photoLoadJob?.cancel()
@@ -51,6 +74,7 @@ class HomeContactAdapter(
         }
 
         fun bind(row: HomeContactRow, position: Int) {
+            currentRow = row
             // §1.3: "Divider between rows only - not after the last row, and
             // not between the header and the first row." A top divider hidden
             // on position 0 satisfies both halves of that at once.
@@ -63,10 +87,16 @@ class HomeContactAdapter(
             bindAvatar(row.contact)
 
             binding.root.setOnClickListener { onRowClicked(row.contact) }
+            binding.root.setOnLongClickListener { onRowLongPressed(row.contact); true }
         }
 
         private fun bindBadge(row: HomeContactRow) {
             val context = binding.root.context
+            if (row.isSelectionMode) {
+                bindSelectionControl(row)
+                return
+            }
+            binding.selectionCheck.visibility = View.GONE
             if (row.streak > 0) {
                 binding.statusBadge.background =
                     androidx.core.content.ContextCompat.getDrawable(context, R.drawable.bg_status_badge_filled)
@@ -85,6 +115,23 @@ class HomeContactAdapter(
                 binding.statusBadge.contentDescription =
                     context.getString(R.string.format_home_no_streak_description, row.lastTouchText)
             }
+        }
+
+        // FRM-112 (§10.3): the same 28dp slot, reusing
+        // bg_status_badge_ring/filled and ic_check verbatim from
+        // item_add_contact_candidate.xml's selectionControl - "nothing
+        // resizes, the control is the one already specced for FRM-102".
+        private fun bindSelectionControl(row: HomeContactRow) {
+            val context = binding.root.context
+            binding.statusBadgeNumeral.visibility = View.GONE
+            binding.statusBadge.background = androidx.core.content.ContextCompat.getDrawable(
+                context,
+                if (row.isSelected) R.drawable.bg_status_badge_filled else R.drawable.bg_status_badge_ring
+            )
+            binding.selectionCheck.visibility = if (row.isSelected) View.VISIBLE else View.GONE
+            binding.statusBadge.contentDescription = context.getString(
+                if (row.isSelected) R.string.content_desc_candidate_selected else R.string.content_desc_candidate_not_selected
+            )
         }
 
         private fun bindAvatar(contact: Contact) {
@@ -108,9 +155,16 @@ class HomeContactAdapter(
     }
 }
 
-/** Pre-computed row data - display string and streak, not raw stats, so the adapter never touches ServiceLocator. */
+/**
+ * Pre-computed row data - display string and streak, not raw stats, so the
+ * adapter never touches ServiceLocator. [isSelectionMode]/[isSelected]
+ * (FRM-112, §10.3) default to normal-mode values so nothing else that
+ * constructs a HomeContactRow needs to change.
+ */
 data class HomeContactRow(
     val contact: Contact,
     val streak: Int,
-    val lastTouchText: String
+    val lastTouchText: String,
+    val isSelectionMode: Boolean = false,
+    val isSelected: Boolean = false
 )

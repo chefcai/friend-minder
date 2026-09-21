@@ -41,15 +41,38 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/fm_home_header_height">
 
+                <!-- FRM-112 (§10.2/§10.3): hidden outside selection mode.
+                     Same 48dp-touch-target-via-padding geometry as
+                     fragment_overall_history.xml's backButton, white glyph,
+                     borderless ripple - HomeFragment toggles visibility and
+                     headerTitle's start margin together. -->
+                <ImageButton
+                    android:id="@+id/headerCloseButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_close"
+                    app:tint="@color/fm_on_primary"
+                    android:contentDescription="@string/content_desc_close_selection_mode"
+                    android:visibility="gone" />
+
                 <!-- §1.2: literal title "Friend-Minder", no back arrow (Home
                      is the root), no overflow menu - both of Dashboard's old
-                     toolbar actions moved elsewhere (FAB, bottom nav). -->
+                     toolbar actions moved elsewhere (FAB, bottom nav).
+                     FRM-112: HomeFragment swaps both the text and the start
+                     margin (24dp normally, @dimen/fm_header_title_margin_with_leading_icon
+                     when headerCloseButton is showing, §10.3) between this
+                     and "N selected" while in selection mode. -->
                 <TextView
                     android:id="@+id/headerTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start|center_vertical"
                     android:layout_marginStart="@dimen/fm_space_6"
+                    android:layout_marginEnd="@dimen/fm_space_6"
                     android:text="@string/title_home"
                     android:textColor="@color/fm_on_primary"
                     android:textSize="@dimen/fm_header_title_size"
