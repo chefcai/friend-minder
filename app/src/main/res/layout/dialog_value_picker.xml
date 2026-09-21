@@ -6,8 +6,16 @@
   Frequency sheet (Contact Detail's override and the add-contact flow's
   Step 2 bulk default both reach it from a tappable value row); reusable
   for any future single-value picker of this shape.
+
+  GH #98/#121: interval pickers (any picker built with allowCustomDays)
+  add a "Custom..." row that swaps optionContainer out for
+  customEntryContainer in place, per §8.4 - "the same sheet, no second
+  sheet stacked on the first." warningText sits above both, since §6.2a's
+  sheet warning applies "beneath the sheet title" regardless of which
+  container is showing.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -33,10 +41,64 @@
         android:textStyle="bold"
         android:textColor="@color/fm_heading" />
 
+    <TextView
+        android:id="@+id/warningText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_2"
+        android:layout_marginStart="@dimen/fm_space_6"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:textSize="14sp"
+        android:textColor="@color/fm_ink_dim"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/optionContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/fm_space_2"
         android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/customEntryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_2"
+        android:layout_marginStart="@dimen/fm_space_6"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/customDaysSectionLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_days_section"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/fm_ink_dim" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/customDaysInputLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/fm_space_2"
+            app:helperTextEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/customDaysInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="2" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/customDaysSetButton"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="@dimen/fm_space_2"
+            android:text="@string/action_set" />
+    </LinearLayout>
 </LinearLayout>

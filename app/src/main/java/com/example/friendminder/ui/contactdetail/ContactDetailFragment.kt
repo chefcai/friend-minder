@@ -14,6 +14,7 @@ import com.example.friendminder.data.models.Contact
 import com.example.friendminder.data.models.SpecialDateSource
 import com.example.friendminder.databinding.FragmentContactDetailBinding
 import com.example.friendminder.databinding.ItemSpecialDateBinding
+import com.example.friendminder.domain.services.IntervalSource
 import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
@@ -62,7 +63,10 @@ class ContactDetailFragment : Fragment() {
         binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.headerActionButton.setOnClickListener { openEditFrequencyDialog() }
+        // GH #121/SCREENS-PHASE3.md §6.2: the header gear is retired - the
+        // CHECK-IN FREQUENCY row below is the one entry point to the
+        // frequency sheet now (see showFrequencyPicker/bindFrequencyRow).
+        binding.checkInFrequencyRow.setOnClickListener { showFrequencyPicker() }
         EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         historyAdapter = OutreachHistoryAdapter()
@@ -117,30 +121,52 @@ class ContactDetailFragment : Fragment() {
     // FRM-102: rebuilt to SCREENS-PHASE3.md §8.4's shape (a flat list of
     // options, tap-to-select-and-dismiss, no confirm button) via the shared
     // ValuePickerDialogFragment - see that class's kdoc for why the picker
-    // itself knows nothing about frequencies. The entry point stays this
-    // screen's existing header action button rather than becoming the §6.2
-    // tappable value row: re-laying-out Contact Detail as value rows is
-    // FRM-103's full re-skin of this screen, not this ticket's. GH #132
-    // gave this its own named function (previously inlined into the
-    // MaterialToolbar's onMenuItemClicked) since the extended teal header
-    // has no menu to hang an item off of.
-    private fun openEditFrequencyDialog() {
+    // itself knows nothing about frequencies. GH #121/§6.2 moved the entry
+    // point from the header gear (now removed) to checkInFrequencyRow, and
+    // added the §6.2a sheet warning: a group's own interval can shadow
+    // whatever this picker sets, so the sheet says so before the user picks
+    // a value that won't actually change anything.
+    private fun showFrequencyPicker() {
         viewLifecycleOwner.lifecycleScope.launch {
             val globalDefault = ServiceLocator.settingsRepository.getCooldownDays()
             val override = ServiceLocator.reminderFrequencyRepository.getOverride(contactId)
-            val effective = override ?: globalDefault
+            val selected = override ?: globalDefault
+
+            // §6.2a: "shown only when a group interval is shorter than at
+            // least one selectable option; named group is the shortest
+            // one." A local suspend lambda rather than its own function -
+            // see showAddSpecialDateDialog's updatePickDateButtonText for
+            // the same move, made for the same reason (detekt's
+            // TooManyFunctions). Ties among the contact's own groups are
+            // broken by name for a deterministic message - the same
+            // tie-break DefaultGroupService.getEffectiveInterval uses for
+            // display, needed here only because this warning names a
+            // single group rather than the winner-set getEffectiveInterval
+            // returns.
+            val groupFloorWarning = suspend {
+                val floor = ServiceLocator.groupService.getGroupsForContact(contactId)
+                    .mapNotNull { group -> group.reminderFrequencyDays?.let { it to group.name } }
+                    .sortedWith(compareBy({ it.first }, { it.second }))
+                    .firstOrNull()
+                if (floor == null || FREQUENCY_OPTIONS.none { it > floor.first }) {
+                    null
+                } else {
+                    getString(R.string.format_frequency_sheet_warning, floor.second, floor.first)
+                }
+            }
+
             ValuePickerDialogFragment.newInstance(
                 requestKey = FREQUENCY_PICKER_REQUEST_KEY,
                 title = getString(R.string.title_edit_frequency),
-                values = FREQUENCY_OPTIONS,
-                labels = FREQUENCY_OPTIONS.map { days ->
-                    when (days) {
+                options = FREQUENCY_OPTIONS.map { days ->
+                    days to when (days) {
                         FREQUENCY_OPTION_3 -> getString(R.string.cooldown_option_3)
                         FREQUENCY_OPTION_7 -> getString(R.string.cooldown_option_7)
                         else -> getString(R.string.cooldown_option_14)
                     }
                 },
-                selectedValue = effective
+                selectedValue = selected,
+                customEntry = ValuePickerDialogFragment.CustomEntryOptions(warningText = groupFloorWarning())
             ).show(childFragmentManager, "edit_frequency")
         }
     }
@@ -191,6 +217,31 @@ class ContactDetailFragment : Fragment() {
             )
 
             bindStats(contact)
+
+            // §6.2a: the row shows the *effective* interval GroupService
+            // resolves, not necessarily this contact's own stored override
+            // - see that function's kdoc for the full precedence rule.
+            // Inlined here (rather than its own bindFrequencyRow function)
+            // to stay under detekt's TooManyFunctions threshold - see
+            // showAddSpecialDateDialog's updatePickDateButtonText for the
+            // same move made for the same reason elsewhere in this file.
+            val effective = ServiceLocator.groupService.getEffectiveInterval(contact.id)
+            val sources = effective.sources
+            val days = effective.days
+            binding.checkInFrequencyValue.text = when {
+                sources.firstOrNull() is IntervalSource.Contact ->
+                    resources.getQuantityString(R.plurals.format_effective_interval, days, days)
+                sources.size == 1 && sources[0] is IntervalSource.Global ->
+                    resources.getQuantityString(R.plurals.format_effective_interval_default, days, days)
+                sources.size == 1 -> resources.getQuantityString(
+                    R.plurals.format_effective_interval_from_group,
+                    days,
+                    days,
+                    (sources[0] as IntervalSource.Group).groupName
+                )
+                else -> resources.getQuantityString(R.plurals.format_effective_interval_from_groups, days, days, sources.size)
+            }
+
             bindGroups(contact)
             bindHistory(contact)
             bindSpecialDates(contact)
@@ -199,21 +250,23 @@ class ContactDetailFragment : Fragment() {
 
     private suspend fun bindStats(contact: Contact) {
         val stats = ServiceLocator.statisticsService.getStatistics(contact.id)
-        val frequencyOverride = ServiceLocator.reminderFrequencyRepository.getOverride(contact.id)
-        val globalDefault = ServiceLocator.settingsRepository.getCooldownDays()
-        val effectiveFrequency = frequencyOverride ?: globalDefault
 
+        // GH #121: frequency moved off this caption and onto its own
+        // CHECK-IN FREQUENCY row (bindFrequencyRow) now that it needs to
+        // show source attribution rather than a single number - showing it
+        // in both places risked the two disagreeing (e.g. this caption
+        // read the contact's own override while the new row already showed
+        // a shorter group interval winning). The caption now carries only
+        // the birthday, and is hidden entirely when there isn't one.
         val birthday = ServiceLocator.birthdayService.getSpecialDatesForContact(contact.id)
             .firstOrNull { it.source == SpecialDateSource.CONTACTS }
-        val frequencyText = if (frequencyOverride != null) {
-            getString(R.string.format_frequency_custom, effectiveFrequency)
+        if (birthday != null) {
+            binding.birthdayFrequencyCaption.text = getString(
+                R.string.format_birthday_caption, formatMonthDay(birthday.month, birthday.day)
+            )
+            binding.birthdayFrequencyCaption.visibility = View.VISIBLE
         } else {
-            getString(R.string.format_frequency_default, effectiveFrequency)
-        }
-        binding.birthdayFrequencyCaption.text = if (birthday != null) {
-            getString(R.string.format_special_date_row, formatMonthDay(birthday.month, birthday.day), frequencyText)
-        } else {
-            frequencyText
+            binding.birthdayFrequencyCaption.visibility = View.GONE
         }
 
         binding.lastContactText.text = getString(R.string.format_last_contact, formatDaysAgo(stats.daysSinceContact))
