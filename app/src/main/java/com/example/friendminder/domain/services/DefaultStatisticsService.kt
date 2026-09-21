@@ -4,8 +4,6 @@ import com.example.friendminder.data.models.AggregateStatistics
 import com.example.friendminder.data.models.ContactStatistics
 import com.example.friendminder.data.storage.CooldownRepository
 import com.example.friendminder.data.storage.FriendListRepository
-import com.example.friendminder.data.storage.ReminderFrequencyRepository
-import com.example.friendminder.data.storage.SettingsRepository
 import com.example.friendminder.data.storage.StatisticsCacheRepository
 import java.util.concurrent.TimeUnit
 
@@ -17,8 +15,7 @@ class DefaultStatisticsService(
     private val friendListRepository: FriendListRepository,
     private val outreachLogService: OutreachLogService,
     private val cooldownRepository: CooldownRepository,
-    private val reminderFrequencyRepository: ReminderFrequencyRepository,
-    private val settingsRepository: SettingsRepository,
+    private val groupService: GroupService,
     private val cacheRepository: StatisticsCacheRepository
 ) : StatisticsService {
 
@@ -56,8 +53,8 @@ class DefaultStatisticsService(
         val history = outreachLogService.getHistory(contactId) // newest first
         val now = System.currentTimeMillis()
         val lastContacted = history.firstOrNull()?.timestamp
-        val frequencyDays = reminderFrequencyRepository.getOverride(contactId)
-            ?: settingsRepository.getCooldownDays()
+        // GH #121/FRM-97: contact/group/global precedence, not just contact-vs-global.
+        val frequencyDays = groupService.getEffectiveInterval(contactId).days
         val remindersSent = cooldownRepository.getReminderCount(contactId)
         return ContactStatistics(
             contactId = contactId,

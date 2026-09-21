@@ -72,4 +72,16 @@ class ContactGroupDaoTest {
 
         assertEquals(setOf("contact-2"), dao.getContactIdsInGroup("g1").toSet())
     }
+
+    @Test
+    fun reminderFrequencyDaysDefaultsToNullAndRoundTrips() = runBlocking {
+        // GH #121/FRM-97: a group created without an explicit interval must
+        // come back null (not 0 or any sentinel) - that's what keeps it out
+        // of DefaultGroupService.getEffectiveInterval's precedence calculation.
+        dao.upsertGroup(ContactGroupEntity("g1", "Close Friends", 0xFF0000, null, 1000L))
+        assertNull(dao.getGroup("g1")?.reminderFrequencyDays)
+
+        dao.upsertGroup(ContactGroupEntity("g1", "Close Friends", 0xFF0000, null, 1000L, reminderFrequencyDays = 3))
+        assertEquals(3, dao.getGroup("g1")?.reminderFrequencyDays)
+    }
 }

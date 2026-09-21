@@ -65,6 +65,16 @@ android {
         viewBinding = true
     }
 
+    // GH #121/FRM-97: MIGRATION_1_2 is the project's first real Room schema
+    // migration (version was 1 since FRM-81), so this wiring never existed
+    // before - MigrationTestHelper needs the exported schemas bundled as
+    // androidTest assets to construct a v1 database to migrate from.
+    sourceSets {
+        getByName("androidTest") {
+            assets.srcDirs("$projectDir/schemas")
+        }
+    }
+
     lint {
         // Blocking as of FRM-18. The two pre-existing errors that kept this report-only
         // are both fixed: MissingPermission in NotificationHelper.postReminder (added a

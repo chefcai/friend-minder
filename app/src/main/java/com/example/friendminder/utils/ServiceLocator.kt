@@ -96,7 +96,16 @@ object ServiceLocator {
     }
 
     val groupService: GroupService by lazy {
-        DefaultGroupService(contactGroupRepository, friendListRepository)
+        // GH #121/FRM-97: needs reminderFrequencyRepository + settingsRepository too,
+        // so getEffectiveInterval() can resolve contact/group/global precedence in
+        // one place instead of SuggestionWorker and DefaultStatisticsService each
+        // re-deriving contact-vs-global and silently ignoring groups.
+        DefaultGroupService(
+            contactGroupRepository,
+            friendListRepository,
+            reminderFrequencyRepository,
+            settingsRepository
+        )
     }
 
     val outreachLogService: OutreachLogService by lazy {
@@ -104,12 +113,15 @@ object ServiceLocator {
     }
 
     val statisticsService: StatisticsService by lazy {
+        // GH #121/FRM-97: streak calculation now resolves the interval via
+        // groupService.getEffectiveInterval() (contact/group/global precedence),
+        // replacing the old reminderFrequencyRepository-vs-settingsRepository-only
+        // fallback that never accounted for a contact's groups.
         DefaultStatisticsService(
             friendListRepository = friendListRepository,
             outreachLogService = outreachLogService,
             cooldownRepository = cooldownRepository,
-            reminderFrequencyRepository = reminderFrequencyRepository,
-            settingsRepository = settingsRepository,
+            groupService = groupService,
             cacheRepository = statisticsCacheRepository
         )
     }

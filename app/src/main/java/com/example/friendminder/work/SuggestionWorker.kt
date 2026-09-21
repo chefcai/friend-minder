@@ -40,7 +40,7 @@ class SuggestionWorker(
         val friendListRepo = ServiceLocator.friendListRepository
         val cooldownRepo = ServiceLocator.cooldownRepository
         val settingsRepo = ServiceLocator.settingsRepository
-        val reminderFrequencyRepo = ServiceLocator.reminderFrequencyRepository
+        val groupService = ServiceLocator.groupService
 
         val friends = friendListRepo.getFriendList()
         if (friends.isEmpty()) {
@@ -48,13 +48,13 @@ class SuggestionWorker(
             return Result.success() // nothing to suggest (Designer spec S4.1)
         }
 
-        val defaultCooldownDays = settingsRepo.getCooldownDays()
         val cooldownStatus = mutableMapOf<String, Boolean>()
         val lastSuggested = mutableMapOf<String, Long>()
         for (friend in friends) {
-            // FRM-32: a contact's own reminder frequency override, if set, replaces the
-            // app-wide default when deciding whether they're on cooldown.
-            val effectiveCooldownDays = reminderFrequencyRepo.getOverride(friend.id) ?: defaultCooldownDays
+            // GH #121/FRM-97: shortest-interval-wins across contact/group/global,
+            // not just a contact override falling back straight to the global
+            // default - a group's interval can win even with no contact override set.
+            val effectiveCooldownDays = groupService.getEffectiveInterval(friend.id).days
             cooldownStatus[friend.id] = cooldownRepo.isOnCooldown(friend.id, effectiveCooldownDays)
             lastSuggested[friend.id] = cooldownRepo.getLastSuggestion(friend.id) ?: 0L
         }

@@ -6,14 +6,22 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.example.friendminder.data.models.ContactGroup
 
-/** Room-backed storage for [ContactGroup] (FRM-81). */
+/**
+ * Room-backed storage for [ContactGroup] (FRM-81).
+ *
+ * [reminderFrequencyDays] added by GH #121 / FRM-97 (schema v2, MIGRATION_1_2
+ * in [AppDatabase]) — nullable `INTEGER` column, defaulting to `NULL` on
+ * migration for every pre-existing row, which is exactly "this group doesn't
+ * override the interval" and requires no backfill.
+ */
 @Entity(tableName = "contact_groups")
 data class ContactGroupEntity(
     @PrimaryKey val id: String,
     val name: String,
     val color: Int,
     val icon: String?,
-    val createdAt: Long
+    val createdAt: Long,
+    @ColumnInfo(defaultValue = "NULL") val reminderFrequencyDays: Int? = null
 )
 
 fun ContactGroupEntity.toModel() = ContactGroup(
@@ -21,7 +29,8 @@ fun ContactGroupEntity.toModel() = ContactGroup(
     name = name,
     color = color,
     icon = icon,
-    createdAt = createdAt
+    createdAt = createdAt,
+    reminderFrequencyDays = reminderFrequencyDays
 )
 
 fun ContactGroup.toEntity() = ContactGroupEntity(
@@ -29,7 +38,8 @@ fun ContactGroup.toEntity() = ContactGroupEntity(
     name = name,
     color = color,
     icon = icon,
-    createdAt = createdAt
+    createdAt = createdAt,
+    reminderFrequencyDays = reminderFrequencyDays
 )
 
 /**
