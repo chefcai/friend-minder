@@ -16,6 +16,7 @@ import com.example.friendminder.data.models.SpecialDateSource
 import com.example.friendminder.databinding.FragmentContactDetailBinding
 import com.example.friendminder.databinding.ItemSpecialDateBinding
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.outreach.OutreachLogDialogFragment
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -29,10 +30,12 @@ import java.util.Calendar
  * the MVP had no per-contact detail screen — so "updated" here means built
  * from scratch against Designer's spec, not modifying prior code.
  *
- * Reached from DashboardFragment (streak/neglected/upcoming rows) and
- * GroupDetailFragment (member rows); see those files' kdoc for why
- * FriendListFragment itself isn't a third entry point (it's a multi-select
- * picker, not a browsable list).
+ * Reached from [com.example.friendminder.ui.home.HomeFragment] (row taps)
+ * and [com.example.friendminder.ui.groups.GroupDetailFragment] (member
+ * rows) - stale note fixed while touching this file for FRM-102: the old
+ * Dashboard/streak-neglected-upcoming rows and the add-contact picker's
+ * own "isn't a third entry point" caveat both predate FRM-101/FRM-102,
+ * which retired the fragments they referred to.
  */
 class ContactDetailFragment : Fragment() {
 
@@ -78,7 +81,24 @@ class ContactDetailFragment : Fragment() {
 
         childFragmentManager.setFragmentResultListener(EditContactGroupsDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
         childFragmentManager.setFragmentResultListener(OutreachLogDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
-        childFragmentManager.setFragmentResultListener(FrequencyEditDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
+        childFragmentManager.setFragmentResultListener(FREQUENCY_PICKER_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            val pickedDays = bundle.getInt(ValuePickerDialogFragment.RESULT_VALUE)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val globalDefault = ServiceLocator.settingsRepository.getCooldownDays()
+                // Picking the value that equals the current global default clears
+                // any override instead of pinning an explicit one, so this contact
+                // keeps tracking future changes to the app-wide default - the same
+                // "reset to default" behavior the old slider dialog's separate
+                // button gave, without needing a second button (SCREENS-PHASE3.md
+                // §8.1: one primary way forward, not two).
+                if (pickedDays == globalDefault) {
+                    ServiceLocator.reminderFrequencyRepository.clearOverride(contactId)
+                } else {
+                    ServiceLocator.reminderFrequencyRepository.setOverride(contactId, pickedDays)
+                }
+                refresh()
+            }
+        }
     }
 
     override fun onResume() {
@@ -86,9 +106,35 @@ class ContactDetailFragment : Fragment() {
         refresh()
     }
 
+    // FRM-102: rebuilt to SCREENS-PHASE3.md §8.4's shape (a flat list of
+    // options, tap-to-select-and-dismiss, no confirm button) via the shared
+    // ValuePickerDialogFragment - see that class's kdoc for why the picker
+    // itself knows nothing about frequencies. The entry point stays this
+    // screen's existing toolbar menu item rather than becoming the §6.2
+    // tappable value row: re-laying-out Contact Detail as value rows is
+    // FRM-103's full re-skin of this screen, not this ticket's. Inlined
+    // into onMenuItemClicked (rather than its own function) to keep this
+    // class under detekt's TooManyFunctions threshold.
     private fun onMenuItemClicked(item: MenuItem): Boolean {
         if (item.itemId != R.id.action_edit_frequency) return false
-        FrequencyEditDialogFragment.newInstance(contactId).show(childFragmentManager, "edit_frequency")
+        viewLifecycleOwner.lifecycleScope.launch {
+            val globalDefault = ServiceLocator.settingsRepository.getCooldownDays()
+            val override = ServiceLocator.reminderFrequencyRepository.getOverride(contactId)
+            val effective = override ?: globalDefault
+            ValuePickerDialogFragment.newInstance(
+                requestKey = FREQUENCY_PICKER_REQUEST_KEY,
+                title = getString(R.string.title_edit_frequency),
+                values = FREQUENCY_OPTIONS,
+                labels = FREQUENCY_OPTIONS.map { days ->
+                    when (days) {
+                        FREQUENCY_OPTION_3 -> getString(R.string.cooldown_option_3)
+                        FREQUENCY_OPTION_7 -> getString(R.string.cooldown_option_7)
+                        else -> getString(R.string.cooldown_option_14)
+                    }
+                },
+                selectedValue = effective
+            ).show(childFragmentManager, "edit_frequency")
+        }
         return true
     }
 
@@ -305,6 +351,17 @@ class ContactDetailFragment : Fragment() {
         private const val ARG_CONTACT_ID = "arg_contact_id"
         private const val DAYS_IN_WEEK = 7
         private val MONTH_DAY_FORMAT = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
+
+        // FRM-102: the frequency picker's fixed option set (SCREENS-PHASE3.md
+        // §8.4) - the same {3, 7, 14} days SettingsFragment's own cooldown
+        // Spinner already offers, so "a setting with a value" means the same
+        // three choices everywhere in the app rather than a wider, screen-
+        // specific range.
+        private const val FREQUENCY_OPTION_3 = 3
+        private const val FREQUENCY_OPTION_7 = 7
+        private const val FREQUENCY_OPTION_14 = 14
+        private val FREQUENCY_OPTIONS = intArrayOf(FREQUENCY_OPTION_3, FREQUENCY_OPTION_7, FREQUENCY_OPTION_14)
+        private const val FREQUENCY_PICKER_REQUEST_KEY = "contact_detail_frequency_picker"
 
         fun newInstance(contactId: String): ContactDetailFragment =
             ContactDetailFragment().apply {

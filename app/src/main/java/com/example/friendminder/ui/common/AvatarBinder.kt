@@ -11,14 +11,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
- * Shared photo-or-initials avatar binding, factored out of
- * [com.example.friendminder.ui.friendlist.ContactAdapter] (FRM-39/40) so the
- * Phase 2 screens that also render contact avatars — GroupMemberAdapter,
- * Dashboard's streak/neglected rows, ContactDetailFragment's header — don't
- * each reimplement the async-load + [AvatarPalette] fallback dance.
+ * Shared photo-or-initials avatar binding, factored out of the old Phase 2
+ * friend-list picker's `ContactAdapter` (FRM-39/40, retired on FRM-102) so
+ * the other screens that also render contact avatars —
+ * [com.example.friendminder.ui.home.HomeContactAdapter],
+ * [com.example.friendminder.ui.addcontacts.AddContactCandidateAdapter],
+ * GroupMemberAdapter, ContactDetailFragment's header — don't each
+ * reimplement the async-load + [AvatarPalette] fallback dance.
  *
  * Callers are responsible for cancelling the returned [Job] when their view
- * is recycled/destroyed (same contract as ContactAdapter's own
+ * is recycled/destroyed (same contract as those adapters' own
  * `cancelPendingPhotoLoad`).
  */
 object AvatarBinder {

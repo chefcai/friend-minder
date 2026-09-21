@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Add-contact flow, Step 1 "Choose people" (AddContactsStep1Fragment,
+  FRM-102, SCREENS-PHASE3.md §9.2/§9.3). Replaces FriendListFragment.
+  Full screen, not a dialog - deliberately, since the Phase 2 nested-scroll/
+  footer bug (GH #72/#76) was a *dialog* problem (a scrolling list inside a
+  sheet with a pinned footer); a full screen with one RecyclerView and a
+  footer outside it can't reproduce that class of bug (§9.1).
+
+  Same edge-to-edge teal header pattern as Home/Overall History
+  (statusBarSpacer + fixed 72dp band, back arrow -> cancels the flow, title
+  starts at 72dp - see AddContactsStep1Fragment's onResume/onPause). Below
+  it: search field at the 24dp gutter (§9.2), a FrameLayout holding exactly
+  one of the loading indicator / the candidate list / one of the three
+  empty-state shapes (§9.3: not-yet-requested has no UI of its own since it
+  requests immediately, so this covers permission-denied, permanently-
+  denied and no-phone-numbers), and a pinned footer bar outside the list,
+  with its own 1dp top divider - the count on the left, filled "Next" on
+  the right, disabled with explanatory text at zero selected.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <!-- No root background: the theme's windowBackground already paints
+         fm_surface behind every screen (themes.xml), and adding it again
+         here is exactly the double-paint AAPT/lint flags as "Overdraw". -->
+
+    <LinearLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/fm_header">
+
+        <View
+            android:id="@+id/statusBarSpacer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/fm_home_header_height">
+
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="16dp"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/fm_on_primary"
+                android:contentDescription="@string/content_desc_cancel_add_contacts" />
+
+            <TextView
+                android:id="@+id/headerTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="72dp"
+                android:layout_marginEnd="@dimen/fm_space_6"
+                android:text="@string/title_add_contacts_step1"
+                android:textColor="@color/fm_on_primary"
+                android:textSize="@dimen/fm_header_title_size"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginStart="@dimen/fm_space_6"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:layout_marginTop="@dimen/fm_space_4"
+        android:hint="@string/hint_search_contacts">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/searchInput"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ProgressBar
+            android:id="@+id/loadingIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/candidateRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="@dimen/fm_space_2"
+            android:paddingBottom="@dimen/fm_home_list_bottom_padding"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/emptyStateGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingStart="@dimen/fm_space_8"
+            android:paddingEnd="@dimen/fm_space_8"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/emptyStateHeadline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="22sp"
+                android:textColor="@color/fm_heading"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/emptyStateBody"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_2"
+                android:textSize="16sp"
+                android:textColor="@color/fm_ink_dim"
+                android:gravity="center" />
+
+            <Button
+                android:id="@+id/emptyStateAction"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_6" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/fm_divider" />
+
+    <LinearLayout
+        android:id="@+id/footerBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/fm_surface"
+        android:paddingStart="@dimen/fm_space_6"
+        android:paddingEnd="@dimen/fm_space_6"
+        android:paddingTop="@dimen/fm_space_3"
+        android:paddingBottom="@dimen/fm_space_3">
+
+        <TextView
+            android:id="@+id/footerCountText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="14sp"
+            android:textColor="@color/fm_ink_dim" />
+
+        <Button
+            android:id="@+id/nextButton"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/action_next" />
+    </LinearLayout>
+</LinearLayout>

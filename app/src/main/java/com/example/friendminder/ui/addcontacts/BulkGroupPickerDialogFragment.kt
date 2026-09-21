@@ -1,4 +1,4 @@
-package com.example.friendminder.ui.contactdetail
+package com.example.friendminder.ui.addcontacts
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,22 +18,32 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
 /**
- * Toggle which groups one contact belongs to (PRD §9.3 step 3;
- * SCREENS-PHASE2.md §4 "Groups" chip row's "+ Add"; also the destination
- * of FRM-102's add-contact flow Step 2 "Groups" row, SCREENS-PHASE3.md
- * §9.4). Reuses `dialog_add_contact_to_group.xml` — same shape (title, a
- * checkbox per candidate, one filled Save) just with groups as the
- * candidates instead of contacts, so it doesn't need its own near-identical
- * layout. Rebuilt to SCREENS-PHASE3.md §8.1's dialog chrome by FRM-102 -
- * see [applyPhaseThreeSheetChrome]'s kdoc for why this stays multi-select
- * rather than adopting §8.4's single-value tap-to-dismiss shape.
+ * Add-contact flow, Step 2 "Groups" row (FRM-102, SCREENS-PHASE3.md §9.4):
+ * "a bottom-sheet multi-select of existing groups, plus 'New group'."
+ *
+ * Deliberately separate from
+ * [com.example.friendminder.ui.contactdetail.EditContactGroupsDialogFragment],
+ * which this otherwise closely resembles (same shared layout, same
+ * checkbox-per-group shape): that class toggles membership for one *real,
+ * already-persisted* contact, writing straight to
+ * [com.example.friendminder.domain.services.GroupService] as soon as
+ * Save is tapped. This one has no contact yet -
+ * Step 2 runs before any of the selected people are added - so it only
+ * holds a set of group ids in memory and hands it back via
+ * [RESULT_KEY]/[RESULT_GROUP_IDS]; [AddContactsStep2Fragment] applies it to
+ * each newly-added contact only once "Add N people" actually creates them.
+ * Creating a *new* group here still persists immediately via
+ * [GroupEditDialogFragment] - a group is a standalone entity independent of
+ * which contacts end up in it.
  */
-class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
+class BulkGroupPickerDialogFragment : BottomSheetDialogFragment() {
 
     private var _binding: DialogAddContactToGroupBinding? = null
     private val binding get() = _binding!!
 
-    private val contactId: String by lazy { requireArguments().getString(ARG_CONTACT_ID)!! }
+    private val preselectedGroupIds: Set<String> by lazy {
+        requireArguments().getStringArrayList(ARG_SELECTED_GROUP_IDS)?.toSet().orEmpty()
+    }
     private val checkboxesByGroup = mutableMapOf<ContactGroup, CheckBox>()
 
     override fun onCreateView(
@@ -48,22 +58,26 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         applyPhaseThreeSheetChrome()
+
+        binding.dialogTitle.text = getString(R.string.label_groups_header)
         binding.addButton.text = getString(R.string.action_save)
-        binding.addButton.setOnClickListener { applyChanges() }
+        binding.addButton.setOnClickListener { applySelection() }
         binding.createGroupButton.setOnClickListener {
             GroupEditDialogFragment.newInstance().show(childFragmentManager, GROUP_EDIT_TAG)
         }
         childFragmentManager.setFragmentResultListener(GroupEditDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ ->
-            loadGroups()
+            loadGroups(currentlyChecked())
         }
 
-        loadGroups()
+        loadGroups(preselectedGroupIds)
     }
 
-    private fun loadGroups() {
+    private fun currentlyChecked(): Set<String> =
+        checkboxesByGroup.filterValues { it.isChecked }.keys.map { it.id }.toSet()
+
+    private fun loadGroups(checkedGroupIds: Set<String>) {
         viewLifecycleOwner.lifecycleScope.launch {
             val allGroups = ServiceLocator.groupService.getGroups().sortedBy { it.name.lowercase() }
-            val currentGroupIds = ServiceLocator.groupService.getGroupsForContact(contactId).map { it.id }.toSet()
 
             binding.emptyText.visibility = if (allGroups.isEmpty()) View.VISIBLE else View.GONE
             binding.addButton.visibility = if (allGroups.isEmpty()) View.GONE else View.VISIBLE
@@ -76,7 +90,7 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
             allGroups.forEach { group ->
                 val checkbox = CheckBox(requireContext()).apply {
                     text = group.name
-                    isChecked = group.id in currentGroupIds
+                    isChecked = group.id in checkedGroupIds
                     minHeight = (MIN_ROW_HEIGHT_DP * resources.displayMetrics.density).toInt()
                 }
                 checkboxesByGroup[group] = checkbox
@@ -85,19 +99,9 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun applyChanges() {
-        binding.addButton.isEnabled = false
-        viewLifecycleOwner.lifecycleScope.launch {
-            checkboxesByGroup.forEach { (group, checkbox) ->
-                if (checkbox.isChecked) {
-                    ServiceLocator.groupService.assignContactToGroup(contactId, group.id)
-                } else {
-                    ServiceLocator.groupService.removeContactFromGroup(contactId, group.id)
-                }
-            }
-            setFragmentResult(RESULT_KEY, bundleOf())
-            dismiss()
-        }
+    private fun applySelection() {
+        setFragmentResult(RESULT_KEY, bundleOf(RESULT_GROUP_IDS to ArrayList(currentlyChecked())))
+        dismiss()
     }
 
     override fun onDestroyView() {
@@ -106,14 +110,15 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
     }
 
     companion object {
-        const val RESULT_KEY = "edit_contact_groups_result"
-        private const val ARG_CONTACT_ID = "arg_contact_id"
+        const val RESULT_KEY = "bulk_group_picker_result"
+        const val RESULT_GROUP_IDS = "result_group_ids"
+        private const val ARG_SELECTED_GROUP_IDS = "arg_selected_group_ids"
         private const val MIN_ROW_HEIGHT_DP = 48
-        private const val GROUP_EDIT_TAG = "edit_contact_groups_new_group"
+        private const val GROUP_EDIT_TAG = "bulk_group_picker_new_group"
 
-        fun newInstance(contactId: String): EditContactGroupsDialogFragment =
-            EditContactGroupsDialogFragment().apply {
-                arguments = bundleOf(ARG_CONTACT_ID to contactId)
+        fun newInstance(selectedGroupIds: Set<String>): BulkGroupPickerDialogFragment =
+            BulkGroupPickerDialogFragment().apply {
+                arguments = bundleOf(ARG_SELECTED_GROUP_IDS to ArrayList(selectedGroupIds))
             }
     }
 }

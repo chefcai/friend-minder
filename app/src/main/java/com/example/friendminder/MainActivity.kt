@@ -10,22 +10,24 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
-import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.databinding.ActivityMainBinding
-import com.example.friendminder.ui.friendlist.FriendListFragment
 import com.example.friendminder.ui.groups.GroupsFragment
 import com.example.friendminder.ui.history.OverallHistoryFragment
 import com.example.friendminder.ui.home.HomeFragment
 import com.example.friendminder.ui.settings.SettingsFragment
-import com.example.friendminder.utils.ServiceLocator
-import kotlinx.coroutines.launch
 
 /**
- * Navigation shell (FRM-100, SCREENS-PHASE3.md §2): decides first-launch
- * (onboarding) vs. returning-user (Home, FRM-99) start destination, then
- * hosts every screen via plain FragmentTransactions - no Navigation-
- * Component dependency, consistent with the project's minimal, easy-to-
- * audit dependency tree (see ServiceLocator).
+ * Navigation shell (FRM-100, SCREENS-PHASE3.md §2): hosts every screen via
+ * plain FragmentTransactions - no Navigation-Component dependency,
+ * consistent with the project's minimal, easy-to-audit dependency tree
+ * (see ServiceLocator).
+ *
+ * FRM-102 (§9.0, "onboarding is dropped"): this used to branch its start
+ * destination on "do you have friends yet" - zero contacts launched
+ * straight into FriendListFragment's onboarding mode, which meant Home's
+ * FRM-107 empty state could never actually be reached. The app now always
+ * launches to Home; zero contacts is just Home's empty state, and "Add
+ * someone" is how you get your first ones tracked.
  *
  * Also owns the bottom nav (FRM-100): exactly three icon-only destinations
  * (Groups, Overall History, Settings), present on all four Phase 3 shell
@@ -83,29 +85,23 @@ class MainActivity : AppCompatActivity() {
             if (intent?.action == ACTION_OPEN_SETTINGS) {
                 openSettings()
             } else {
-                lifecycleScope.launch {
-                    val hasFriends = ServiceLocator.friendListRepository.getFriendList().isNotEmpty()
-                    // commitNow (not commit): commit() posts the transaction
-                    // to the main-thread message queue instead of running it
-                    // immediately, so the updateBottomNav() call right below
-                    // was observing the fragment host before the replace()
-                    // had actually landed (findFragmentById still null) and
-                    // hiding the bar on every cold start. commitNow() is
-                    // exactly the escape hatch for that, and is legal here
-                    // only because this transaction never uses
-                    // addToBackStack (it's the back-stack base) -
-                    // commitNow() throws if you try to combine the two.
-                    supportFragmentManager.commitNow {
-                        replace(
-                            R.id.nav_host_container,
-                            if (hasFriends) HomeFragment.newInstance() else FriendListFragment.newInstance(isOnboarding = true)
-                        )
-                    }
-                    // The initial commit above has no back-stack entry, so it
-                    // never fires addOnBackStackChangedListener - the only
-                    // place that needs a manual call.
-                    updateBottomNav()
+                // commitNow (not commit): commit() posts the transaction to the
+                // main-thread message queue instead of running it
+                // immediately, so the updateBottomNav() call right below was
+                // observing the fragment host before the replace() had
+                // actually landed (findFragmentById still null) and hiding
+                // the bar on every cold start. commitNow() is exactly the
+                // escape hatch for that, and is legal here only because this
+                // transaction never uses addToBackStack (it's the
+                // back-stack base) - commitNow() throws if you try to
+                // combine the two.
+                supportFragmentManager.commitNow {
+                    replace(R.id.nav_host_container, HomeFragment.newInstance())
                 }
+                // The commit above has no back-stack entry, so it never
+                // fires addOnBackStackChangedListener - the only place that
+                // needs a manual call.
+                updateBottomNav()
             }
         } else {
             updateBottomNav()
@@ -123,7 +119,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openSettings() {
-        navigateToDestination(SettingsFragment.newInstance(isOnboarding = false))
+        navigateToDestination(SettingsFragment.newInstance())
     }
 
     private fun setUpBottomNav() {
@@ -137,11 +133,7 @@ class MainActivity : AppCompatActivity() {
             val destination = when (item.itemId) {
                 R.id.nav_groups -> if (current is GroupsFragment) null else GroupsFragment.newInstance()
                 R.id.nav_overall_history -> if (current is OverallHistoryFragment) null else OverallHistoryFragment.newInstance()
-                R.id.nav_settings -> if (current is SettingsFragment && !current.isRealOnboarding()) {
-                    null
-                } else {
-                    SettingsFragment.newInstance(isOnboarding = false)
-                }
+                R.id.nav_settings -> if (current is SettingsFragment) null else SettingsFragment.newInstance()
                 else -> null
             }
             destination?.let { navigateToDestination(it) }
@@ -185,11 +177,10 @@ class MainActivity : AppCompatActivity() {
      * Single source of truth for the bottom nav's visibility and selected
      * item (SCREENS-PHASE3.md §2.1/§2.2), driven off whichever fragment
      * [R.id.nav_host_container] currently holds. Anything that isn't one of
-     * the four Phase 3 shell screens - Edit Friends, Contact Detail, Group
-     * Detail, Advanced Settings, the legacy diagnostics screen, or
-     * onboarding's own Friend List / Settings steps - hides the bar
-     * entirely, matching how those screens behaved before Phase 3 (a plain
-     * back arrow, no shell chrome).
+     * the four Phase 3 shell screens - the add-contact flow's two steps,
+     * Contact Detail, Group Detail, Advanced Settings, the legacy
+     * diagnostics screen - hides the bar entirely, matching how those
+     * screens behaved before Phase 3 (a plain back arrow, no shell chrome).
      */
     private fun updateBottomNav() {
         val current = supportFragmentManager.findFragmentById(R.id.nav_host_container)
@@ -197,7 +188,7 @@ class MainActivity : AppCompatActivity() {
             current is HomeFragment -> HOME_NO_SELECTION
             current is GroupsFragment -> R.id.nav_groups
             current is OverallHistoryFragment -> R.id.nav_overall_history
-            current is SettingsFragment && !current.isRealOnboarding() -> R.id.nav_settings
+            current is SettingsFragment -> R.id.nav_settings
             else -> null
         }
 
@@ -248,14 +239,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** True only for the onboarding step of first launch, never for edit-mode Settings reached via the bottom nav. */
-    private fun SettingsFragment.isRealOnboarding(): Boolean =
-        arguments?.getBoolean(SETTINGS_ARG_ONBOARDING, false) == true
-
     companion object {
         const val ACTION_OPEN_SETTINGS = "com.example.friendminder.action.OPEN_SETTINGS"
         private const val NAV_DESTINATION_BACK_STACK_NAME = "nav_destination"
-        private const val SETTINGS_ARG_ONBOARDING = "arg_onboarding"
         private const val HOME_NO_SELECTION = 0
     }
 }

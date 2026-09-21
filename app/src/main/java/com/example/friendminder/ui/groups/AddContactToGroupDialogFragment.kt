@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.DialogAddContactToGroupBinding
+import com.example.friendminder.ui.common.applyPhaseThreeSheetChrome
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
@@ -19,9 +20,16 @@ import kotlinx.coroutines.launch
  * Multi-select picker of the user's Friend List contacts not already in a
  * group (FRM-56, GroupDetailFragment's "+ Add contact to group"). Renders
  * a checkbox per candidate straight into a container `LinearLayout` — the
- * same bounded-list-as-inflated-rows approach as Dashboard's streak/
- * neglected/upcoming sections, since a user's Friend List is small — rather
- * than a full RecyclerView adapter for what's effectively a one-shot form.
+ * same bounded-list-as-inflated-rows approach used by the other dialogs
+ * sharing this layout — rather than a full RecyclerView adapter for what's
+ * effectively a one-shot form.
+ *
+ * Picks up FRM-102's SCREENS-PHASE3.md §8.1 chrome fix for free, since it
+ * shares `dialog_add_contact_to_group.xml` with
+ * [com.example.friendminder.ui.contactdetail.EditContactGroupsDialogFragment]
+ * (that class's rebuild target this pass) - the old ✕/Cancel/scrim
+ * three-way-out was the same bug in both. The rest of Groups/Group Detail
+ * is unaffected and stays FRM-103 scope.
  */
 class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
 
@@ -42,8 +50,7 @@ class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.closeButton.setOnClickListener { dismiss() }
-        binding.cancelButton.setOnClickListener { dismiss() }
+        applyPhaseThreeSheetChrome()
         binding.addButton.setOnClickListener { addSelected() }
 
         // GH #72: this dialog's layout is shared with

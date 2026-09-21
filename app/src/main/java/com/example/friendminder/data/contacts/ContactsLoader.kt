@@ -48,9 +48,11 @@ object ContactsLoader {
      * display name. Contacts without any phone number are excluded entirely
      * so they can never be selected (Designer spec §4.5). Also returns every
      * phone number on file per contact (deduped, primary-flagged number
-     * first) so [com.example.friendminder.ui.friendlist.FriendListFragment]
+     * first) so [com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment]
      * can prompt a picker for contacts with more than one (PRD §16 Q3,
-     * chefcai/friend-minder#39) without a second query pass.
+     * chefcai/friend-minder#39; FRM-102 moved this call site from the old
+     * FriendListFragment without changing this query) without a second
+     * query pass.
      */
     suspend fun loadContactsWithPhoneNumbers(context: Context): ContactsQueryResult =
         withContext(Dispatchers.IO) {

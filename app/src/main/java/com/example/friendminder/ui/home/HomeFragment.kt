@@ -15,9 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentHomeBinding
+import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
-import com.example.friendminder.ui.friendlist.FriendListFragment
 import com.example.friendminder.utils.ServiceLocator
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.text.Collator
 import java.util.Locale
@@ -31,14 +32,16 @@ import java.util.Locale
  * the old DashboardFragment's kdoc for the reasoning); state lives in the
  * Fragment.
  *
- * Two things this screen deliberately does NOT build, both flagged on
- * FRM-99's Jira ticket rather than guessed at:
- *  - The designed empty state (FRM-107: 96dp glyph, headline, body copy,
- *    filled button) hasn't been signed off, so zero-contacts shows a plain
- *    interim placeholder instead (see fragment_home.xml's emptyStateGroup).
- *  - The FAB's approved destination is the rebuilt single-flow add-contact
- *    process (FRM-102), which isn't implemented yet. It opens the existing
- *    Edit Friends picker ([FriendListFragment]) in the meantime.
+ * One thing this screen still deliberately does NOT build, flagged on
+ * FRM-99's Jira ticket rather than guessed at: the designed empty state
+ * (FRM-107: 96dp glyph, headline, body copy, filled button) hasn't been
+ * signed off, so zero-contacts shows a plain interim placeholder instead
+ * (see fragment_home.xml's emptyStateGroup).
+ *
+ * The FAB (and the empty state's "Add someone" button) open FRM-102's
+ * rebuilt add-contact flow ([AddContactsStep1Fragment]) as of that ticket -
+ * see [openAddContact] and [AddContactsStep1Fragment.BACK_STACK_NAME]'s
+ * kdoc for why that push uses a named back-stack entry.
  */
 class HomeFragment : Fragment() {
 
@@ -68,6 +71,28 @@ class HomeFragment : Fragment() {
 
         binding.addContactFab.setOnClickListener { openAddContact() }
         binding.emptyStateAddButton.setOnClickListener { openAddContact() }
+
+        // FRM-102: shown once, after Step 2's "Add N people" collapses the
+        // whole flow's back-stack entries and lands back here (see
+        // AddContactsStep2Fragment.addSelectedPeople). Undo fully reverses
+        // each added contact - friend-list membership, any frequency
+        // override, and any group memberships - rather than partially,
+        // since none of those existed before this flow ran.
+        parentFragmentManager.setFragmentResultListener(ADD_CONTACTS_RESULT_KEY, viewLifecycleOwner) { _, bundle ->
+            val addedIds = bundle.getStringArrayList(ADD_CONTACTS_RESULT_IDS).orEmpty()
+            // Posted rather than called directly: this listener fires as part
+            // of the same pop-back-stack transaction that recreates this
+            // fragment's view, which runs BEFORE MainActivity's
+            // addOnBackStackChangedListener -> updateBottomNav() call that
+            // flips the bottom nav bar back to VISIBLE (it's GONE while the
+            // add-contact flow's full-screen steps are shown). Building the
+            // anchored Snackbar synchronously here anchors it against a nav
+            // bar that's still gone, so it settles flush against the bottom
+            // of the screen and the nav bar slides in on top of it a moment
+            // later - "Undo" ends up sitting under the nav bar's touch
+            // target. Posting defers this to after that listener has run.
+            binding.root.post { showAddedSnackbar(addedIds) }
+        }
 
         applyHeaderInsets()
     }
@@ -158,11 +183,62 @@ class HomeFragment : Fragment() {
     }
 
     private fun openAddContact() {
-        // FRM-102 (rebuilt single-flow add-contact) isn't approved/built yet -
-        // see this class's kdoc. Closest working equivalent in the interim.
         parentFragmentManager.commit {
-            replace(R.id.nav_host_container, FriendListFragment.newInstance(isOnboarding = false))
-            addToBackStack(null)
+            replace(R.id.nav_host_container, AddContactsStep1Fragment.newInstance())
+            addToBackStack(AddContactsStep1Fragment.BACK_STACK_NAME)
+        }
+    }
+
+    private fun showAddedSnackbar(addedIds: List<String>) {
+        if (addedIds.isEmpty()) return
+        // nav_host_container has no CoordinatorLayout ancestor (deliberately -
+        // see activity_main.xml's kdoc), so a plain Snackbar.make() doesn't
+        // know to avoid the bottom nav bar it lives beside: it ends up
+        // overlapping the nav bar's touch targets instead of sitting above
+        // them, which made "Undo" land on whichever tab was underneath it.
+        // Anchoring explicitly to the bottom nav (see the .post{} call site
+        // above for why this has to run after the nav bar is back to
+        // VISIBLE, not synchronously from the fragment-result callback) is
+        // what nav_host_container's own layout_weight trick can't do for an
+        // overlay view like this one.
+        val anchor = requireActivity().findViewById<View>(R.id.bottomNav)
+            ?.takeIf { it.visibility == View.VISIBLE }
+        // Anchoring gets the Snackbar above the nav bar, but it settles in
+        // the same bottom-right corner as addContactFab (no CoordinatorLayout
+        // here to push the FAB up out of the way, the way it would on a
+        // screen that has one) - the FAB stays underneath, mostly hidden but
+        // still very much alive for touch, so a tap that visually lands on
+        // "Undo" can actually hit the FAB and relaunch the add-contact flow
+        // instead. Hiding the FAB for the Snackbar's lifetime removes the
+        // ambiguity outright; refresh() (already the source of truth for
+        // whether the FAB should be showing at all) puts it back once the
+        // Snackbar is gone, whichever way it went away.
+        binding.addContactFab.visibility = View.GONE
+        Snackbar.make(
+            binding.root,
+            resources.getQuantityString(R.plurals.format_add_contacts_snackbar, addedIds.size, addedIds.size),
+            Snackbar.LENGTH_LONG
+        ).setAnchorView(anchor)
+            .setAction(R.string.action_undo) { undoAdd(addedIds) }
+            .addCallback(object : Snackbar.Callback() {
+                override fun onDismissed(transientBottomBar: Snackbar, event: Int) {
+                    if (_binding != null) refresh()
+                }
+            })
+            .show()
+    }
+
+    private fun undoAdd(addedIds: List<String>) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val friendListRepo = ServiceLocator.friendListRepository
+            val reminderFrequencyRepo = ServiceLocator.reminderFrequencyRepository
+            val groupService = ServiceLocator.groupService
+            addedIds.forEach { id ->
+                groupService.getGroupsForContact(id).forEach { group -> groupService.removeContactFromGroup(id, group.id) }
+                reminderFrequencyRepo.clearOverride(id)
+                friendListRepo.removeFriend(id)
+            }
+            refresh()
         }
     }
 
@@ -179,6 +255,9 @@ class HomeFragment : Fragment() {
     }
 
     companion object {
+        const val ADD_CONTACTS_RESULT_KEY = "home_add_contacts_result"
+        const val ADD_CONTACTS_RESULT_IDS = "home_add_contacts_result_ids"
+
         fun newInstance(): HomeFragment = HomeFragment()
     }
 }

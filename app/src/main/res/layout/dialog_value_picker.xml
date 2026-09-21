@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Generic single-value picker sheet (SCREENS-PHASE3.md §8.1/§8.4): a list
+  of options with the current one marked, no separate confirm button -
+  tapping an option selects and dismisses. Introduced for FRM-102's
+  Frequency sheet (Contact Detail's override and the add-contact flow's
+  Step 2 bulk default both reach it from a tappable value row); reusable
+  for any future single-value picker of this shape.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_surface"
+    android:paddingBottom="@dimen/fm_space_4">
+
+    <View
+        android:layout_width="@dimen/fm_dialog_handle_width"
+        android:layout_height="@dimen/fm_dialog_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/fm_dialog_handle_margin_top"
+        android:background="@drawable/bg_dialog_drag_handle"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_4"
+        android:layout_marginStart="@dimen/fm_space_6"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="@color/fm_heading" />
+
+    <LinearLayout
+        android:id="@+id/optionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_2"
+        android:orientation="vertical" />
+</LinearLayout>

@@ -4,7 +4,9 @@
   "Phase 2 UI Specs" §3. The 4dp base grid plus the specific component
   measurements called out for avatars, cards, badges and the outreach FAB -
   used as new screens (FRM-42-44) come online, and already applied to the
-  existing contact list rows in item_contact.xml (avatar size, row spacing).
+  existing contact list rows (avatar size, row spacing) - originally
+  item_contact.xml, now item_add_contact_candidate.xml/item_home_contact.xml
+  (item_contact.xml itself retired on FRM-102).
 -->
 <resources>
     <!-- 4dp base grid -->
@@ -39,4 +41,13 @@
     <dimen name="fm_home_list_bottom_padding">88dp</dimen>
     <dimen name="fm_bottom_nav_height">64dp</dimen>
     <dimen name="fm_header_title_size">30sp</dimen>
+
+    <!-- Phase 3 dialog chrome (SCREENS-PHASE3.md §8.1), introduced with
+         FRM-102's two rebuilt dialogs - FRM-103's dialog pass should reuse
+         these rather than re-deriving them per screen. -->
+    <dimen name="fm_dialog_corner_radius">16dp</dimen>
+    <dimen name="fm_dialog_handle_width">32dp</dimen>
+    <dimen name="fm_dialog_handle_height">4dp</dimen>
+    <dimen name="fm_dialog_handle_margin_top">12dp</dimen>
+
 </resources>
