@@ -257,10 +257,13 @@ class MainActivity : AppCompatActivity() {
         // three). That's a distinct flag from isChecked and doesn't affect
         // the checked-state icon drawables, but it does mean TalkBack would
         // announce Groups as "selected" while sitting on Home with nothing
-        // actually selected. Not fixed here - digging further into
-        // NavigationBarMenuView's private selection tracking felt like the
-        // wrong tradeoff for this pass - but flagged in the FRM-100 PR/Jira
-        // notes as a known minor accessibility gap for a follow-up.
+        // actually selected. GH #110: fixed below via
+        // syncBottomNavSelectedState() rather than reaching into
+        // NavigationBarMenuView's private selection tracking (mSelectedItemId)
+        // - that field drives nothing user-visible on its own, but
+        // View.isSelected() on each item's real ItemView is exactly what
+        // TalkBack reads, so setting it directly is both simpler and more
+        // robust than fighting the library's internals.
         if (destinationItemId == HOME_NO_SELECTION) {
             val menu = binding.bottomNav.menu
             menu.setGroupCheckable(0, false, true)
@@ -270,6 +273,28 @@ class MainActivity : AppCompatActivity() {
         } else {
             binding.bottomNav.menu.setGroupCheckable(0, true, true)
             binding.bottomNav.menu.findItem(destinationItemId).isChecked = true
+        }
+        syncBottomNavSelectedState(destinationItemId)
+    }
+
+    // GH #110: BottomNavigationView/NavigationBarMenuView auto-selects the
+    // first declared item (Groups) at menu inflation time - before
+    // updateBottomNav() ever runs - and that leaves its real ItemView's
+    // View.isSelected() stuck at true even after menu.getItem(i).isChecked
+    // = false above successfully clears the checked-state icon drawables.
+    // isChecked and isSelected are tracked separately by the library;
+    // clearing the former doesn't clear the latter. Confirmed via
+    // uiautomator dump: nav_groups reported selected="true" (cascading down
+    // through every descendant view - content/icon/inner-content
+    // containers, the icon ImageView itself) while sitting on Home with
+    // checked="false" on all three items. Explicitly setting each item's
+    // real ItemView.isSelected here - rather than the MenuItem's isChecked
+    // - fixes exactly what TalkBack/AccessibilityNodeInfo.isSelected()
+    // actually reads, and cascades correctly to every descendant since
+    // ViewGroup.setSelected() dispatches to children by default.
+    private fun syncBottomNavSelectedState(destinationItemId: Int?) {
+        listOf(R.id.nav_groups, R.id.nav_overall_history, R.id.nav_settings).forEach { itemId ->
+            binding.bottomNav.findViewById<android.view.View>(itemId)?.isSelected = itemId == destinationItemId
         }
     }
 
