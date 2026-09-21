@@ -137,7 +137,11 @@ class MainActivity : AppCompatActivity() {
             val destination = when (item.itemId) {
                 R.id.nav_groups -> if (current is GroupsFragment) null else GroupsFragment.newInstance()
                 R.id.nav_overall_history -> if (current is OverallHistoryFragment) null else OverallHistoryFragment.newInstance()
-                R.id.nav_settings -> if (current is SettingsFragment && !current.isRealOnboarding()) null else SettingsFragment.newInstance(isOnboarding = false)
+                R.id.nav_settings -> if (current is SettingsFragment && !current.isRealOnboarding()) {
+                    null
+                } else {
+                    SettingsFragment.newInstance(isOnboarding = false)
+                }
                 else -> null
             }
             destination?.let { navigateToDestination(it) }

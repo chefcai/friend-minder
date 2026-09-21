@@ -145,10 +145,17 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        // FRM-99: interim wiring for the retired setup-hub's remaining
-        // content - see LegacyDiagnosticsFragment's kdoc. Onboarding-only
-        // gating mirrors advancedRow above for the same reason (nothing to
-        // diagnose yet on a first-launch flow with no friends added).
+        setUpNotificationsDiagnosticsRow()
+
+        loadCurrentSettings()
+    }
+
+    // FRM-99: interim wiring for the retired setup-hub's remaining content -
+    // see LegacyDiagnosticsFragment's kdoc. Onboarding-only gating mirrors
+    // advancedRow above for the same reason (nothing to diagnose yet on a
+    // first-launch flow with no friends added). Split out of onViewCreated
+    // to keep that function under detekt's LongMethod threshold.
+    private fun setUpNotificationsDiagnosticsRow() {
         binding.notificationsDiagnosticsRow.visibility = if (isOnboarding) View.GONE else View.VISIBLE
         ViewCompat.setAccessibilityDelegate(binding.notificationsDiagnosticsRow, object : AccessibilityDelegateCompat() {
             override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
@@ -162,8 +169,6 @@ class SettingsFragment : Fragment() {
                 addToBackStack(null)
             }
         }
-
-        loadCurrentSettings()
     }
 
     private fun loadCurrentSettings() {
