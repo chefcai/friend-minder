@@ -18,6 +18,7 @@ import com.example.friendminder.databinding.ItemSpecialDateBinding
 import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.outreach.OutreachLogDialogFragment
+import com.example.friendminder.utils.FeatureFlags
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -142,7 +143,11 @@ class ContactDetailFragment : Fragment() {
         showingHistory = true
         binding.historyToggleButton.isChecked = true
         binding.historyRecyclerView.visibility = View.VISIBLE
-        binding.logOutreachButton.visibility = View.VISIBLE
+        // FRM-114: manual outreach logging is behind a flag, deferred to a
+        // higher subscription tier - the button itself, not just its
+        // action, is what's hidden while the flag is off (the History tab
+        // and everything else on this screen are unaffected).
+        binding.logOutreachButton.visibility = if (FeatureFlags.MANUAL_OUTREACH_LOGGING) View.VISIBLE else View.GONE
         binding.specialDatesScroll.visibility = View.GONE
         refreshHistoryEmptyState()
     }
