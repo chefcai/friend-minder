@@ -40,6 +40,9 @@
     <dimen name="fm_status_badge_ring_width">2dp</dimen>
     <dimen name="fm_home_list_bottom_padding">88dp</dimen>
     <dimen name="fm_bottom_nav_height">64dp</dimen>
+    <!-- FRM-115: default M3 unlabeled item icon is 24dp; spec wants 28dp
+         centred in a 48dp touch target. -->
+    <dimen name="fm_bottom_nav_icon_size">28dp</dimen>
     <dimen name="fm_header_title_size">30sp</dimen>
 
     <!-- Phase 3 dialog chrome (SCREENS-PHASE3.md §8.1), introduced with

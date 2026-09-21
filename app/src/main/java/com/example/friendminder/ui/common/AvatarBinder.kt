@@ -4,6 +4,8 @@ import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactPhotoLoader
 import com.example.friendminder.data.models.Contact
 import kotlinx.coroutines.CoroutineScope
@@ -54,12 +56,25 @@ object AvatarBinder {
         initialsView.visibility = View.VISIBLE
         initialsView.text = contact.name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
+        val paletteIndex = AvatarPalette.indexFor(contact.id)
         val avatarColor = AvatarPalette.colorFor(photoView.context, contact.id)
         val textColor = AvatarPalette.initialsTextColorFor(photoView.context, contact.id)
 
         initialsView.background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(avatarColor)
+            // FRM-127 (DESIGN-SYSTEM-PHASE3.md SS2.6/SS4.3): the four light
+            // fills (Sky, Seafoam, Sand, Rose) dissolve into the white row
+            // with no edge, so they alone take a 1dp fm_divider hairline.
+            // GradientDrawable draws a stroke inset from the drawable's
+            // existing bounds rather than adding to them, so the circle's
+            // overall diameter is unchanged whether or not this stroke is
+            // present - rows stay aligned either way.
+            if (AvatarPalette.isLightFill(paletteIndex)) {
+                val hairlineWidthPx = (photoView.context.resources.displayMetrics.density).toInt()
+                    .coerceAtLeast(1)
+                setStroke(hairlineWidthPx, ContextCompat.getColor(photoView.context, R.color.fm_divider))
+            }
         }
         initialsView.setTextColor(textColor)
     }

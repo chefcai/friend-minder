@@ -68,8 +68,19 @@ object AvatarPalette {
         R.color.fm_avatar_text_10  // Rose    #E8B3BC - #4A2028 (7.59:1)
     )
 
+    /**
+     * Indices (into [lightColorRes]) of the four fills light enough that a
+     * flat circle dissolves into a white row with no visible edge - Sky,
+     * Seafoam, Sand, Rose (FRM-127, DESIGN-SYSTEM-PHASE3.md SS2.6/SS4.3).
+     * The other six take no hairline.
+     */
+    private val lightFillIndices = setOf(2, 5, 6, 9)
+
     /** Stable palette index for a contact. */
     fun indexFor(contactId: String): Int = abs(contactId.hashCode()) % PALETTE_SIZE
+
+    /** True for the four light fills that need a 1dp hairline (FRM-127). */
+    fun isLightFill(paletteIndex: Int): Boolean = paletteIndex in lightFillIndices
 
     /** The avatar background color for [contactId]. */
     @ColorInt
