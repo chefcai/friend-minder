@@ -99,13 +99,18 @@
             android:layout_gravity="center"
             android:visibility="gone" />
 
+        <!-- FRM-128: bottom padding is NOT a fixed dimen here - it has to
+             track the pinned footer's real measured height (which itself
+             now includes a bottom-inset-aware padding, see
+             AddContactsStep1Fragment.applyFooterInsets/
+             updateCandidateListBottomPadding), so it's set programmatically
+             rather than borrowing Home's FAB-based constant. -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/candidateRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingTop="@dimen/fm_space_2"
-            android:paddingBottom="@dimen/fm_home_list_bottom_padding"
             android:visibility="gone" />
 
         <LinearLayout
