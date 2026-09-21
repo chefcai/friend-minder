@@ -1,0 +1,5 @@
+A redesigned look, a simpler way to add people, and bulk removal
+
+- The app has a fresh new look: a redesigned home screen, a bottom navigation bar for Groups, Overall History, and Settings, and an updated Overall History screen for your stats, monthly chart, and longest streaks.
+- Adding people to track is now a simpler two-step process: pick who to add, then set their reminder frequency and groups all at once. The old first-launch setup screen is gone - the app now opens straight to your list.
+- New: press and hold a contact on the home screen to select several at once, then stop tracking all of them in one go. A confirmation screen always tells you exactly how many people and how much logged history you're about to remove before you confirm - and removed contacts stay in your phone's contacts, only their tracking history goes.
