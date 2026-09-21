@@ -1,0 +1,3 @@
+Behind-the-scenes storage improvements
+
+- Outreach history, groups, and special dates now use a more reliable storage layer under the hood. Fixes a class of bug where deleting a group could leave stale membership data behind. No visible changes to how the app looks or works.
