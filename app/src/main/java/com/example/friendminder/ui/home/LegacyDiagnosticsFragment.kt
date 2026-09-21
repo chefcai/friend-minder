@@ -18,6 +18,7 @@ import com.example.friendminder.data.contacts.ContactsLoader
 import com.example.friendminder.databinding.FragmentLegacyDiagnosticsBinding
 import com.example.friendminder.notifications.NotificationHelper
 import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
+import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -61,9 +62,10 @@ class LegacyDiagnosticsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+        EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         binding.addFriendsButton.setOnClickListener { openFriendList() }
         // FRM-78: this used to enqueue the real SuggestionWorker, which posts a
@@ -101,7 +103,13 @@ class LegacyDiagnosticsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        EdgeToEdgeHeader.applyEdgeToEdgeHeader(this)
         refresh()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        EdgeToEdgeHeader.restoreStandardStatusBar(this)
     }
 
     // FRM-99's kdoc for this class already notes "Edit Friends superseded

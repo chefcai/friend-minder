@@ -2,7 +2,6 @@ package com.example.friendminder.ui.groups
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -12,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.FragmentGroupDetailBinding
+import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.snackbar.Snackbar
@@ -38,10 +38,13 @@ class GroupDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbar.setNavigationOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.toolbar.setOnMenuItemClickListener { onMenuItemClicked(it) }
+        binding.headerActionButton.setOnClickListener {
+            GroupEditDialogFragment.newInstance(groupId).show(childFragmentManager, "group_edit")
+        }
+        EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         adapter = GroupMemberAdapter(
             photoLoader = ServiceLocator.contactPhotoLoader,
@@ -66,13 +69,13 @@ class GroupDetailFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        EdgeToEdgeHeader.applyEdgeToEdgeHeader(this)
         refresh()
     }
 
-    private fun onMenuItemClicked(item: MenuItem): Boolean {
-        if (item.itemId != R.id.action_edit_group) return false
-        GroupEditDialogFragment.newInstance(groupId).show(childFragmentManager, "group_edit")
-        return true
+    override fun onPause() {
+        super.onPause()
+        EdgeToEdgeHeader.restoreStandardStatusBar(this)
     }
 
     private fun openContactDetail(contact: Contact) {
@@ -104,7 +107,7 @@ class GroupDetailFragment : Fragment() {
                 requireActivity().onBackPressedDispatcher.onBackPressed()
                 return@launch
             }
-            binding.toolbar.title = group.name
+            binding.headerTitle.text = group.name
 
             val members = ServiceLocator.groupService.getContactsInGroup(groupId).sortedBy { it.name.lowercase() }
             binding.emptyStateText.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
