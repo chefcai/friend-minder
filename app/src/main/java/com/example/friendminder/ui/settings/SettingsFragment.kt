@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentSettingsBinding
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
+import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.Job
@@ -64,6 +65,11 @@ class SettingsFragment : Fragment() {
     private var autoSaveJob: Job? = null
     private var savedPillJob: Job? = null
 
+    // GH #98/#121: cooldownRow replaced cooldownSpinner, so this is now the
+    // source of truth for the picked value between loadCurrentSettings and
+    // performSave rather than a Spinner selection index.
+    private var cooldownDays = DEFAULT_COOLDOWN_DAYS
+
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op: see 3.3 banner for persistent denial */ }
 
@@ -89,14 +95,31 @@ class SettingsFragment : Fragment() {
         )
         binding.contactsPerDaySpinner.onItemSelectedListener = autoSaveOnItemSelected()
 
-        // Simple, locale-agnostic labels without relying on plural resources for MVP.
-        val cooldownOptions = listOf(3, 7, 14)
-        binding.cooldownSpinner.adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_dropdown_item,
-            cooldownOptions.map { "$it days" }
-        )
-        binding.cooldownSpinner.onItemSelectedListener = autoSaveOnItemSelected()
+        // GH #98/#121: "build it once" - the global cooldown is one of the
+        // four call sites #98 names for the shared picker's Custom... path
+        // (SCREENS-PHASE3.md §7.2/§8.4). Inlined into the click listener
+        // rather than its own function - see setUpNavigationRows for why
+        // that matters here (detekt's TooManyFunctions).
+        binding.cooldownRow.setOnClickListener {
+            ValuePickerDialogFragment.newInstance(
+                requestKey = COOLDOWN_PICKER_REQUEST_KEY,
+                title = getString(R.string.title_edit_cooldown),
+                options = COOLDOWN_OPTIONS.map { days ->
+                    days to when (days) {
+                        COOLDOWN_OPTION_7 -> getString(R.string.cooldown_option_7)
+                        COOLDOWN_OPTION_14 -> getString(R.string.cooldown_option_14)
+                        else -> getString(R.string.cooldown_option_3)
+                    }
+                },
+                selectedValue = cooldownDays,
+                customEntry = ValuePickerDialogFragment.CustomEntryOptions()
+            ).show(childFragmentManager, "settings_cooldown_picker")
+        }
+        childFragmentManager.setFragmentResultListener(COOLDOWN_PICKER_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            cooldownDays = bundle.getInt(ValuePickerDialogFragment.RESULT_VALUE)
+            renderCooldownValue()
+            scheduleAutoSaveUnlessLoading()
+        }
 
         setUpReminderTimeControls()
         setUpMessageTemplateControls()
@@ -104,6 +127,18 @@ class SettingsFragment : Fragment() {
 
         ensureNotificationPermission()
         loadCurrentSettings()
+    }
+
+    // A property-typed lambda rather than a function, same move as
+    // renderRandomButtons' hourLabel - both dodge detekt's TooManyFunctions,
+    // which only counts declared functions, not lambdas.
+    private val renderCooldownValue = {
+        binding.cooldownValue.text = when (cooldownDays) {
+            COOLDOWN_OPTION_3 -> getString(R.string.cooldown_option_3)
+            COOLDOWN_OPTION_7 -> getString(R.string.cooldown_option_7)
+            COOLDOWN_OPTION_14 -> getString(R.string.cooldown_option_14)
+            else -> resources.getQuantityString(R.plurals.format_days_option, cooldownDays, cooldownDays)
+        }
     }
 
     // A Spinner's OnItemSelectedListener fires once as soon as it's attached
@@ -220,9 +255,8 @@ class SettingsFragment : Fragment() {
             renderRandomButtons()
 
             binding.contactsPerDaySpinner.setSelection((repo.getContactsPerDay() - 1).coerceIn(0, 4))
-            val cooldown = repo.getCooldownDays()
-            val cooldownIndex = listOf(3, 7, 14).indexOf(cooldown).let { if (it < 0) 0 else it }
-            binding.cooldownSpinner.setSelection(cooldownIndex)
+            cooldownDays = repo.getCooldownDays()
+            renderCooldownValue()
 
             val messageEnabled = repo.isMessageEnabled()
             val templatesText = repo.getMessageTemplates().joinToString("\n")
@@ -277,7 +311,6 @@ class SettingsFragment : Fragment() {
 
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val contactsPerDay = (binding.contactsPerDaySpinner.selectedItemPosition + 1).coerceIn(1, 5)
-        val cooldownDays = listOf(3, 7, 14)[binding.cooldownSpinner.selectedItemPosition.coerceIn(0, 2)]
         val includeMessage = binding.includeMessageCheckbox.isChecked
         val templates = binding.messageTemplateInput.text?.toString().orEmpty()
             .lines()
@@ -348,6 +381,13 @@ class SettingsFragment : Fragment() {
         private const val PILL_FADE_IN_MS = 150L
         private const val PILL_VISIBLE_MS = 1500L
         private const val PILL_FADE_OUT_MS = 200L
+
+        private const val COOLDOWN_OPTION_3 = 3
+        private const val COOLDOWN_OPTION_7 = 7
+        private const val COOLDOWN_OPTION_14 = 14
+        private val COOLDOWN_OPTIONS = intArrayOf(COOLDOWN_OPTION_3, COOLDOWN_OPTION_7, COOLDOWN_OPTION_14)
+        private const val DEFAULT_COOLDOWN_DAYS = COOLDOWN_OPTION_3
+        private const val COOLDOWN_PICKER_REQUEST_KEY = "settings_cooldown_picker"
 
         fun newInstance(): SettingsFragment = SettingsFragment()
     }

@@ -184,12 +184,17 @@ class AddContactsStep2Fragment : Fragment() {
         )
     }
 
+    // GH #98: effective can now be a custom value the shared picker
+    // returned (not just one of FREQUENCY_OPTIONS), so this falls back to
+    // a generic "N days" plural instead of assuming one of the three
+    // labeled presets.
     private fun renderFrequencyValue() {
         val effective = chosenFrequencyDays ?: globalDefaultFrequencyDays
         binding.checkInEveryValue.text = when (effective) {
+            FREQUENCY_OPTION_3 -> getString(R.string.cooldown_option_3)
             FREQUENCY_OPTION_7 -> getString(R.string.cooldown_option_7)
             FREQUENCY_OPTION_14 -> getString(R.string.cooldown_option_14)
-            else -> getString(R.string.cooldown_option_3)
+            else -> resources.getQuantityString(R.plurals.format_days_option, effective, effective)
         }
     }
 
@@ -206,15 +211,18 @@ class AddContactsStep2Fragment : Fragment() {
         ValuePickerDialogFragment.newInstance(
             requestKey = FREQUENCY_PICKER_REQUEST_KEY,
             title = getString(R.string.label_check_in_every),
-            values = FREQUENCY_OPTIONS,
-            labels = FREQUENCY_OPTIONS.map { days ->
-                when (days) {
+            options = FREQUENCY_OPTIONS.map { days ->
+                days to when (days) {
                     FREQUENCY_OPTION_7 -> getString(R.string.cooldown_option_7)
                     FREQUENCY_OPTION_14 -> getString(R.string.cooldown_option_14)
                     else -> getString(R.string.cooldown_option_3)
                 }
             },
-            selectedValue = effective
+            selectedValue = effective,
+            // GH #98: "build it once" - this bulk default is one of the
+            // four call sites #98 names, so it gets Custom... for free from
+            // the shared picker rather than a fourth bespoke entry field.
+            customEntry = ValuePickerDialogFragment.CustomEntryOptions()
         ).show(childFragmentManager, "add_contacts_frequency_picker")
     }
 

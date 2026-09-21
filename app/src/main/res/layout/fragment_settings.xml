@@ -210,7 +210,14 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textAppearance="?attr/textAppearanceBodySmall" />
 
-                <!-- Cooldown Period -->
+                <!-- Cooldown Period - GH #98/#121: migrated off Spinner to
+                     the shared ValuePickerDialogFragment (SCREENS-PHASE3.md
+                     §7.2/§8.4: "the global cooldown ... are the same
+                     control asking the same question"), so it gets the
+                     Custom... entry path for free instead of needing a
+                     fourth bespoke one. Matches item_group.xml's / this
+                     screen's own advancedRow's row-with-chevron shape
+                     rather than introducing a third row style. -->
                 <TextView
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
@@ -219,11 +226,31 @@
                     android:layout_marginTop="24dp"
                     android:text="@string/label_cooldown" />
 
-                <Spinner
-                    android:id="@+id/cooldownSpinner"
+                <LinearLayout
+                    android:id="@+id/cooldownRow"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    android:layout_height="56dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_home_row_ripple"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/cooldownValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="17sp"
+                        android:textColor="@color/fm_ink" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_chevron_right"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
 
                 <!-- Message Templates (chefcai/friend-minder#30: multiple, randomly picked) -->
                 <TextView
