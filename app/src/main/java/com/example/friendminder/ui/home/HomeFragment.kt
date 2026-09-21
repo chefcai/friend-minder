@@ -130,6 +130,23 @@ class HomeFragment : Fragment() {
             }
         }
 
+        // GH #117: Contact Detail's own "Stop tracking" FAB pops back to
+        // Home after removing the contact (see
+        // ContactDetailFragment.performStopTracking()'s kdoc for why this
+        // works the same way ADD_CONTACTS_RESULT_KEY does above). Posted
+        // for the same reason as that listener - this fires as part of the
+        // pop-back-stack transaction, before MainActivity's bottom-nav
+        // visibility update has run, so an anchored Snackbar built
+        // synchronously here would settle against a still-hidden nav bar.
+        parentFragmentManager.setFragmentResultListener(
+            ContactDetailFragment.CONTACT_REMOVED_RESULT_KEY, viewLifecycleOwner
+        ) { _, bundle ->
+            val removedName = bundle.getString(ContactDetailFragment.RESULT_REMOVED_CONTACT_NAME).orEmpty()
+            binding.root.post {
+                showBottomAnchoredSnackbar(getString(R.string.format_stop_tracking_removed_snackbar, removedName))
+            }
+        }
+
         applyHeaderInsets()
     }
 

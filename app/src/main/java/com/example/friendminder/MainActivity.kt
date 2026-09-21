@@ -32,15 +32,22 @@ import com.example.friendminder.ui.settings.SettingsFragment
  * launches to Home; zero contacts is just Home's empty state, and "Add
  * someone" is how you get your first ones tracked.
  *
- * Also owns the bottom nav (FRM-100): exactly three icon-only destinations
- * (Groups, Overall History, Settings), present on all four Phase 3 shell
- * screens (those three plus Home, which is the root and deliberately not
- * itself a destination - SCREENS-PHASE3.md §2.2). [updateBottomNav] is the
- * single source of truth for both the bar's visibility and its selected
- * item, driven off whatever fragment [R.id.nav_host_container] currently
- * holds - re-run on every back-stack change (a fragment-manager listener,
- * registered once) and, for the one case that isn't a back-stack change,
- * the very first root commit.
+ * Also owns the bottom nav (FRM-100, revised on GH #117's own follow-up
+ * discussion, Cai 2026-09-21): exactly three icon-only destinations
+ * (Groups, Overall History, Settings), now permanently visible on every
+ * screen in the app rather than only the four original Phase 3 "shell"
+ * screens - Contact Detail, Group Detail, Advanced Settings, Notifications
+ * & Diagnostics, and the add-contacts flow's two steps all show it too, so
+ * you can always jump to a top-level destination without backing all the
+ * way out first. [updateBottomNav] is the single source of truth for the
+ * bar's selected item (never its visibility anymore - see below), driven
+ * off whatever fragment [R.id.nav_host_container] currently holds - re-run
+ * on every back-stack change (a fragment-manager listener, registered
+ * once) and, for the one case that isn't a back-stack change, the very
+ * first root commit. Home and every screen that isn't itself one of the
+ * three real destinations show no item selected (SCREENS-PHASE3.md §2.2's
+ * original "on Home, all three glyphs sit inactive" now generalized to
+ * "true everywhere that isn't Groups/History/Settings themselves").
  *
  * Back-stack shape (SCREENS-PHASE3.md §2.3): switching between nav
  * destinations *replaces* rather than stacks - [navigateToDestination] pops
@@ -50,7 +57,14 @@ import com.example.friendminder.ui.settings.SettingsFragment
  * Detail, Group Detail, Advanced Settings) still uses a plain, untagged
  * [FragmentManager.commit] with [androidx.fragment.app.FragmentTransaction.addToBackStack]
  * (unchanged in GroupsFragment/SettingsFragment/etc.), so popping it only
- * removes that one entry and returns to the destination underneath.
+ * removes that one entry and returns to the destination underneath. Note
+ * this means a nav-bar tap taken from one of those untagged detail screens
+ * doesn't collapse the stack the way one taken from a shell screen does -
+ * back from the newly-opened destination returns to the detail screen you
+ * tapped from, not all the way to Home - since [navigateToDestination] only
+ * pops entries carrying [NAV_DESTINATION_BACK_STACK_NAME]. Not fixed here;
+ * flagged as a known consequence of making the bar universally tappable
+ * rather than a full back-stack redesign.
  *
  * FRM-78: also handles [ACTION_OPEN_SETTINGS], the tap action for the test
  * notification (see NotificationHelper.postTestNotification) - the only
@@ -208,32 +222,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Single source of truth for the bottom nav's visibility and selected
-     * item (SCREENS-PHASE3.md §2.1/§2.2), driven off whichever fragment
-     * [R.id.nav_host_container] currently holds. Anything that isn't one of
-     * the four Phase 3 shell screens - the add-contact flow's two steps,
-     * Contact Detail, Group Detail, Advanced Settings, the legacy
-     * diagnostics screen - hides the bar entirely, matching how those
-     * screens behaved before Phase 3 (a plain back arrow, no shell chrome).
+     * Single source of truth for the bottom nav's selected item
+     * (SCREENS-PHASE3.md §2.1/§2.2). Cai's 2026-09-21 follow-up to GH #117
+     * made the bar permanently visible on every screen - see this class's
+     * own kdoc - so this function no longer touches visibility at all,
+     * only which item (if any) shows selected, driven off whichever
+     * fragment [R.id.nav_host_container] currently holds. Home and every
+     * screen that isn't itself Groups/Overall History/Settings (Contact
+     * Detail, Group Detail, Advanced Settings, Notifications &
+     * Diagnostics, both add-contacts steps) fall through to
+     * [HOME_NO_SELECTION] - the name predates this generalization but the
+     * behavior (no item selected) is exactly what all of them want.
      */
     private fun updateBottomNav() {
         val current = supportFragmentManager.findFragmentById(R.id.nav_host_container)
-        val destinationItemId = when {
-            current is HomeFragment -> HOME_NO_SELECTION
-            current is GroupsFragment -> R.id.nav_groups
-            current is OverallHistoryFragment -> R.id.nav_overall_history
-            current is SettingsFragment -> R.id.nav_settings
-            else -> null
+        val destinationItemId = when (current) {
+            is GroupsFragment -> R.id.nav_groups
+            is OverallHistoryFragment -> R.id.nav_overall_history
+            is SettingsFragment -> R.id.nav_settings
+            else -> HOME_NO_SELECTION
         }
-
-        if (destinationItemId == null) {
-            binding.bottomNav.visibility = android.view.View.GONE
-            binding.bottomNavDivider.visibility = android.view.View.GONE
-            return
-        }
-
-        binding.bottomNav.visibility = android.view.View.VISIBLE
-        binding.bottomNavDivider.visibility = android.view.View.VISIBLE
 
         // §2.2: "On Home, all three glyphs sit inactive" - BottomNavigationView
         // otherwise always keeps exactly one item checked, so this is the one

@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Navigation shell (FRM-100, SCREENS-PHASE3.md §2). Bottom nav is shared
-  chrome across all four Phase 3 "shell" screens (Home, Groups, Overall
-  History, Settings) - MainActivity shows/hides it and drives destination
-  switching; individual fragments never touch it directly.
+  Navigation shell (FRM-100, SCREENS-PHASE3.md §2; made permanently visible
+  on every screen per Cai's 2026-09-21 GH #117 follow-up - see
+  MainActivity's kdoc). Bottom nav is shared chrome across the whole app -
+  MainActivity drives which item (if any) shows selected; individual
+  fragments never touch it directly. Visible from initial layout now
+  (previously "gone" until MainActivity.updateBottomNav() first ran, back
+  when some screens hid it entirely) since it no longer has a hidden state
+  to start from.
 
   nav_host_container gets layout_weight="1" (not match_parent under the
   bar) precisely so it never extends behind the bottom nav - this is what
-  makes a plain 16dp FAB margin in fragment_home.xml actually mean "16dp
-  above the bottom nav" rather than needing the nav bar's height baked in
-  as a magic number there. bottomNavDivider is a real 1dp View rather than
-  BottomNavigationView elevation, which DESIGN-SYSTEM-PHASE3.md §2.2
-  explicitly sets to 0dp.
+  makes a plain 16dp FAB margin in fragment_home.xml (and
+  fragment_contact_detail.xml's stopTrackingFab, GH #117) actually mean
+  "16dp above the bottom nav" rather than needing the nav bar's height
+  baked in as a magic number there. bottomNavDivider is a real 1dp View
+  rather than BottomNavigationView elevation, which
+  DESIGN-SYSTEM-PHASE3.md §2.2 explicitly sets to 0dp.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -29,8 +34,7 @@
         android:id="@+id/bottomNavDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@drawable/bg_bottom_nav_divider"
-        android:visibility="gone" />
+        android:background="@drawable/bg_bottom_nav_divider" />
 
     <!--
         FRM-115: layout_height here is the bar's un-eclipsed content height
@@ -50,7 +54,6 @@
         app:itemIconSize="@dimen/fm_bottom_nav_icon_size"
         app:itemIconTint="@null"
         app:labelVisibilityMode="unlabeled"
-        app:menu="@menu/menu_bottom_nav"
-        android:visibility="gone" />
+        app:menu="@menu/menu_bottom_nav" />
 
 </LinearLayout>

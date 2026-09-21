@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    GH #117: root is a FrameLayout (was a plain vertical LinearLayout) so
+    stopTrackingFab below can float over the screen's content in the same
+    bottom-right spot as Home's addContactFab - add and remove now live in
+    the same position on their respective screens, per Cai's direction on
+    #117. This is also what freed up the corner: the old pinned
+    logOutreachButton that used to occupy the bottom of this screen is
+    gone - manual outreach logging (FRM-114) was pulled from this build
+    (Cai, 2026-09-21) rather than merely demoted, which is what resolved
+    #117's original FAB/pinned-button placement conflict.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <!--
         GH #132: extended teal header (DESIGN-SYSTEM-PHASE3.md §5), matching
@@ -306,19 +321,29 @@
             </LinearLayout>
         </ScrollView>
     </FrameLayout>
+    </LinearLayout>
 
-    <!-- Friend-Minder cool rebrand (SCREENS-PHASE2.md §4): the primary
-         outreach entry point is sky blue (secondary), not the default
-         primary-fill Widget.Material3.Button style, so it's explicitly
-         re-tinted here via the btn_secondary_background/btn_secondary_label
-         color selectors rather than relying on the style default. -->
-    <Button
-        android:id="@+id/logOutreachButton"
-        style="@style/Widget.Material3.Button"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_margin="@dimen/fm_space_4"
-        android:backgroundTint="@color/btn_secondary_background"
-        android:textColor="@color/btn_secondary_label"
-        android:text="@string/action_log_outreach" />
-</LinearLayout>
+    <!-- GH #117 (SCREENS-PHASE3.md §6.3): destructive "Stop tracking" entry
+         point, in the same bottom-right spot as Home's addContactFab
+         (fm_space_6 end margin, fm_space_4 bottom margin) so add and
+         remove share a position across their respective screens.
+         contentDescription is set dynamically in refresh() once the
+         contact's name is known - static "Stop tracking" alone isn't a
+         sufficient a11y label for a destructive per-contact action. Styled
+         like the bulk-removal FAB (FRM-112): fm_error fill, ic_trash,
+         fm_on_primary tint - the one other destructive-styled control in
+         the app. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/stopTrackingFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:layout_marginBottom="@dimen/fm_space_4"
+        android:contentDescription="@string/action_stop_tracking"
+        app:elevation="3dp"
+        app:backgroundTint="@color/fm_error"
+        app:tint="@color/fm_on_primary"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
+        app:srcCompat="@drawable/ic_trash" />
+</FrameLayout>
