@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bottom navigation (FRM-100, DESIGN-SYSTEM-PHASE3.md §6/SCREENS-PHASE3.md
+  §2). Exactly three icon-only destinations, in this fixed order: Groups,
+  Overall History, Settings. Each item's title doubles as its accessibility
+  label and (via MainActivity's TooltipCompat wiring) its long-press
+  tooltip - there are no visible labels (labelVisibilityMode=unlabeled on
+  the BottomNavigationView itself).
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_groups"
+        android:icon="@drawable/ic_nav_groups"
+        android:title="@string/nav_label_groups" />
+    <item
+        android:id="@+id/nav_overall_history"
+        android:icon="@drawable/ic_nav_history"
+        android:title="@string/nav_label_overall_history" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_nav_settings"
+        android:title="@string/nav_label_settings" />
+</menu>

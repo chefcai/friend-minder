@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1dp hairline along the bottom nav's top edge (DESIGN-SYSTEM-PHASE3.md
+     §2.2 / SCREENS-PHASE3.md §2.1). Implemented as a plain View background
+     in activity_main.xml rather than BottomNavigationView elevation, which
+     the spec explicitly sets to 0dp. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/fm_divider" />
+</shape>

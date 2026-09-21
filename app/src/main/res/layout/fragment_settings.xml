@@ -252,4 +252,27 @@
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:text="@string/title_advanced_settings" />
 
+    <!--
+        FRM-99: interim home for the retired setup-hub's banners/test-
+        notification content (see LegacyDiagnosticsFragment's kdoc) - not a
+        Designer-P3 spec, just wired here so the functionality stays
+        reachable pending the FRM-103 pass that's meant to design its real
+        home. Mirrors advancedRow's link-styled-TextView pattern above
+        rather than introducing a new row convention.
+    -->
+    <TextView
+        android:id="@+id/notificationsDiagnosticsRow"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:textColor="@color/fm_status_healthy"
+        android:textStyle="bold"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:text="@string/title_notifications_diagnostics" />
+
 </LinearLayout>

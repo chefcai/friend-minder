@@ -1,101 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Friend-Minder cool rebrand palette (FRM-60, corrected). Values are
-  Designer's DESIGN-SYSTEM-PHASE2.md §2 color table (cool-rebrand edition),
-  WCAG-verified (see that doc's §7 contrast table) against the light-only
-  surface tokens below.
+  Friend-Minder Phase 3 palette (FRM-98), per docs/DESIGN-SYSTEM-PHASE3.md §2.
+  Supersedes the Phase 2 "cool rebrand" pass of this file. The three
+  structural fixes (see that doc's §0): the page ground moves from a
+  panel-tinted blue to white (fm_surface), body text moves off a heading
+  teal onto a near-neutral ink (fm_ink / fm_ink_dim / fm_heading split),
+  and the avatar-fallback + status palettes are widened so they're actually
+  separable (min pairwise ΔE 21.2, up from 4.8).
 
-  This supersedes an earlier pass of this file that used the "Warm Circle"
-  terracotta/gold/ember palette (chefcai/friend-minder#67) - that direction
-  was itself superseded by Designer before/while #67 was being implemented,
-  so it never should have shipped. Every value below is teal/cyan/blue -
-  no warm hue should appear anywhere in this file.
+  Light mode only, by explicit product decision (DESIGN-SYSTEM-PHASE3.md
+  §1.6): there is no values-night variant of this file and none should be
+  reintroduced.
 
-  Light mode only, by explicit product decision: there is no values-night
-  variant of this file and none should be reintroduced. The 10-color avatar
-  fallback palette (FRM-61) has a single fixed text-color pairing per swatch
-  (see the table below and AvatarPalette.kt) rather than a runtime
-  dark-mode flip.
+  Token names NOT mentioned in DESIGN-SYSTEM-PHASE3.md (fm_secondary*,
+  fm_status_*, fm_surface_variant/fm_on_surface_variant,
+  fm_outline_variant) are Phase 2 holdovers, kept unchanged and defined
+  here only because they're still referenced by screens Phase 3 hasn't
+  re-skinned yet (Dashboard - orphaned pending FRM-101's route removal -
+  and Settings' advancedRow). Do not add new uses of them; new work reads
+  from the Phase 3 tokens below.
 -->
 <resources>
-    <!-- Adaptive icon background (FRM-65, DESIGN-SYSTEM-PHASE2.md §8.2): solid
-         light blue, matches fm_surface. -->
+    <!-- Adaptive icon background (FRM-65). Deliberately NOT tied to
+         fm_surface any more (that token is now white, §2.2) - this stays a
+         fixed brand tint, same value as the new fm_surface_accent. -->
     <color name="ic_launcher_background">#E6F5FB</color>
 
-    <!-- Brand colors (DESIGN-SYSTEM-PHASE2.md §2.1) -->
+    <!-- Brand (DESIGN-SYSTEM-PHASE3.md §2.1) - unchanged from Phase 2 /
+         the marketing site; not up for revision this phase. -->
     <color name="fm_primary">#1F817D</color>
     <color name="fm_on_primary">#FFFFFF</color>
     <color name="fm_primary_container">#B0E8E6</color>
     <color name="fm_on_primary_container">#195556</color>
+    <color name="fm_accent">#155D5B</color>
+    <color name="fm_on_accent">#FFFFFF</color>
+
+    <!-- Phase 2 holdover: retired as a button fill (DESIGN-SYSTEM-PHASE3.md
+         §6.2) but still referenced by the orphaned Dashboard's streak badge
+         drawable and by themes.xml's colorSecondary mapping. Untouched
+         value; not part of the Phase 3 palette. -->
     <color name="fm_secondary">#5ABBEB</color>
     <color name="fm_on_secondary">#0A2E31</color>
     <color name="fm_secondary_container">#D6EBF8</color>
     <color name="fm_on_secondary_container">#0A2E31</color>
-    <!-- Deep-cyan accent: used sparingly (e.g. a streak-flame icon tint), never
-         a large fill - see DESIGN-SYSTEM-PHASE2.md §2.1. -->
-    <color name="fm_accent">#155D5B</color>
-    <color name="fm_on_accent">#FFFFFF</color>
 
-    <!-- Ink & surfaces (DESIGN-SYSTEM-PHASE2.md §2.2) -->
-    <color name="fm_ink">#195556</color>
+    <!-- Surfaces (DESIGN-SYSTEM-PHASE3.md §2.2) -->
+    <color name="fm_surface">#FFFFFF</color>
+    <color name="fm_surface_sunken">#EFF8FA</color>
+    <!-- One block per screen, maximum - see §2.2. Same value as the old
+         (pre-Phase-3) fm_surface, which is exactly the panel tint this
+         token now formalizes. -->
+    <color name="fm_surface_accent">#E6F5FB</color>
+    <!-- Status bar + title bar, as one continuous fill (§5). Same value as
+         fm_primary; kept as its own token for call-site clarity. -->
+    <color name="fm_header">#1F817D</color>
+
+    <!-- Ink (DESIGN-SYSTEM-PHASE3.md §2.3) - the split that fixes the
+         "everything is teal" bug: body copy is near-neutral, headings keep
+         the old teal-ink value under its own name. -->
+    <color name="fm_ink">#1B2E30</color>
+    <color name="fm_ink_dim">#4C6A6E</color>
+    <color name="fm_heading">#195556</color>
+
+    <!-- Lines and borders (DESIGN-SYSTEM-PHASE3.md §2.8) -->
+    <color name="fm_divider">#CFE7EA</color>
+    <color name="fm_outline">#5A8A92</color>
+
+    <!-- Phase 2 holdovers - superseded by fm_ink_dim / fm_divider above for
+         all Phase 3 work, kept only for not-yet-re-skinned screens
+         (BarChartView references fm_on_surface_variant directly). -->
     <color name="fm_on_surface_variant">#425F64</color>
-    <color name="fm_surface">#E6F5FB</color>
     <color name="fm_surface_variant">#D3E9F4</color>
-    <color name="fm_outline">#74A3AB</color>
-    <!-- Not specified by Designer's doc; derived as the midpoint between
-         fm_surface_variant (#D3E9F4) and fm_outline (#74A3AB) for a subtle
-         divider/border tone one step lighter than fm_outline - same
-         derivation method used (and left unaddressed by Designer again)
-         under the prior Warm Circle pass. -->
     <color name="fm_outline_variant">#A4C6D0</color>
 
-    <!-- Error: unchanged from Material baseline (DESIGN-SYSTEM-PHASE2.md
-         §2.2 - genuinely stands apart from an all-cool palette now).
-         Container pair is the standard Material3 baseline error-container
-         pairing, hue-independent, so it carries over unchanged from before. -->
+    <!-- Error: unchanged Material baseline, stands apart from the brand
+         palette by design (DESIGN-SYSTEM-PHASE3.md §2.8). -->
     <color name="fm_error">#B3261E</color>
     <color name="fm_error_container">#F9DEDC</color>
     <color name="fm_on_error_container">#410E0B</color>
 
-    <!-- Status colors (DESIGN-SYSTEM-PHASE2.md §2.3) -->
+    <!-- Phase 2 holdover contact-health colors. Not part of Phase 3's
+         status system (DESIGN-SYSTEM-PHASE3.md §2.5 replaces per-row status
+         entirely with the two-state badge - see HomeFragment /
+         item_home_contact.xml) - kept only because the orphaned Dashboard
+         (item_dashboard_neglected.xml) and Settings' advancedRow still
+         reference them. -->
     <color name="fm_status_healthy">#16699B</color>
     <color name="fm_status_attention">#22615E</color>
     <color name="fm_status_neglected">#105750</color>
     <color name="fm_status_new">#3B626D</color>
 
-    <!-- Avatar fallback palette (FRM-61, DESIGN-SYSTEM-PHASE2.md §2.4): 10
-         colors within a single cool hue band (~166-212 deg, teal through
-         blue). abs(contactId.hashCode()) % 10 picks the index;
-         AvatarPalette.kt is the single place that indexes into this list and
-         pairs each with its fixed initials-text color (see
-         fm_avatar_initials_white / fm_avatar_initials_ink below and that
-         class's per-index text-color table). No dark-mode variant. -->
-    <color name="fm_avatar_1">#227376</color>
-    <color name="fm_avatar_2">#41A2D0</color>
-    <color name="fm_avatar_3">#26665D</color>
-    <color name="fm_avatar_4">#83B5E5</color>
-    <color name="fm_avatar_5">#3E6E74</color>
-    <color name="fm_avatar_6">#2D6E5F</color>
-    <color name="fm_avatar_7">#446E8C</color>
-    <color name="fm_avatar_8">#25AFD2</color>
-    <color name="fm_avatar_9">#2F5451</color>
-    <color name="fm_avatar_10">#9FBFE3</color>
+    <!-- Avatar fallback palette (DESIGN-SYSTEM-PHASE3.md §2.6, resolves
+         FRM-108) - redefined, not carried over. abs(contactId.hashCode())
+         % 10 picks the index; AvatarPalette.kt pairs each fill with the
+         fixed initials-text color below (fm_avatar_text_1..10) - some
+         white, some a bespoke dark ink tuned per-fill (this phase needs
+         four distinct darks, not one shared "ink", since each light fill
+         clears 4.5:1 against a different dark value - see the Initials
+         column of §2.6's table). Minimum pairwise ΔE 21.2 (was 4.8);
+         index 1 (Pine) is the one value that isn't a straight port of an
+         earlier revision - see AvatarPalette.kt's kdoc. -->
+    <color name="fm_avatar_1">#2C6E49</color> <!-- Pine -->
+    <color name="fm_avatar_2">#0B6E92</color> <!-- Cyan -->
+    <color name="fm_avatar_3">#9CCBEC</color> <!-- Sky -->
+    <color name="fm_avatar_4">#3D55A4</color> <!-- Indigo -->
+    <color name="fm_avatar_5">#62707C</color> <!-- Slate -->
+    <color name="fm_avatar_6">#8ED0C4</color> <!-- Seafoam -->
+    <color name="fm_avatar_7">#DCC084</color> <!-- Sand -->
+    <color name="fm_avatar_8">#B85535</color> <!-- Clay -->
+    <color name="fm_avatar_9">#80458A</color> <!-- Plum -->
+    <color name="fm_avatar_10">#E8B3BC</color> <!-- Rose -->
 
-    <!-- Initials text colors for the avatar fallback circle. fm_avatar_initials_ink
-         (#132D30) is deliberately distinct from the body-ink token fm_ink
-         (#195556) - a few avatar tones need something darker than fm_ink to
-         clear 4.5:1 - see DESIGN-SYSTEM-PHASE2.md §2.4. -->
+    <!-- Per-index initials-text colors, in the same order as fm_avatar_1..10
+         above. See AvatarPalette.kt - this is the "Initials" column of
+         DESIGN-SYSTEM-PHASE3.md §2.6's table, not a runtime computation. -->
+    <color name="fm_avatar_text_1">#FFFFFF</color>
+    <color name="fm_avatar_text_2">#FFFFFF</color>
+    <color name="fm_avatar_text_3">#10323F</color>
+    <color name="fm_avatar_text_4">#FFFFFF</color>
+    <color name="fm_avatar_text_5">#FFFFFF</color>
+    <color name="fm_avatar_text_6">#0F3B34</color>
+    <color name="fm_avatar_text_7">#3A2F14</color>
+    <color name="fm_avatar_text_8">#FFFFFF</color>
+    <color name="fm_avatar_text_9">#FFFFFF</color>
+    <color name="fm_avatar_text_10">#4A2028</color>
+
+    <!-- Phase 2 holdovers - AvatarPalette.kt no longer references these
+         (see fm_avatar_text_1..10 above), kept only in case anything else
+         does. -->
     <color name="fm_avatar_initials_white">#FFFFFF</color>
     <color name="fm_avatar_initials_ink">#132D30</color>
 
-    <!-- Group identity palette (FRM-63, DESIGN-SYSTEM-PHASE2.md §2.5): a
-         separate, more saturated 8-color set from the avatar-fallback
-         palette above, so a group color never reads as a contact's avatar
-         fallback color. Assigned round-robin at group-creation time (see
-         GroupEditDialogFragment), not derived from a hash, since a user
-         explicitly picks/keeps a color for a group. Names (for TalkBack,
-         see R.array.group_color_names) are Teal, Cyan, Sky, Deep Teal,
-         Slate, Ink Blue, Mist, Midnight, in this order. -->
+    <!-- Group identity palette (DESIGN-SYSTEM-PHASE3.md §2.7): carried
+         forward from Phase 2 UNCHANGED - user-chosen group colors weren't
+         part of the confusability problem, and recoloring them would
+         silently change groups users already created. -->
     <color name="fm_group_color_1">#138173</color>
     <color name="fm_group_color_2">#14A3BB</color>
     <color name="fm_group_color_3">#83C3F5</color>

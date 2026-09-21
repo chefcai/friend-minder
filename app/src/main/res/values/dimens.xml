@@ -30,4 +30,13 @@
     <!-- Streak badge + Log Outreach FAB -->
     <dimen name="fm_streak_badge_size">24dp</dimen>
     <dimen name="fm_fab_size">56dp</dimen>
+
+    <!-- Phase 3 (FRM-98/99/100): DESIGN-SYSTEM-PHASE3.md §4. -->
+    <dimen name="fm_home_header_height">72dp</dimen>
+    <dimen name="fm_home_row_height">76dp</dimen>
+    <dimen name="fm_status_badge_size">28dp</dimen>
+    <dimen name="fm_status_badge_ring_width">2dp</dimen>
+    <dimen name="fm_home_list_bottom_padding">88dp</dimen>
+    <dimen name="fm_bottom_nav_height">64dp</dimen>
+    <dimen name="fm_header_title_size">30sp</dimen>
 </resources>

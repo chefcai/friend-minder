@@ -1,235 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  Home (root) - FRM-99, SCREENS-PHASE3.md §1. Replaces DashboardFragment as
+  the app's root screen.
+
+  Structure per §1.1: one continuous teal header (statusBarSpacer + a fixed
+  72dp title band, so the fill spans the status bar with no seam - see
+  HomeFragment.onResume/onPause for the edge-to-edge wiring that makes
+  statusBarSpacer's height track the real inset), a flat contact list, and
+  a FAB. The bottom nav itself lives in activity_main.xml, not here - it's
+  shared chrome across all four Phase 3 shell screens (FRM-100), not part
+  of any one fragment's layout.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/fm_surface">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        app:title="@string/title_home"
-        app:navigationIcon="@drawable/ic_arrow_back" />
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/headerContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:background="@color/fm_header">
 
-            <!-- Status banners (Designer spec §3.3) -->
-            <TextView
-                android:id="@+id/missingContactsBanner"
+            <!-- Height set programmatically to the status-bar inset
+                 (HomeFragment) - same fill as the title band below, so the
+                 header reads as one uninterrupted block (§5). -->
+            <View
+                android:id="@+id/statusBarSpacer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorErrorContainer"
-                android:textColor="?attr/colorOnErrorContainer"
-                android:padding="12dp"
+                android:layout_height="0dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/fm_home_header_height">
+
+                <!-- §1.2: literal title "Friend-Minder", no back arrow (Home
+                     is the root), no overflow menu - both of Dashboard's old
+                     toolbar actions moved elsewhere (FAB, bottom nav). -->
+                <TextView
+                    android:id="@+id/headerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="@dimen/fm_space_6"
+                    android:text="@string/title_home"
+                    android:textColor="@color/fm_on_primary"
+                    android:textSize="@dimen/fm_header_title_size"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/contactRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="@dimen/fm_home_list_bottom_padding"
                 android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/notificationsDisabledBanner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorErrorContainer"
-                android:textColor="?attr/colorOnErrorContainer"
-                android:padding="12dp"
-                android:visibility="gone"
-                android:text="@string/banner_notifications_disabled" />
-
-            <!-- Empty-friend-list state (Designer spec §4.1) -->
+            <!--
+                Interim placeholder for zero tracked contacts. FRM-107 (the
+                approved, designed empty state - 96dp glyph, headline, body
+                copy, filled "Add someone" button) hasn't landed a sign-off
+                yet (see FRM-99's ticket comment: "Build the populated list
+                against this spec; the empty state lands when FRM-107 is
+                acked"), so this is a plain, unstyled stand-in rather than a
+                pre-emptive implementation of an unapproved design - swap
+                this block for the real thing once FRM-107 is signed off.
+            -->
             <LinearLayout
                 android:id="@+id/emptyStateGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="24dp"
+                android:padding="@dimen/fm_space_8"
                 android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_empty_friend_list"
+                    android:gravity="center"
+                    android:text="@string/label_home_empty_interim"
+                    android:textColor="@color/fm_ink_dim"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="@dimen/fm_space_6" />
 
                 <Button
-                    android:id="@+id/addFriendsButton"
+                    android:id="@+id/emptyStateAddButton"
                     style="@style/Widget.Material3.Button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/action_add_friends" />
+                    android:text="@string/action_home_empty_add" />
             </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
 
-            <!-- Preview + test button (hidden when friend list is empty) -->
-            <LinearLayout
-                android:id="@+id/previewGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp">
+    <!--
+        §1.7: FAB is the only add-contact entry point once there's at least
+        one contact (hidden in the empty state - see HomeFragment). Tap
+        target here opens the existing Edit Friends picker, not the
+        rebuilt single-flow add process the approved spec describes -
+        FRM-102 isn't implemented yet, so this is the closest working
+        equivalent in the interim (flagged on FRM-99's ticket).
+    -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addContactFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:layout_marginBottom="@dimen/fm_space_4"
+        android:contentDescription="@string/content_desc_add_contact"
+        app:elevation="3dp"
+        app:backgroundTint="@color/fm_primary"
+        app:tint="@color/fm_on_primary"
+        app:srcCompat="@drawable/ic_add" />
 
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.Material3.CardView.Outlined"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/label_preview_header"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:layout_marginBottom="8dp" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:background="@drawable/bg_notification_preview"
-                            android:padding="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_preview_chip"
-                                android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorPrimary" />
-
-                            <TextView
-                                android:id="@+id/previewContactName"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/notif_body"
-                                android:textAppearance="?attr/textAppearanceBodyMedium" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <Button
-                    android:id="@+id/testNotificationButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/action_test_notification" />
-
-                <!--
-                    FRM-78: sets expectations before the tap, which is where
-                    the "is this a real reminder?" confusion actually starts.
-                    Real text, not a contentDescription-only hint, so it's
-                    visible to everyone and not just screen-reader users.
-                -->
-                <TextView
-                    android:id="@+id/testNotificationCaption"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/caption_test_notification"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textAppearance="?attr/textAppearanceBodySmall" />
-            </LinearLayout>
-
-            <!-- Navigation shortcuts -->
-            <LinearLayout
-                android:id="@+id/groupsRow"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/action_groups_row"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:contentDescription="@null" />
-            </LinearLayout>
-
-                        <LinearLayout
-                android:id="@+id/editFriendsRow"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/action_edit_friends_row"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:contentDescription="@null" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/settingsRow"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/action_settings_row"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    android:contentDescription="@null" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+</FrameLayout>

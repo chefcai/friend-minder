@@ -1,10 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Navigation shell only. Designer (FRM-4) will spec the real screens
-  (FriendListFragment, SettingsFragment, etc.); Publisher (FRM-5) implements
-  them here. This container is intentionally empty of business logic.
+  Navigation shell (FRM-100, SCREENS-PHASE3.md §2). Bottom nav is shared
+  chrome across all four Phase 3 "shell" screens (Home, Groups, Overall
+  History, Settings) - MainActivity shows/hides it and drives destination
+  switching; individual fragments never touch it directly.
+
+  nav_host_container gets layout_weight="1" (not match_parent under the
+  bar) precisely so it never extends behind the bottom nav - this is what
+  makes a plain 16dp FAB margin in fragment_home.xml actually mean "16dp
+  above the bottom nav" rather than needing the nav bar's height baked in
+  as a magic number there. bottomNavDivider is a real 1dp View rather than
+  BottomNavigationView elevation, which DESIGN-SYSTEM-PHASE3.md §2.2
+  explicitly sets to 0dp.
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/nav_host_container"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/nav_host_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <View
+        android:id="@+id/bottomNavDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/bg_bottom_nav_divider"
+        android:visibility="gone" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/fm_bottom_nav_height"
+        android:background="@color/fm_surface"
+        app:elevation="0dp"
+        app:itemIconTint="@null"
+        app:labelVisibilityMode="unlabeled"
+        app:menu="@menu/menu_bottom_nav"
+        android:visibility="gone" />
+
+</LinearLayout>
