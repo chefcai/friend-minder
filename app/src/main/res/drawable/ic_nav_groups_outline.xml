@@ -1,22 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom-nav "Groups" glyph, inactive/outline state (DESIGN-SYSTEM-PHASE3.md
-     §2/§6, FRM-100). Two overlapping ring circles, stroke only - deliberately
-     simple rather than a stroked copy of ic_people.xml's compound silhouette,
-     which would trace four overlapping subpath boundaries and read as
-     clutter at 28dp. -->
+<!-- Bottom-nav "Groups" glyph, inactive/outline state.
+     Three people, one in front and two behind - DESIGN-SYSTEM-PHASE3.md
+     §6.9, approved by Cai 2026-09-21 (GH #119). Replaces the two-circle
+     motif, which did not read as "groups".
+     Geometry is load-bearing; see §6.9 before adjusting anything. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="28"
+    android:viewportHeight="28">
     <path
-        android:pathData="M5.5,10 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:pathData="M2.3,8.2 a2.7,2.7 0 1,0 5.4,0 a2.7,2.7 0 1,0 -5.4,0"
         android:strokeColor="@color/fm_ink_dim"
-        android:strokeWidth="1.6"
+        android:strokeWidth="1.9"
         android:fillColor="#00000000" />
     <path
-        android:pathData="M11.5,10 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:pathData="M20.3,8.2 a2.7,2.7 0 1,0 5.4,0 a2.7,2.7 0 1,0 -5.4,0"
         android:strokeColor="@color/fm_ink_dim"
-        android:strokeWidth="1.6"
+        android:strokeWidth="1.9"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M1.2,19.2c0,-2.9 1.9,-4.4 4.4,-4.4"
+        android:strokeColor="@color/fm_ink_dim"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M26.8,19.2c0,-2.9 -1.9,-4.4 -4.4,-4.4"
+        android:strokeColor="@color/fm_ink_dim"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M10.5,10.2 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:strokeColor="@color/fm_ink_dim"
+        android:strokeWidth="1.9"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M6.4,22.6c0,-3.5 3.4,-5.6 7.6,-5.6s7.6,2.1 7.6,5.6"
+        android:strokeColor="@color/fm_ink_dim"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
         android:fillColor="#00000000" />
 </vector>
