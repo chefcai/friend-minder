@@ -1,115 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Group-assignment sheet, shared by EditContactGroupsDialogFragment (toggle
+  which groups one contact belongs to - Contact Detail's "+ Add" chip, and
+  FRM-102's add-contact flow Step 2 "Groups" row) and
+  AddContactToGroupDialogFragment (add existing friends to one specific
+  group, from Group Detail) - same candidate-checkbox-list shape, just
+  which side of the contact<->group relationship is fixed. One layout
+  rather than two near-identical ones.
+
+  FRM-102 (SCREENS-PHASE3.md §8.1): this is a genuinely multi-select sheet
+  (a contact can be in several groups at once), which is why it keeps an
+  explicit primary button rather than adopting §8.4's tap-one-and-dismiss
+  shape (that shape is for single-value pickers only - see
+  ValuePickerDialogFragment). What §8.1 does apply here regardless of
+  single- vs. multi-select: one shape for the sheet itself (fm_surface,
+  rounded top corners, drag handle 12dp from the true top edge - hence the
+  handle living outside the padded content block below, same split as
+  dialog_value_picker.xml) and exactly one way out (the filled primary,
+  plus the handle/scrim/back) - the old ✕-and-Cancel-and-scrim three-way-out
+  is gone from both dialogs that shared this layout.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="@dimen/fm_space_4">
+    android:background="@drawable/bg_bottom_sheet_surface">
+
+    <View
+        android:layout_width="@dimen/fm_dialog_handle_width"
+        android:layout_height="@dimen/fm_dialog_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/fm_dialog_handle_margin_top"
+        android:background="@drawable/bg_dialog_drag_handle"
+        android:importantForAccessibility="no" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="@dimen/fm_space_4">
+        android:orientation="vertical"
+        android:padding="@dimen/fm_space_6">
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/dialogTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginBottom="@dimen/fm_space_4"
             android:text="@string/action_add_contact_to_group"
             android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
-        <ImageButton
-            android:id="@+id/closeButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_close"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/action_cancel" />
-    </LinearLayout>
+        <Button
+            android:id="@+id/createGroupButton"
+            style="@style/Widget.Material3.Button.TextButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginBottom="@dimen/fm_space_2"
+            app:icon="@drawable/ic_add"
+            android:text="@string/action_new_group" />
 
-    <Button
-        android:id="@+id/createGroupButton"
-        style="@style/Widget.Material3.Button.TextButton.Icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start"
-        android:layout_marginBottom="@dimen/fm_space_2"
-        app:icon="@drawable/ic_add"
-        android:text="@string/action_new_group" />
-
-    <TextView
-        android:id="@+id/emptyText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/label_add_to_group_empty"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:visibility="gone" />
-
-    <!--
-      GH #72 / GH #76: this was a plain android.widget.ScrollView. Two
-      unrelated framework gaps in that class combined to make this dialog
-      unusable with a realistic (40+) contact list, both confirmed
-      on-device with a 45-contact candidate list:
-
-      1. Neither android.widget.ScrollView NOR androidx.core.widget.
-         NestedScrollView honors android:maxHeight - the attribute is
-         silently ignored by both (this was verified empirically after an
-         earlier attempt at this fix assumed NestedScrollView supported it
-         and it measured 507dp tall instead of the intended 360dp cap), so
-         the list grew to its full wrap_content height (one row per
-         candidate) instead of capping. That pushed the Cancel/Save row
-         (below, in this same LinearLayout) far past the bottom of the
-         screen, with no scroll path to reach it, because the *outer*
-         LinearLayout is not itself scrollable - only this inner element
-         was. Fixed here with a genuine fixed height instead of a
-         maxHeight that neither ScrollView class actually applies. This
-         does mean a very short candidate list leaves some empty space
-         below it rather than shrinking to fit - an acceptable trade-off
-         against the footer being completely unreachable.
-
-      2. Plain ScrollView does not implement NestedScrollingChild, so it
-         never negotiates scroll ownership with the enclosing
-         BottomSheetBehavior. Every swipe over the list was consumed by the
-         sheet's own expand/collapse drag instead of by the list, so once
-         scrolled down there was no gesture left to scroll back up - the
-         same swipe that should scroll the list just collapsed the sheet.
-         androidx.core.widget.NestedScrollView fixes this by implementing
-         NestedScrollingChild, so BottomSheetBehavior lets it scroll
-         internally before taking over the drag.
-    -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="360dp">
-
-        <LinearLayout
-            android:id="@+id/candidateContainer"
+        <TextView
+            android:id="@+id/emptyText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </androidx.core.widget.NestedScrollView>
+            android:text="@string/label_add_to_group_empty"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:visibility="gone" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end"
-        android:layout_marginTop="@dimen/fm_space_4">
+        <!--
+          GH #72 / GH #76: this was a plain android.widget.ScrollView. Two
+          unrelated framework gaps in that class combined to make this
+          dialog unusable with a realistic (40+) contact list, both
+          confirmed on-device with a 45-contact candidate list:
 
-        <Button
-            android:id="@+id/cancelButton"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+          1. Neither android.widget.ScrollView NOR androidx.core.widget.
+             NestedScrollView honors android:maxHeight - the attribute is
+             silently ignored by both (verified empirically: an earlier
+             attempt assuming NestedScrollView supported it measured 507dp
+             tall instead of the intended 360dp cap), so the list grew to
+             its full wrap_content height instead of capping, pushing the
+             primary-button row past the bottom of the screen with no
+             scroll path to reach it. Fixed with a genuine fixed height
+             instead of a maxHeight neither ScrollView class applies.
+
+          2. Plain ScrollView does not implement NestedScrollingChild, so
+             it never negotiates scroll ownership with the enclosing
+             BottomSheetBehavior - every swipe over the list collapsed the
+             sheet instead of scrolling it. NestedScrollView fixes this.
+        -->
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="360dp">
+
+            <LinearLayout
+                android:id="@+id/candidateContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </androidx.core.widget.NestedScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/action_cancel" />
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="@dimen/fm_space_4">
 
-        <Button
-            android:id="@+id/addButton"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/fm_space_2"
-            android:text="@string/action_save" />
+            <Button
+                android:id="@+id/addButton"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/action_save" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

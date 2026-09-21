@@ -17,7 +17,7 @@ import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactsLoader
 import com.example.friendminder.databinding.FragmentLegacyDiagnosticsBinding
 import com.example.friendminder.notifications.NotificationHelper
-import com.example.friendminder.ui.friendlist.FriendListFragment
+import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -104,10 +104,15 @@ class LegacyDiagnosticsFragment : Fragment() {
         refresh()
     }
 
+    // FRM-99's kdoc for this class already notes "Edit Friends superseded
+    // by Home's FAB"; this banner's own "Add friends" button (shown only in
+    // its empty state) is the other surviving entry point into the same
+    // flow, so FRM-102 repoints it here too rather than leaving it aimed at
+    // the now-deleted FriendListFragment.
     private fun openFriendList() {
         parentFragmentManager.commit {
-            replace(R.id.nav_host_container, FriendListFragment.newInstance(isOnboarding = false))
-            addToBackStack(null)
+            replace(R.id.nav_host_container, AddContactsStep1Fragment.newInstance())
+            addToBackStack(AddContactsStep1Fragment.BACK_STACK_NAME)
         }
     }
 

@@ -19,7 +19,7 @@
          dividers off colorOutlineVariant). colorSecondary* keeps pointing at
          the Phase 2 fm_secondary* tokens: those aren't part of the Phase 3
          palette but are still resolved by several not-yet-re-skinned list
-         rows (item_contact.xml, item_group_member.xml,
+         rows (item_add_contact_candidate.xml, item_group_member.xml,
          fragment_contact_detail.xml, bg_avatar_placeholder.xml) - the
          orphaned Dashboard's own streak badge, which used to be part of
          this list, was removed on FRM-101. -->

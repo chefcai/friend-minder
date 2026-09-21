@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Add-contact flow, Step 1 candidate row (FRM-102, SCREENS-PHASE3.md §9.2).
+  Same 76dp / 24dp-gutter / 48dp-avatar geometry as item_home_contact.xml,
+  and the selection control reuses that row's status-badge drawables
+  verbatim (bg_status_badge_ring / bg_status_badge_filled) at the same 28dp
+  slot - "the same two-state filled/open vocabulary the whole app now
+  speaks" (§9.2) - with a check glyph standing in for the streak numeral
+  rather than a new component. RelativeLayout for the same reason as
+  item_home_contact.xml: no ConstraintLayout dependency in this project.
+-->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/candidateRow"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/fm_home_row_height"
+    android:background="@drawable/bg_home_row_ripple"
+    android:clickable="true"
+    android:focusable="true">
+
+    <View
+        android:id="@+id/topDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="@dimen/fm_space_6"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:background="@color/fm_divider" />
+
+    <FrameLayout
+        android:id="@+id/avatarContainer"
+        android:layout_width="@dimen/fm_avatar_size_list"
+        android:layout_height="@dimen/fm_avatar_size_list"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="@dimen/fm_space_6">
+
+        <ImageView
+            android:id="@+id/contactPhoto"
+            android:layout_width="@dimen/fm_avatar_size_list"
+            android:layout_height="@dimen/fm_avatar_size_list"
+            android:background="@drawable/bg_avatar_placeholder"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/contactInitial"
+            android:layout_width="@dimen/fm_avatar_size_list"
+            android:layout_height="@dimen/fm_avatar_size_list"
+            android:background="@drawable/bg_avatar_placeholder"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/selectionControl"
+        android:layout_width="@dimen/fm_status_badge_size"
+        android:layout_height="@dimen/fm_status_badge_size"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="@dimen/fm_space_6">
+
+        <ImageView
+            android:id="@+id/selectionCheck"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:src="@drawable/ic_check"
+            app:tint="@color/fm_on_primary"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/textBlock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/avatarContainer"
+        android:layout_toStartOf="@id/selectionControl"
+        android:layout_marginStart="@dimen/fm_space_4"
+        android:layout_marginEnd="@dimen/fm_space_3">
+
+        <TextView
+            android:id="@+id/candidateName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="17sp"
+            android:textColor="@color/fm_ink" />
+
+        <TextView
+            android:id="@+id/candidatePhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="14sp"
+            android:textColor="@color/fm_ink_dim" />
+    </LinearLayout>
+
+</RelativeLayout>

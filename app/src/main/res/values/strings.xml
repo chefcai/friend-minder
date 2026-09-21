@@ -1,17 +1,18 @@
 <resources>
     <string name="app_name">Friend-Minder</string>
 
-    <!-- Friend List (FriendListFragment) -->
-    <string name="title_add_friends">Add Friends</string>
-    <string name="title_edit_friends">Edit Friends</string>
+    <!-- Add-contact flow, Step 1 (AddContactsStep1Fragment, FRM-102).
+         Replaces FriendListFragment; title_add_friends/title_edit_friends,
+         label_no_contacts_selected, action_save_friends and
+         label_not_found (that mode pair's "missing tracked contact" label)
+         had no equivalent need once onboarding and the old missing-contact
+         inline handling were both dropped (§9.0/§9.2) - see FRM-99's
+         missing-contacts banner for where that functionality actually
+         lives now. -->
     <string name="hint_search_contacts">Search contacts</string>
     <string name="format_selected_count">%1$d selected</string>
-    <string name="label_no_contacts_selected">No contacts selected yet</string>
-    <string name="action_save_friends">Save Friends</string>
-    <string name="label_not_found">Not found</string>
     <string name="label_no_contacts_with_numbers">No contacts with phone numbers found</string>
     <string name="label_no_search_results">No contacts match your search</string>
-    <string name="label_permission_denied">Enable contact access to add friends</string>
     <string name="action_open_settings">Open Settings</string>
     <string name="format_choose_phone_number">Which number for %1$s?</string>
     <string name="action_use_number">Use this number</string>
@@ -157,8 +158,6 @@
     <string name="action_pick_date">Pick date</string>
     <string name="label_special_dates_empty">No special dates yet</string>
     <string name="title_edit_frequency">Reminder Frequency</string>
-    <string name="action_reset_default">Reset to default</string>
-    <string name="format_frequency_slider_value">Every %1$d days</string>
     <string name="format_birthday_caption">🎂 %1$s</string>
     <string name="format_special_date_row">%1$s · %2$s</string>
     <string name="action_add_to_group_picker">Add to group</string>
@@ -276,4 +275,43 @@
          stays reachable rather than going silently dead - see
          SettingsFragment.kt and FRM-99's Jira comment. -->
     <string name="title_notifications_diagnostics">Notifications &amp; diagnostics</string>
+
+    <!-- Add-contact flow (FRM-102, SCREENS-PHASE3.md §9). Replaces
+         FriendListFragment/ContactAdapter/PickerItem in both of that
+         screen's former modes; onboarding is dropped entirely (§9.0), so
+         these strings have no "onboarding" variant the way the old
+         picker's mode pair did. -->
+    <string name="title_add_contacts_step1">Add contacts</string>
+    <string name="content_desc_cancel_add_contacts">Cancel adding contacts</string>
+    <string name="action_next">Next</string>
+    <string name="label_add_contacts_permission_headline">Friend-Minder needs your contacts</string>
+    <string name="label_add_contacts_permission_denied_body">It reads names and numbers only, and nothing leaves your phone.</string>
+    <string name="label_add_contacts_permission_permanently_denied_body">Enable contact access in your phone\'s Settings to add people to track.</string>
+    <string name="action_allow_access">Allow access</string>
+    <string name="label_add_contacts_no_numbers_body">Add a phone number to a contact on your phone, then try again.</string>
+    <plurals name="format_candidate_phone_number_count">
+        <item quantity="one">%1$d number</item>
+        <item quantity="other">%1$d numbers</item>
+    </plurals>
+    <string name="content_desc_candidate_selected">Selected</string>
+    <string name="content_desc_candidate_not_selected">Not selected</string>
+    <string name="label_add_contacts_select_to_continue">Select someone to continue</string>
+
+    <string name="title_add_contacts_step2">Set up</string>
+    <plurals name="format_add_contacts_selected_people">
+        <item quantity="one">1 person</item>
+        <item quantity="other">%1$d people</item>
+    </plurals>
+    <string name="format_avatar_overflow">+%1$d</string>
+    <string name="label_check_in_every">Check in every</string>
+    <string name="label_groups_value_none">None</string>
+    <string name="label_add_contacts_step2_note">You can change either of these for one person later.</string>
+    <plurals name="format_add_contacts_button">
+        <item quantity="one">Add 1 person</item>
+        <item quantity="other">Add %1$d people</item>
+    </plurals>
+    <plurals name="format_add_contacts_snackbar">
+        <item quantity="one">1 person added</item>
+        <item quantity="other">%1$d people added</item>
+    </plurals>
 </resources>

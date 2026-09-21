@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Add-contact flow, Step 2 "Set up" (AddContactsStep2Fragment, FRM-102,
+  SCREENS-PHASE3.md §9.4). Same edge-to-edge teal header pattern as Step 1/
+  Home/Overall History; back returns to Step 1 with selections intact (a
+  plain popBackStack - Step 1's own Fragment instance, and therefore its
+  state, survives being covered by this screen).
+
+  Below the header: an avatar-row summary of who was chosen, two tappable
+  value rows ("Check in every" / "Groups", same shape as Settings' own
+  value rows per §7.2), a one-line note, and a pinned "Add N people"
+  button. No RecyclerView/list here at all, so none of Step 1's own
+  scrolling concerns apply.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <!-- No root background: the theme's windowBackground already paints
+         fm_surface behind every screen (themes.xml), and adding it again
+         here is exactly the double-paint AAPT/lint flags as "Overdraw". -->
+
+    <LinearLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/fm_header">
+
+        <View
+            android:id="@+id/statusBarSpacer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/fm_home_header_height">
+
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="16dp"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/fm_on_primary"
+                android:contentDescription="@string/content_desc_back" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="72dp"
+                android:layout_marginEnd="@dimen/fm_space_6"
+                android:text="@string/title_add_contacts_step2"
+                android:textColor="@color/fm_on_primary"
+                android:textSize="@dimen/fm_header_title_size"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/fm_space_6"
+            android:paddingEnd="@dimen/fm_space_6"
+            android:paddingBottom="@dimen/fm_space_8">
+
+            <LinearLayout
+                android:id="@+id/avatarSummaryContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_6"
+                android:orientation="horizontal" />
+
+            <TextView
+                android:id="@+id/selectedCountText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_2"
+                android:textSize="16sp"
+                android:textColor="@color/fm_ink_dim" />
+
+            <LinearLayout
+                android:id="@+id/checkInEveryRow"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="@dimen/fm_space_6"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_home_row_ripple"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_check_in_every"
+                    android:textSize="17sp"
+                    android:textColor="@color/fm_ink" />
+
+                <TextView
+                    android:id="@+id/checkInEveryValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/fm_space_2"
+                    android:textSize="16sp"
+                    android:textColor="@color/fm_ink_dim" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/fm_divider" />
+
+            <LinearLayout
+                android:id="@+id/groupsRow"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_home_row_ripple"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_groups_header"
+                    android:textSize="17sp"
+                    android:textColor="@color/fm_ink" />
+
+                <TextView
+                    android:id="@+id/groupsValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/fm_space_2"
+                    android:textSize="16sp"
+                    android:textColor="@color/fm_ink_dim" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/fm_divider" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_4"
+                android:text="@string/label_add_contacts_step2_note"
+                android:textSize="14sp"
+                android:textColor="@color/fm_ink_dim" />
+        </LinearLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/fm_divider" />
+
+    <Button
+        android:id="@+id/addPeopleButton"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/fm_space_6"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:layout_marginTop="@dimen/fm_space_3"
+        android:layout_marginBottom="@dimen/fm_space_4" />
+
+</LinearLayout>

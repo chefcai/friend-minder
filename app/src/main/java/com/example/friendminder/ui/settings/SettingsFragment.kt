@@ -22,7 +22,6 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentSettingsBinding
-import com.example.friendminder.ui.home.HomeFragment
 import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
@@ -30,24 +29,23 @@ import java.util.Calendar
 import java.util.Locale
 
 /**
- * Reminder configuration (Designer spec §3.2). Onboarding mode is the second
- * step of first launch (no back arrow — back returns to FriendListFragment
- * via the ordinary back stack); edit mode is reachable from HomeFragment.
- * FRM-99: onboarding completion now lands on HomeFragment (the app's
- * Phase 3 root screen; formerly DashboardFragment, per GH #56 before it).
+ * Reminder configuration (Designer spec §3.2), reachable from the bottom
+ * nav (FRM-100). Carries the "Advanced" row (below the Save button) that
+ * opens [AdvancedSettingsFragment].
  *
- * FRM-79 (GH #90): in edit mode only, this screen also carries the
- * "Advanced" row (below the Save button) that opens
- * [AdvancedSettingsFragment] - it used to be a direct shortcut from
- * Dashboard's toolbar gear, which now opens HomeFragment (the setup hub)
- * instead.
+ * FRM-102 (SCREENS-PHASE3.md §9.0, "onboarding is dropped"): this screen
+ * used to run in two modes - a forward-only first-launch step reached from
+ * FriendListFragment with no back arrow, landing on HomeFragment on save,
+ * versus an edit mode reachable from the bottom nav. The app now always
+ * launches to Home (MainActivity no longer branches on "do you have
+ * friends yet"), so onboarding mode can never be entered and is retired
+ * here rather than left as dead, unreachable code - see MainActivity's own
+ * §9.0 update for the other half of this change.
  */
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-
-    private val isOnboarding: Boolean by lazy { requireArguments().getBoolean(ARG_ONBOARDING) }
 
     private var fixedHour = 8
     private var fixedMinute = 0
@@ -70,11 +68,9 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.toolbar.title = getString(R.string.title_settings)
-        if (!isOnboarding) {
-            binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
-            binding.toolbar.setNavigationOnClickListener {
-                requireActivity().onBackPressedDispatcher.onBackPressed()
-            }
+        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.contactsPerDaySpinner.adapter = ArrayAdapter(
@@ -128,10 +124,6 @@ class SettingsFragment : Fragment() {
 
         binding.saveSettingsButton.setOnClickListener { onSaveClicked() }
 
-        // FRM-79 (GH #90): Advanced is a set-once, edit-mode-only
-        // destination - not shown during onboarding, which flows straight
-        // into Dashboard on save (see onSaveClicked).
-        binding.advancedRow.visibility = if (isOnboarding) View.GONE else View.VISIBLE
         ViewCompat.setAccessibilityDelegate(binding.advancedRow, object : AccessibilityDelegateCompat() {
             override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                 super.onInitializeAccessibilityNodeInfo(host, info)
@@ -151,12 +143,9 @@ class SettingsFragment : Fragment() {
     }
 
     // FRM-99: interim wiring for the retired setup-hub's remaining content -
-    // see LegacyDiagnosticsFragment's kdoc. Onboarding-only gating mirrors
-    // advancedRow above for the same reason (nothing to diagnose yet on a
-    // first-launch flow with no friends added). Split out of onViewCreated
-    // to keep that function under detekt's LongMethod threshold.
+    // see LegacyDiagnosticsFragment's kdoc. Split out of onViewCreated to
+    // keep that function under detekt's LongMethod threshold.
     private fun setUpNotificationsDiagnosticsRow() {
-        binding.notificationsDiagnosticsRow.visibility = if (isOnboarding) View.GONE else View.VISIBLE
         ViewCompat.setAccessibilityDelegate(binding.notificationsDiagnosticsRow, object : AccessibilityDelegateCompat() {
             override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                 super.onInitializeAccessibilityNodeInfo(host, info)
@@ -283,17 +272,7 @@ class SettingsFragment : Fragment() {
 
             Toast.makeText(appContext, R.string.toast_settings_saved, Toast.LENGTH_SHORT).show()
 
-            if (isOnboarding) {
-                // Collapse the onboarding back-stack (FriendList -> Settings)
-                // so Dashboard becomes the new root (GH #56); back from
-                // Dashboard exits the app.
-                parentFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
-                parentFragmentManager.commit {
-                    replace(R.id.nav_host_container, HomeFragment.newInstance())
-                }
-            } else {
-                parentFragmentManager.popBackStack()
-            }
+            parentFragmentManager.popBackStack()
         }
     }
 
@@ -303,10 +282,6 @@ class SettingsFragment : Fragment() {
     }
 
     companion object {
-        private const val ARG_ONBOARDING = "arg_onboarding"
-
-        fun newInstance(isOnboarding: Boolean): SettingsFragment = SettingsFragment().apply {
-            arguments = Bundle().apply { putBoolean(ARG_ONBOARDING, isOnboarding) }
-        }
+        fun newInstance(): SettingsFragment = SettingsFragment()
     }
 }

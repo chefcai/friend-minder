@@ -39,7 +39,7 @@
 
     <!-- Phase 2 holdover: retired as a button fill (DESIGN-SYSTEM-PHASE3.md
          §6.2), but still resolved via themes.xml's colorSecondary* mapping
-         by several not-yet-re-skinned list rows (item_contact.xml,
+         by several not-yet-re-skinned list rows (item_add_contact_candidate.xml,
          item_group_member.xml, fragment_contact_detail.xml,
          bg_avatar_placeholder.xml). The orphaned Dashboard's own streak
          badge, which used to be the reason this stayed, was removed on

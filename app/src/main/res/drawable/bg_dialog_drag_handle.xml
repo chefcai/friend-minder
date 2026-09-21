@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phase 3 dialog drag handle (SCREENS-PHASE3.md §8.1): 4x32dp fm_divider,
+     fully rounded. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/fm_divider" />
+    <corners android:radius="@dimen/fm_dialog_handle_height" />
+</shape>
