@@ -65,6 +65,25 @@ class GroupDetailFragment : Fragment() {
         childFragmentManager.setFragmentResultListener(GroupEditDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ ->
             refresh()
         }
+        // GH #117: Contact Detail's own "Stop tracking" FAB pops back here
+        // after removing a member - same pop-back-stack-with-result
+        // pattern as this fragment's own AddContactToGroupDialogFragment/
+        // GroupEditDialogFragment listeners above, just registered on
+        // parentFragmentManager instead of childFragmentManager since
+        // Contact Detail is a sibling replacement, not a child dialog (see
+        // ContactDetailFragment.performStopTracking()'s kdoc). No nav-bar
+        // timing concern here (unlike HomeFragment's own listener for the
+        // same result) since Group Detail hides the bottom nav itself and
+        // this Snackbar isn't anchored to it.
+        parentFragmentManager.setFragmentResultListener(
+            ContactDetailFragment.CONTACT_REMOVED_RESULT_KEY, viewLifecycleOwner
+        ) { _, bundle ->
+            val removedName = bundle.getString(ContactDetailFragment.RESULT_REMOVED_CONTACT_NAME).orEmpty()
+            refresh()
+            Snackbar.make(
+                binding.root, getString(R.string.format_stop_tracking_removed_snackbar, removedName), Snackbar.LENGTH_LONG
+            ).show()
+        }
     }
 
     override fun onResume() {

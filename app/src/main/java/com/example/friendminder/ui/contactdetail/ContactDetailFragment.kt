@@ -17,8 +17,6 @@ import com.example.friendminder.databinding.ItemSpecialDateBinding
 import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
-import com.example.friendminder.ui.outreach.OutreachLogDialogFragment
-import com.example.friendminder.utils.FeatureFlags
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -76,13 +74,13 @@ class ContactDetailFragment : Fragment() {
         binding.addGroupButton.setOnClickListener {
             EditContactGroupsDialogFragment.newInstance(contactId).show(childFragmentManager, "edit_groups")
         }
-        binding.logOutreachButton.setOnClickListener {
-            OutreachLogDialogFragment.newInstance(contactId).show(childFragmentManager, "log_outreach")
-        }
+        binding.stopTrackingFab.setOnClickListener { confirmStopTracking() }
         binding.addSpecialDateButton.setOnClickListener { showAddSpecialDateDialog() }
 
         childFragmentManager.setFragmentResultListener(EditContactGroupsDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
-        childFragmentManager.setFragmentResultListener(OutreachLogDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
+        childFragmentManager.setFragmentResultListener(
+            ConfirmStopTrackingDialogFragment.RESULT_KEY, viewLifecycleOwner
+        ) { _, _ -> performStopTracking() }
         childFragmentManager.setFragmentResultListener(FREQUENCY_PICKER_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
             val pickedDays = bundle.getInt(ValuePickerDialogFragment.RESULT_VALUE)
             viewLifecycleOwner.lifecycleScope.launch {
@@ -145,15 +143,60 @@ class ContactDetailFragment : Fragment() {
         }
     }
 
+    // GH #117 (SCREENS-PHASE3.md §6.3): counts this contact's outreach
+    // logs before showing the confirmation sheet - the same "count the
+    // real cost first" approach HomeFragment.confirmBulkRemoval() (FRM-112)
+    // already uses, just for one contact instead of a selected set.
+    private fun confirmStopTracking() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val friends = ServiceLocator.friendListRepository.getFriendList()
+            val contact = friends.firstOrNull { it.id == contactId } ?: return@launch
+            val outreachCount = ServiceLocator.outreachLogRepository.getForContact(contactId).size
+            ConfirmStopTrackingDialogFragment.newInstance(contact.name, outreachCount)
+                .show(childFragmentManager, ConfirmStopTrackingDialogFragment::class.java.simpleName)
+        }
+    }
+
+    // Runs only after ConfirmStopTrackingDialogFragment reports a
+    // confirmed result (§6.3) - mirrors HomeFragment.performBulkRemoval()'s
+    // cleanup order exactly (outreach logs, then group memberships, then
+    // the frequency override, then the friend-list entry itself), for one
+    // contact instead of a selected set. The contact's own row in the
+    // phone's own contacts database is never touched (§6.3's other
+    // guarantee) - nothing here calls into ContactsContract at all.
+    //
+    // The result is handed to whichever screen this was reached from
+    // (Home's row taps, or Group Detail's member rows - see this class's
+    // own kdoc) via the Fragment Result API: the same pop-back-stack-with-
+    // result pattern HomeFragment.ADD_CONTACTS_RESULT_KEY already uses, and
+    // it works the same way here because both live in the same
+    // FragmentManager (MainActivity's) - Contact Detail is a sibling
+    // replacement of whichever screen opened it, not a nested child.
+    private fun performStopTracking() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val friends = ServiceLocator.friendListRepository.getFriendList()
+            val contact = friends.firstOrNull { it.id == contactId } ?: return@launch
+
+            val outreachLogRepo = ServiceLocator.outreachLogRepository
+            val groupService = ServiceLocator.groupService
+            val reminderFrequencyRepo = ServiceLocator.reminderFrequencyRepository
+
+            outreachLogRepo.getForContact(contactId).forEach { log -> outreachLogRepo.delete(log.id) }
+            groupService.getGroupsForContact(contactId).forEach { group -> groupService.removeContactFromGroup(contactId, group.id) }
+            reminderFrequencyRepo.clearOverride(contactId)
+            ServiceLocator.friendListRepository.removeFriend(contactId)
+
+            parentFragmentManager.setFragmentResult(
+                CONTACT_REMOVED_RESULT_KEY, bundleOf(RESULT_REMOVED_CONTACT_NAME to contact.name)
+            )
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
     private fun showHistory() {
         showingHistory = true
         binding.historyToggleButton.isChecked = true
         binding.historyRecyclerView.visibility = View.VISIBLE
-        // FRM-114: manual outreach logging is behind a flag, deferred to a
-        // higher subscription tier - the button itself, not just its
-        // action, is what's hidden while the flag is off (the History tab
-        // and everything else on this screen are unaffected).
-        binding.logOutreachButton.visibility = if (FeatureFlags.MANUAL_OUTREACH_LOGGING) View.VISIBLE else View.GONE
         binding.specialDatesScroll.visibility = View.GONE
         refreshHistoryEmptyState()
     }
@@ -162,7 +205,6 @@ class ContactDetailFragment : Fragment() {
         showingHistory = false
         binding.specialDatesToggleButton.isChecked = true
         binding.historyRecyclerView.visibility = View.GONE
-        binding.logOutreachButton.visibility = View.GONE
         binding.historyEmptyText.visibility = View.GONE
         binding.specialDatesScroll.visibility = View.VISIBLE
     }
@@ -181,6 +223,7 @@ class ContactDetailFragment : Fragment() {
             }
 
             binding.headerTitle.text = contact.name
+            binding.stopTrackingFab.contentDescription = getString(R.string.format_content_desc_stop_tracking, contact.name)
             binding.contactNameText.text = contact.name
             AvatarBinder.bind(
                 binding.contactPhoto,
@@ -216,6 +259,17 @@ class ContactDetailFragment : Fragment() {
             frequencyText
         }
 
+        // formatDaysAgo folded into a local lambda (only used here) to make
+        // room for GH #117's confirmStopTracking()/performStopTracking()
+        // under detekt's TooManyFunctions threshold - same technique used
+        // for updatePickDateButtonText in showAddSpecialDateDialog (GH #132).
+        val formatDaysAgo = { days: Int? ->
+            when {
+                days == null -> getString(R.string.label_never_contacted)
+                days <= 0 -> getString(R.string.label_today)
+                else -> resources.getQuantityString(R.plurals.format_days_ago, days, days)
+            }
+        }
         binding.lastContactText.text = getString(R.string.format_last_contact, formatDaysAgo(stats.daysSinceContact))
         binding.streakText.text = resources.getQuantityString(R.plurals.format_streak_days, stats.streak, stats.streak)
         binding.reachRateText.text = getString(R.string.format_reach_rate, stats.reachRate)
@@ -256,6 +310,16 @@ class ContactDetailFragment : Fragment() {
     }
 
     private fun bindSpecialDates(contact: Contact) {
+        // reminderLabel folded into a local lambda (only used here) - see
+        // bindStats' formatDaysAgo comment for why (GH #117).
+        val reminderLabel = { daysBefore: Int ->
+            when (daysBefore) {
+                0 -> getString(R.string.label_reminder_day_of)
+                -1 -> getString(R.string.label_reminder_1_day_before)
+                -DAYS_IN_WEEK -> getString(R.string.label_reminder_1_week_before)
+                else -> getString(R.string.label_reminder_day_of)
+            }
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             val dates = ServiceLocator.birthdayService.getSpecialDatesForContact(contact.id)
             binding.specialDatesContainer.removeAllViews()
@@ -277,19 +341,6 @@ class ContactDetailFragment : Fragment() {
                 binding.specialDatesContainer.addView(itemBinding.root)
             }
         }
-    }
-
-    private fun reminderLabel(daysBefore: Int): String = when (daysBefore) {
-        0 -> getString(R.string.label_reminder_day_of)
-        -1 -> getString(R.string.label_reminder_1_day_before)
-        -DAYS_IN_WEEK -> getString(R.string.label_reminder_1_week_before)
-        else -> getString(R.string.label_reminder_day_of)
-    }
-
-    private fun formatDaysAgo(days: Int?): String = when {
-        days == null -> getString(R.string.label_never_contacted)
-        days <= 0 -> getString(R.string.label_today)
-        else -> resources.getQuantityString(R.plurals.format_days_ago, days, days)
     }
 
     private fun formatMonthDay(month: Int, day: Int): String {
@@ -364,6 +415,12 @@ class ContactDetailFragment : Fragment() {
     companion object {
         private const val ARG_CONTACT_ID = "arg_contact_id"
         private const val DAYS_IN_WEEK = 7
+
+        // GH #117: result key/extra for the pop-back-stack-with-result
+        // handoff to whichever screen opened this one - see
+        // performStopTracking()'s kdoc.
+        const val CONTACT_REMOVED_RESULT_KEY = "contact_detail_removed_result"
+        const val RESULT_REMOVED_CONTACT_NAME = "removed_contact_name"
         private val MONTH_DAY_FORMAT = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
 
         // FRM-102: the frequency picker's fixed option set (SCREENS-PHASE3.md

@@ -270,6 +270,15 @@
         <item quantity="other">%1$d people removed</item>
     </plurals>
 
+    <!-- GH #117 single-contact removal (SCREENS-PHASE3.md §6.3). Reuses
+         action_stop_tracking and the format_bulk_removal_confirm_outreaches
+         plural above rather than duplicating either - only the
+         name-carrying strings are new. -->
+    <string name="format_content_desc_stop_tracking">Stop tracking %1$s</string>
+    <string name="format_stop_tracking_confirm_title">Stop tracking %1$s?</string>
+    <string name="format_stop_tracking_confirm_body">This deletes %1$s. %2$s stays in your phone\'s contacts.</string>
+    <string name="format_stop_tracking_removed_snackbar">%1$s removed</string>
+
     <!-- Bottom navigation (FRM-100): exactly three icon-only destinations.
          Each string doubles as the menu item's accessibility label and its
          long-press tooltip (DESIGN-SYSTEM-PHASE3.md §8: "every icon-only
