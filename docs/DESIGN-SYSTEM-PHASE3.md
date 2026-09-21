@@ -1,7 +1,7 @@
 # Friend-Minder — Phase 3 Design System
 
 **Owner:** Designer-P3 · **Ticket:** [FRM-98](https://chefcai.atlassian.net/browse/FRM-98) · **Epic:** [FRM-93](https://chefcai.atlassian.net/browse/FRM-93)
-**Status:** Awaiting Cai's sign-off on FRM-98. Not implementable until that comment exists.
+**Status:** ✅ Approved by Cai 2026-09-21 (FRM-98, including the rev-3 delta). Cleared for Publisher-P3.
 **Supersedes:** `docs/DESIGN-SYSTEM-PHASE2.md` — **delete that file in the same PR that adds this one.** Phase 2 shipped a Warm-Circle/Cool-Rebrand collision precisely because two palette docs coexisted; do not repeat it.
 
 **Source of the aesthetic:** the hero mockup on friendminder.walkowiaks.com (`images/hero-mockup.png`) and the marketing site's own CSS custom properties, which are the only place the intended brand has ever been expressed accurately.
@@ -145,7 +145,7 @@ One bug to fix while touching this, found on device: in the New Group dialog the
 
 ## 3. Typography
 
-**Roboto**, system-supplied. No custom font — a font file is a build dependency and an F-Droid review surface, for no gain.
+**Roboto**, system-supplied. No custom font — a font file is a build dependency and an app-size cost, for no gain. (The original wording cited F-Droid review; F-Droid was dropped as a channel on 2026-09-21. The decision stands on its own merits.)
 
 | Style | Size / line | Weight | Use |
 |---|---|---|---|
@@ -208,7 +208,7 @@ Every interactive element has a ≥48dp touch target even where the drawn elemen
 | Empty-state graphic | 96dp |
 
 - Corner radius: **16dp** for filled blocks and bottom sheets, **12dp** for inputs, **28dp** (pill) for buttons, full circle for avatars and badges.
-- Avatars are full circles with **no** border — except the four light fills (Sky, Seafoam, Sand, Rose), which take a 1dp `fm_divider` hairline so the circle still has an edge against white.
+- Avatars are full circles with **no** border — except the four light fills (Sky, Seafoam, Sand, Rose) **and every photo avatar**, which take a 1dp `fm_divider` hairline so the circle still has an edge against white. See §6.10.
 - Photo loading placeholder: `fm_surface_sunken` circle. Never a blank or transparent circle.
 
 ### 4.4 Elevation
@@ -253,10 +253,10 @@ Flat rows on `fm_surface`, separated by a 1dp `fm_divider` hairline **inset 24dp
 ### 6.2 Buttons
 - **Filled** — `fm_primary` ground, white label, 56dp, pill radius. The one primary action on a screen.
 - **Text** — label in `fm_primary` on white, `fm_accent` on any tint (§2.4). 48dp target.
-- **Icon** — 48dp target, 26dp glyph, `fm_ink_dim` inactive / `fm_primary` active.
+- **Icon** — 48dp target, 26dp glyph, `fm_ink_dim` inactive / `fm_primary` active. This is the generic icon *button*; the bottom-nav glyph is 28dp and is specified in §6.9.
 - **FAB** — 56dp, `fm_primary`, white 26dp glyph, 3dp elevation, 24dp from the right gutter and 16dp above the bottom nav.
 
-Phase 2's use of `fm_secondary #5ABBEB` as a large button fill (the *Log Outreach* button) is retired: a pale cyan fill with dark text reads as disabled. Primary actions are `fm_primary`.
+Phase 2's use of `fm_secondary #5ABBEB` as a large button fill is retired: a pale cyan fill with dark text reads as disabled. Primary actions are `fm_primary`. (The button that carried that fill — *Log Outreach* — is itself removed from the UI per FRM-114; the rule outlives it.)
 
 ### 6.3 Inputs
 `fm_surface_sunken` fill, 1dp `fm_outline` border, 12dp radius, 56dp tall, 16dp internal padding, `fm_ink` text, `fm_ink_dim` hint. Focus: border thickens to 2dp in `fm_primary`. A label above the field in Section Label style, not a floating placeholder.
@@ -275,6 +275,84 @@ See SCREENS-PHASE3 for per-screen copy. Shape: 96dp glyph in `fm_ink_dim` at 40%
 
 ### 6.8 Charts
 Bar chart, `fm_primary` bars, 4dp top-corner radius, no gridlines, no axis lines, Caption-style labels in `fm_ink_dim`. Values appear on tap, not persistently. The chart sits directly on the surface; only the key-metric block above it may use `fm_surface_accent`.
+
+---
+
+### 6.9 Bottom-nav glyphs — exact geometry
+
+Three glyphs, each drawn in a **28×28 viewBox** rendered at **28dp**, centred in a 48dp touch target. Inactive is the outline variant in `fm_ink_dim` `#4C6A6E`; active is the filled variant in `fm_primary` `#1F817D`. The outline→filled change is what carries state without relying on colour (§9).
+
+**Slot 1 — Groups.** Three people: one in front, two behind. Approved by Cai 2026-09-21 (GH #119) after the two-circle glyph was found not to read.
+
+Inactive — every stroke `1.9`, `stroke-linecap="round"`, no fill:
+
+```
+circle cx=5    cy=8.2  r=2.7
+circle cx=23   cy=8.2  r=2.7
+path   M1.2 19.2c0-2.9 1.9-4.4 4.4-4.4
+path   M26.8 19.2c0-2.9-1.9-4.4-4.4-4.4
+circle cx=14   cy=10.2 r=3.5
+path   M6.4 22.6c0-3.5 3.4-5.6 7.6-5.6s7.6 2.1 7.6 5.6
+```
+
+Active — all fill, no stroke; the two open shoulder arcs become closed wedges and the heads grow to compensate for the lost stroke width:
+
+```
+circle cx=5    cy=8.2  r=3
+circle cx=23   cy=8.2  r=3
+path   M1.2 19.2c0-2.9 1.9-4.4 4.4-4.4v4.4z
+path   M26.8 19.2c0-2.9-1.9-4.4-4.4-4.4v4.4z
+circle cx=14   cy=10.2 r=3.9
+path   M6.4 22.6c0-3.5 3.4-5.6 7.6-5.6s7.6 2.1 7.6 5.6z
+```
+
+**Three constraints in that geometry are load-bearing. Do not "tidy" them.**
+
+1. **One stroke weight, 1.9, for all six elements.** An earlier draft put 1.7 on the two back figures. In a glyph this dense the thinnest stroke is the one that disappears first, and the thing that disappears is precisely what makes this read as *three* rather than two.
+2. **The 0.9dp channel between the front head and the figures behind it.** Front head r3.5 at cx14 gives an outer edge of 9.55; the back heads' outer edge is 8.65. That 0.9dp of white is the whole depth cue. Enlarging the front head closes it and the glyph becomes a blob.
+3. **The outer shoulders are arcs that tuck under the front figure's shoulder line**, not floating stubs. A detached 4dp stub reads as a smudge at 20dp.
+
+Verified legible at 28dp, 24dp and 20dp — 20dp standing in for a dim screen, a reduced display scale and arm's length.
+
+**Slot 2 — Overall History.** Three rounded bars, unchanged; it was the one glyph nobody had trouble with.
+
+```
+rect x=4.5  y=15   w=4.6 h=8.4  rx=1.4
+rect x=11.7 y=9.4  w=4.6 h=14   rx=1.4
+rect x=18.9 y=12.6 w=4.6 h=10.8 rx=1.4
+```
+
+Inactive: stroke `1.8`, no fill. Active: fill, no stroke.
+
+**Slot 3 — Settings.** The gear from FRM-100, drawn in a **24×24** viewBox and rendered at 28dp. Its inner circle is centred on the cog body at `cx=12 cy=12`; that centring was a defect Cai caught once already and it is the first thing to re-check if the glyph is ever redrawn.
+
+---
+
+### 6.10 Avatars — photo before initials
+
+Approved by Cai 2026-09-21 (GH #116). Sizes are §4.3: 48dp in lists, 96dp on Contact Detail, 64dp in the notification.
+
+**The source order is photo, then initials.** Where the phone's own contacts database holds a photo for a tracked contact, that photo *is* the avatar. The coloured-initials fallback of §2.6 is what happens when there isn't one — it was never the goal, only the floor.
+
+| Size | `ContactsContract` field |
+|---|---|
+| 48dp, 64dp | `PHOTO_THUMBNAIL_URI` |
+| 96dp | `PHOTO_URI` |
+
+Read it through the existing `ContactsLoader` query. **Do not introduce the system contact-picker UI for this** — the app queries `ContactsContract` directly and that stays true.
+
+**Rules, in the order they bite:**
+
+1. **Never mix the two.** A photo avatar carries no coloured fill and no initials, not even behind a transparent PNG. One or the other, whole.
+2. **Every photo takes the 1dp `fm_divider` `#CFE7EA` hairline**, inset so the diameter is unchanged. This is not optional the way it is for the dark fills: a photo with a pale edge — a bright sky, a white wall, a studio backdrop — has exactly the dissolving-into-the-row problem the hairline exists to solve, and you cannot know in advance which photos those are.
+3. **Circular crop, centre-crop, never letterboxed.** A photo's aspect ratio is whatever the contact's camera gave it; fitting it inside the circle leaves bars, and bars inside a circle look like a bug.
+4. **Fall back silently.** No photo, an unreadable photo, or `READ_CONTACTS` revoked → the §2.6 initials avatar, with no broken-image glyph, no error text and no gap. A revoked permission is a state the user chose; it is not a failure to report in a list row.
+5. **Initials first, photo when it arrives.** Render the fallback immediately and swap once the photo resolves. Do **not** show a grey placeholder, a spinner or an empty circle — at 48dp in a scrolling list those read as flicker, and the initials are a correct answer rather than a waiting state.
+6. **Cache by contact lookup URI, not by a bitmap snapshot taken when the contact was added.** Someone who adds a photo in their phone's contacts app expects it to appear here; a snapshot taken at add time never updates and the contact is stuck faceless forever.
+
+**Where it applies:** Home rows, Contact Detail, Overall History's longest-streak rows, both steps of the add-contact flow, and the notification. Everywhere an avatar appears, one rule.
+
+**What it does not touch:** selection mode. The selection control lives in the row's trailing 28dp slot (SCREENS §10.3), not on the avatar, so photos and selection never compete for the same pixels.
 
 ---
 
@@ -302,6 +380,7 @@ All animations respect the system "remove animations" setting — check `ValueAn
 - [ ] Active bottom-nav state is carried by a filled-vs-outline glyph, not by colour alone.
 - [ ] Status badges pair colour with a distinct glyph or numeral (§6.5).
 - [ ] Avatar initials use the fixed paired ink from §2.6, not a computed one.
+- [ ] Photo avatars carry the 1dp hairline and fall back silently when absent or unreadable (§6.10).
 - [ ] Light status-bar icons set explicitly; verify against the teal header on a device with a notch and one without.
 - [ ] Text scaling to 200% does not clip contact rows — the name/last-touch block is the flexible element; the avatar and badge are fixed.
 
