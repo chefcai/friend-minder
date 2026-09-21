@@ -43,7 +43,7 @@ object DashboardChartCalculator {
      * How many weeks ago each bar in a [weeklyBuckets]-shaped list represents,
      * oldest bar first (index 0) to the current week last (`0`) - e.g.
      * `[3, 2, 1, 0]` for 4 bars. Pure index math, split out so
-     * [DashboardFragment][com.example.friendminder.ui.dashboard.DashboardFragment]
+     * [OverallHistoryFragment][com.example.friendminder.ui.history.OverallHistoryFragment]
      * can turn it into localized axis-label strings ("This wk", "2wk ago", ...)
      * without duplicating the oldest-first ordering [weeklyBuckets] already
      * established (GH #101 - axis labels were entirely missing from the chart).

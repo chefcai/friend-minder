@@ -18,15 +18,23 @@ private const val MAX_BAR_HEIGHT_FRACTION = 0.92f
 private const val CORNER_RADIUS_DP = 4f
 private const val AXIS_LABEL_AREA_HEIGHT_DP = 18f
 private const val AXIS_LABEL_BASELINE_INSET_DP = 4f
-private const val AXIS_LABEL_TEXT_SIZE_SP = 12f
+// Caption (DESIGN-SYSTEM-PHASE3.md §3): 13sp/18sp/400.
+private const val AXIS_LABEL_TEXT_SIZE_SP = 13f
+private const val BASELINE_STROKE_WIDTH_DP = 1f
 
 /**
- * Minimal Canvas bar chart for the Dashboard's "Monthly outreach" card
- * (Designer's DESIGN-SYSTEM-PHASE2.md §5.6): one bar per week, `primary`
- * color, 4dp top-corner radius, persistent Caption-style axis labels
- * (`on-surface-variant`) under each bar, no gridlines — a tap shows the
- * exact count as a short Toast (~2s, per "Chart interaction" in
- * SCREENS-PHASE2.md §2), rather than a persistent value label.
+ * Minimal Canvas bar chart for the Overall History screen's "Monthly
+ * outreach" section (FRM-101, DESIGN-SYSTEM-PHASE3.md §6.8 +
+ * SCREENS-PHASE3.md §4.5): one bar per week, `fm_primary` color, 4dp
+ * top-corner radius, a 1dp `fm_divider` baseline across the full width,
+ * and persistent Caption-style axis labels (`fm_ink_dim`) under each bar -
+ * no gridlines, no frame, no card (re-skinned from the orphaned
+ * Dashboard's card-bound original; the bucket/scaling math and
+ * tap-to-reveal behavior below are unchanged). A tap shows the exact
+ * count as a short Toast (~2s, per "Chart interaction" in the original
+ * SCREENS-PHASE2.md §2, carried forward unchanged - §6.8's "values on
+ * tap, not persistently" matches it), rather than a persistent value
+ * label.
  *
  * Deliberately a hand-rolled View rather than a charting library: the PRD's
  * Definition of Done explicitly rules out new external dependencies to stay
@@ -47,7 +55,8 @@ private const val AXIS_LABEL_TEXT_SIZE_SP = 12f
  * branch was dead code, not just fragile. Fixed by making the view
  * explicitly clickable and consuming `ACTION_DOWN`. Also asks its parent to
  * not intercept mid-gesture ([android.view.ViewParent.requestDisallowInterceptTouchEvent]) -
- * this card sits inside `fragment_dashboard.xml`'s `ScrollView`, and a real
+ * this view sits inside `fragment_overall_history.xml`'s single
+ * `ScrollView` (formerly `fragment_dashboard.xml`'s), and a real
  * finger tap almost always includes a little incidental movement, which a
  * `ScrollView` can otherwise interpret as the start of a scroll and steal
  * the rest of the gesture before `ACTION_UP` ever arrives.
@@ -64,7 +73,7 @@ class BarChartView @JvmOverloads constructor(
         color = ContextCompat.getColor(context, R.color.fm_primary)
     }
     private val axisLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.fm_on_surface_variant)
+        color = ContextCompat.getColor(context, R.color.fm_ink_dim)
         textAlign = Paint.Align.CENTER
         textSize = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_SP,
@@ -72,9 +81,16 @@ class BarChartView @JvmOverloads constructor(
             resources.displayMetrics
         )
     }
+    // DESIGN-SYSTEM-PHASE3.md §4.5: "1dp fm_divider baseline across content
+    // width, no gridlines/frame" - drawn full-width (not gap-inset like the
+    // bars), at the same y the bars sit on.
+    private val baselinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.fm_divider)
+    }
     private val barRects = mutableListOf<RectF>()
     private val density = resources.displayMetrics.density
     private val cornerRadius = density * CORNER_RADIUS_DP
+    private val baselineStrokeWidth = density * BASELINE_STROKE_WIDTH_DP
 
     init {
         isClickable = true
@@ -98,7 +114,7 @@ class BarChartView @JvmOverloads constructor(
     }
 
     private fun buildContentDescription(values: List<Int>, labels: List<String>): String {
-        val header = context.getString(R.string.label_dashboard_chart_header)
+        val header = context.getString(R.string.label_overall_history_chart_header)
         val series = values.indices.joinToString(", ") { index ->
             val count = context.getString(R.string.format_chart_bar_count, values[index])
             if (index < labels.size) "${labels[index]}: $count" else count
@@ -119,6 +135,8 @@ class BarChartView @JvmOverloads constructor(
         val barCount = values.size
         val gap = width * GAP_FRACTION / barCount
         val barWidth = (width - gap * (barCount + 1)) / barCount
+
+        canvas.drawRect(0f, chartHeight - baselineStrokeWidth, width.toFloat(), chartHeight, baselinePaint)
 
         values.forEachIndexed { index, value ->
             val left = gap + index * (barWidth + gap)

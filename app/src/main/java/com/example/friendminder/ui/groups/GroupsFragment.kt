@@ -18,9 +18,10 @@ import kotlinx.coroutines.launch
 
 /**
  * FRM-56: the Groups tab (PRD §6.1; SCREENS-PHASE2.md §3). No separate
- * GroupsViewModel — see [com.example.friendminder.ui.dashboard.DashboardFragment]'s
- * kdoc for why every Phase 2 screen keeps state in the Fragment itself,
- * matching the rest of the app.
+ * GroupsViewModel — see [com.example.friendminder.ui.home.HomeFragment]'s
+ * kdoc for why every screen in this app keeps state in the Fragment
+ * itself, matching the rest of the app (formerly explained on the now-
+ * deleted DashboardFragment's kdoc, FRM-101).
  */
 class GroupsFragment : Fragment() {
 
