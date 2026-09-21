@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overall History's key-metric block (FRM-101, DESIGN-SYSTEM-PHASE3.md
+     §4.3/§4.4): the one fm_surface_accent block this screen is allowed,
+     16dp corner radius per §4.3's "16dp for filled blocks." No
+     MaterialCardView - Phase 3 principle §1.2 is explicit that cards are
+     not used anywhere; a plain rounded-rect background is the whole
+     mechanism. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/fm_surface_accent" />
+    <corners android:radius="16dp" />
+</shape>

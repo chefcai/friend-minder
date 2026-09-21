@@ -16,9 +16,11 @@
   fm_status_*, fm_surface_variant/fm_on_surface_variant,
   fm_outline_variant) are Phase 2 holdovers, kept unchanged and defined
   here only because they're still referenced by screens Phase 3 hasn't
-  re-skinned yet (Dashboard - orphaned pending FRM-101's route removal -
-  and Settings' advancedRow). Do not add new uses of them; new work reads
-  from the Phase 3 tokens below.
+  re-skinned yet (Settings' advancedRow, plus a few shared list-row
+  tokens - see fm_secondary's own comment below). The orphaned
+  Dashboard's route and its own remaining references were removed on
+  FRM-101. Do not add new uses of these; new work reads from the Phase 3
+  tokens below.
 -->
 <resources>
     <!-- Adaptive icon background (FRM-65). Deliberately NOT tied to
@@ -36,9 +38,12 @@
     <color name="fm_on_accent">#FFFFFF</color>
 
     <!-- Phase 2 holdover: retired as a button fill (DESIGN-SYSTEM-PHASE3.md
-         §6.2) but still referenced by the orphaned Dashboard's streak badge
-         drawable and by themes.xml's colorSecondary mapping. Untouched
-         value; not part of the Phase 3 palette. -->
+         §6.2), but still resolved via themes.xml's colorSecondary* mapping
+         by several not-yet-re-skinned list rows (item_contact.xml,
+         item_group_member.xml, fragment_contact_detail.xml,
+         bg_avatar_placeholder.xml). The orphaned Dashboard's own streak
+         badge, which used to be the reason this stayed, was removed on
+         FRM-101. Untouched value; not part of the Phase 3 palette. -->
     <color name="fm_secondary">#5ABBEB</color>
     <color name="fm_on_secondary">#0A2E31</color>
     <color name="fm_secondary_container">#D6EBF8</color>
@@ -82,9 +87,11 @@
     <!-- Phase 2 holdover contact-health colors. Not part of Phase 3's
          status system (DESIGN-SYSTEM-PHASE3.md §2.5 replaces per-row status
          entirely with the two-state badge - see HomeFragment /
-         item_home_contact.xml) - kept only because the orphaned Dashboard
-         (item_dashboard_neglected.xml) and Settings' advancedRow still
-         reference them. -->
+         item_home_contact.xml) - kept only because Settings' advancedRow
+         still references them (fm_status_healthy). The orphaned
+         Dashboard's item_dashboard_neglected.xml, the only other
+         consumer, was deleted on FRM-101 along with the rest of that
+         screen; full retirement of these four colors is FRM-103 scope. -->
     <color name="fm_status_healthy">#16699B</color>
     <color name="fm_status_attention">#22615E</color>
     <color name="fm_status_neglected">#105750</color>

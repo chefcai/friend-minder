@@ -87,27 +87,17 @@
     <string name="format_birthday_message">Happy birthday, %1$s! 🎉</string>
     <string name="format_special_date_body">%1$s today</string>
 
-    <!-- Dashboard (DashboardFragment, FRM-55) -->
-    <string name="title_dashboard">Dashboard</string>
-    <plurals name="format_dashboard_key_metric">
-        <item quantity="zero">You haven\'t reached out to anyone this month yet</item>
-        <item quantity="one">You\'ve reached out to %1$d contact this month</item>
-        <item quantity="other">You\'ve reached out to %1$d contacts this month</item>
-    </plurals>
-    <string name="label_dashboard_streaks_header">Your strongest connections</string>
-    <string name="label_dashboard_neglected_header">Needs attention</string>
-    <string name="label_dashboard_chart_header">Monthly outreach</string>
-    <string name="label_dashboard_upcoming_header">Upcoming birthdays &amp; dates</string>
-    <string name="label_dashboard_empty">Reach out to a few friends to see your stats here</string>
+    <!-- Shared last-touch/history formatting used by Contact Detail
+         (ContactDetailFragment) and Home (HomeLastTouchFormatter).
+         Formerly also shared with DashboardFragment, retired on FRM-101 -
+         Overall History's own last-touch display goes through
+         HomeLastTouchFormatter instead (reusing Home's row exactly, per
+         SCREENS-PHASE3.md §4.6), not this elapsed-based ladder. -->
     <string name="label_today">Today</string>
     <string name="label_never_contacted">Never contacted</string>
     <plurals name="format_days_ago">
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>
-    </plurals>
-    <plurals name="format_upcoming_in_days">
-        <item quantity="one">in %1$d day</item>
-        <item quantity="other">in %1$d days</item>
     </plurals>
     <string name="format_last_contact">Last contact: %1$s</string>
     <plurals name="format_streak_days">
@@ -249,7 +239,31 @@
     <string name="nav_label_groups">Groups</string>
     <string name="nav_label_overall_history">Overall History</string>
     <string name="nav_label_settings">Settings</string>
-    <string name="label_overall_history_stub">Overall History is on its way. In the meantime, your monthly outreach chart and totals are still tracked - they will land here once this screen is designed (FRM-101).</string>
+
+    <!-- Overall History (OverallHistoryFragment, FRM-101, SCREENS-PHASE3.md
+         §4). Replaces the orphaned Dashboard's key-metric card and monthly
+         chart. "Needs attention" is retired (Home's per-row badge already
+         covers it); the aggregated upcoming-dates list is retired too, as a
+         cross-contact view (moved to FRM-105) - the per-contact Special
+         Dates tab and its notifications are unaffected. -->
+    <string name="content_desc_back">Back</string>
+    <!-- §4.4: figure and label are two separate views, never string
+         concatenation, so the figure alone can be 48sp while the label
+         stays 16sp. This plural is the label only. -->
+    <plurals name="label_overall_history_key_metric">
+        <item quantity="one">contact reached this month</item>
+        <item quantity="other">contacts reached this month</item>
+    </plurals>
+    <!-- §4.4: single contentDescription on the whole key-metric block, so
+         TalkBack reads one full statement rather than "48" then a label. -->
+    <plurals name="format_overall_history_key_metric_description">
+        <item quantity="one">%1$d contact reached this month</item>
+        <item quantity="other">%1$d contacts reached this month</item>
+    </plurals>
+    <string name="label_overall_history_chart_header">Monthly outreach</string>
+    <string name="label_overall_history_streaks_header">Longest streaks</string>
+    <string name="label_overall_history_empty_headline">Nothing to show yet</string>
+    <string name="label_overall_history_empty_body">Log an outreach or two and your history will build up here.</string>
 
     <!-- FRM-99: the old root-menu path into the setup-hub screen (banners +
          test notification) retired with the Dashboard toolbar it hung off
