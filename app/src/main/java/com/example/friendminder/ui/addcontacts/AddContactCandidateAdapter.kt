@@ -12,6 +12,7 @@ import com.example.friendminder.data.contacts.ContactPhotoLoader
 import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.ItemAddContactCandidateBinding
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.ui.common.PhoneNumberDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
@@ -64,7 +65,9 @@ class AddContactCandidateAdapter(
                     R.plurals.format_candidate_phone_number_count, row.phoneNumberCount, row.phoneNumberCount
                 )
             } else {
-                row.contact.phoneNumber
+                // FRM-129: format for readability; falls back to the raw value
+                // whenever it can't be confidently formatted (see PhoneNumberDisplay).
+                PhoneNumberDisplay.format(row.contact.phoneNumber)
             }
 
             bindSelectionControl(row)

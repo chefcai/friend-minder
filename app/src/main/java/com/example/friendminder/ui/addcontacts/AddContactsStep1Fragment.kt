@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.fragment.app.setFragmentResultListener
@@ -125,6 +126,7 @@ class AddContactsStep1Fragment : Fragment() {
         }
 
         applyHeaderInsets()
+        applyFooterInsets()
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS)
             == android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -182,6 +184,44 @@ class AddContactsStep1Fragment : Fragment() {
             insets
         }
         ViewCompat.requestApplyInsets(binding.headerContainer)
+    }
+
+    /**
+     * FRM-118/FRM-128: this screen enables edge-to-edge for itself (same as
+     * Home), but until now nothing accounted for the BOTTOM inset - the
+     * pinned footer sat flush against the true bottom of the window with
+     * no clearance for the system nav bar/gesture area, which could push
+     * "Next" partly or fully into territory the system reserves for its
+     * own back-swipe gesture (FRM-118). Mirrors MainActivity's bottom-nav
+     * fix: grow the footer's existing bottom padding by the real inset
+     * rather than replacing it.
+     *
+     * The list's bottom padding can't be a fixed borrowed constant either
+     * (FRM-128 - SCREENS-PHASE3.md SS9.2 wants "footer height + 16dp",
+     * and the footer's real height now also depends on the inset above,
+     * plus whether its explanatory copy wraps to a second line at zero
+     * selected) - it's recomputed from the footer's actual measured
+     * height every time that height changes, in both directions.
+     */
+    private fun applyFooterInsets() {
+        val updateCandidateListBottomPadding = {
+            val runOut = resources.getDimensionPixelSize(R.dimen.fm_space_4)
+            binding.candidateRecyclerView.updatePadding(bottom = binding.footerBar.height + runOut)
+        }
+
+        val baseFooterPaddingBottom = binding.footerBar.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.footerBar) { view, insets ->
+            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            view.updatePadding(bottom = baseFooterPaddingBottom + bottomInset)
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.footerBar)
+
+        binding.footerBar.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top != oldBottom - oldTop) {
+                updateCandidateListBottomPadding()
+            }
+        }
     }
 
     private fun cancelFlow() {
