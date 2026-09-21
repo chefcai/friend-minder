@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * FRM-81's partial Room migration: only [OutreachLogEntity],
@@ -19,7 +21,7 @@ import androidx.room.RoomDatabase
         ContactGroupMembershipEntity::class,
         SpecialDateEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +32,20 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         private const val DB_NAME = "friend_minder.db"
 
+        /**
+         * GH #121 / FRM-97: adds the nullable per-group reminder-interval
+         * override column. `NULL` for every existing row is exactly "this
+         * group doesn't override the interval" — no backfill needed, and no
+         * existing row's meaning changes.
+         */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE contact_groups ADD COLUMN reminderFrequencyDays INTEGER DEFAULT NULL"
+                )
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -39,7 +55,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     DB_NAME
-                ).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
             }
 
         /**

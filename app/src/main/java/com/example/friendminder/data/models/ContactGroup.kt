@@ -12,11 +12,19 @@ package com.example.friendminder.data.models
  * [ContactGroup] deliberately has no `memberCount` field, unlike the PRD §7
  * sketch — see [com.example.friendminder.domain.services.GroupService.getMemberCount]
  * doc for why that's computed on demand instead of cached on the model.
+ *
+ * [reminderFrequencyDays] is this group's check-in interval override
+ * (GH #121 / FRM-97). `null` means "this group doesn't set one" — it must
+ * NOT be treated as "use some default *at this level*"; see
+ * [com.example.friendminder.domain.services.GroupService.getEffectiveInterval]
+ * for why an unset level has to stay out of the precedence calculation
+ * entirely rather than defaulting to a sentinel that could accidentally win.
  */
 data class ContactGroup(
     val id: String,
     val name: String,
     val color: Int,
     val icon: String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val reminderFrequencyDays: Int? = null
 )
