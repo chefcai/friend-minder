@@ -7,26 +7,31 @@ import com.example.friendminder.R
 import kotlin.math.abs
 
 /**
- * Deterministic avatar fallback color assignment (FRM-61), per Designer's
- * DESIGN-SYSTEM-PHASE2.md §2.4:
+ * Deterministic avatar fallback color assignment (FRM-61, redefined for
+ * Phase 3 - FRM-108), per docs/DESIGN-SYSTEM-PHASE3.md §2.6:
  *
- * - 10 colors within a single cool hue band (~166-212 deg, teal through
- *   blue; `R.color.fm_avatar_1`..`fm_avatar_10`), assigned by
+ * - 10 colors (`R.color.fm_avatar_1`..`fm_avatar_10`) spanning warm and cool
+ *   hues - not a single band any more - assigned by
  *   `abs(contactId.hashCode()) % 10` so the same contact always gets the
- *   same color across app runs and screens.
+ *   same color across app runs and screens. Minimum pairwise ΔE is 21.2,
+ *   up from Phase 2's 4.8 (eight of the old ten read as the same
+ *   blue-green on a real device).
  * - Light mode only (explicit product decision - see
- *   DESIGN-SYSTEM-PHASE2.md §0/§9): each swatch pairs with a single fixed
- *   initials-text color (white or dark ink) chosen by Designer for contrast,
- *   not computed at runtime. There is no dark-theme variant or lightness
- *   shift to compute, so the HSL math this object previously carried
- *   (`lighten`/`rgbToHsl`/`hslToRgb`) has been removed along with it.
- * - The index-to-text-color pairing below is unchanged from an earlier
- *   "Warm Circle" pass of this palette (chefcai/friend-minder#67, since
- *   superseded before it should have shipped): the current cool palette was
- *   produced by a luminance-matched hue rotation of the Warm Circle values,
- *   which preserves which indices need dark-ink text vs white text exactly.
- *   Only the color resource values (in colors.xml) and the ratios in the
- *   comments below changed.
+ *   DESIGN-SYSTEM-PHASE3.md §1.6): each swatch pairs with a single fixed
+ *   initials-text color, chosen by Designer for contrast, not computed at
+ *   runtime. Unlike the Phase 2 palette, which shared exactly two text
+ *   colors (a white and a single dark ink) across all ten swatches, four
+ *   of the Phase 3 fills (Sky, Seafoam, Sand, Rose) are light enough that
+ *   they each need their *own* dark ink to clear 4.5:1 - one shared dark
+ *   value doesn't clear the bar against all four. `fm_avatar_text_1..10`
+ *   in colors.xml is therefore a fully per-index array, not two colors
+ *   referenced ten times.
+ * - Index 1 (Pine, `#2C6E49`) is the one value that isn't a straight port
+ *   from the widened-band revision Cai approved on 2026-09-20: it replaced
+ *   `Deep Teal #0F6F6A` on 2026-09-21 because that value sat ΔE 7.0 from
+ *   `fm_primary`, which the status badge (§2.5) also uses - a contact row
+ *   with a streak would have carried two near-identical teals at either
+ *   end. Pine restores the gap to 21.7 and leaves the other nine untouched.
  */
 object AvatarPalette {
 
@@ -47,20 +52,20 @@ object AvatarPalette {
 
     /**
      * Per-index initials-text color, in the same order as [lightColorRes].
-     * Fixed pairing from DESIGN-SYSTEM-PHASE2.md §2.4's contrast table -
-     * not derived, just looked up.
+     * Fixed pairing from DESIGN-SYSTEM-PHASE3.md §2.6's table - not
+     * derived, just looked up.
      */
     private val initialsTextColorRes = intArrayOf(
-        R.color.fm_avatar_initials_white, // 0 #227376 - WHITE (5.55:1)
-        R.color.fm_avatar_initials_ink,   // 1 #41A2D0 - INK (5.05:1)
-        R.color.fm_avatar_initials_white, // 2 #26665D - WHITE (6.69:1)
-        R.color.fm_avatar_initials_ink,   // 3 #83B5E5 - INK (6.71:1)
-        R.color.fm_avatar_initials_white, // 4 #3E6E74 - WHITE (5.70:1)
-        R.color.fm_avatar_initials_white, // 5 #2D6E5F - WHITE (5.99:1)
-        R.color.fm_avatar_initials_white, // 6 #446E8C - WHITE (5.45:1)
-        R.color.fm_avatar_initials_ink,   // 7 #25AFD2 - INK (5.63:1)
-        R.color.fm_avatar_initials_white, // 8 #2F5451 - WHITE (8.37:1)
-        R.color.fm_avatar_initials_ink    // 9 #9FBFE3 - INK (7.63:1)
+        R.color.fm_avatar_text_1,  // Pine    #2C6E49 - WHITE (6.12:1)
+        R.color.fm_avatar_text_2,  // Cyan    #0B6E92 - WHITE (5.74:1)
+        R.color.fm_avatar_text_3,  // Sky     #9CCBEC - #10323F (7.85:1)
+        R.color.fm_avatar_text_4,  // Indigo  #3D55A4 - WHITE (6.92:1)
+        R.color.fm_avatar_text_5,  // Slate   #62707C - WHITE (5.09:1)
+        R.color.fm_avatar_text_6,  // Seafoam #8ED0C4 - #0F3B34 (7.06:1)
+        R.color.fm_avatar_text_7,  // Sand    #DCC084 - #3A2F14 (7.46:1)
+        R.color.fm_avatar_text_8,  // Clay    #B85535 - WHITE (4.78:1)
+        R.color.fm_avatar_text_9,  // Plum    #80458A - WHITE (6.70:1)
+        R.color.fm_avatar_text_10  // Rose    #E8B3BC - #4A2028 (7.59:1)
     )
 
     /** Stable palette index for a contact. */

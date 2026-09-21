@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Overall History - temporary stub (FRM-100). FRM-100's sign-off comment is
+  explicit that this destination needs *something* behind it so the bottom
+  nav is never dead, since FRM-101 (this screen's real, Designer-P3-specced
+  content: the former Dashboard's key-metric card + monthly chart) hasn't
+  been specced yet. Plain MaterialToolbar, not the new edge-to-edge teal
+  header - that treatment is FRM-99's Home-specific scope; this screen's
+  real skin is FRM-101/FRM-103's job, not this stub's.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="@string/title_overall_history"
+        app:navigationIcon="@drawable/ic_arrow_back" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="@dimen/fm_space_8">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/label_overall_history_stub"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+    </LinearLayout>
+</LinearLayout>

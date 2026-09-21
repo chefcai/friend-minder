@@ -1,25 +1,26 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Friend-Minder cool-rebrand Material 3 theme (FRM-60, corrected, per
-         DESIGN-SYSTEM-PHASE2.md). Dynamic color (Material You) is
+    <!-- Friend-Minder Phase 3 Material 3 theme (FRM-98, per
+         docs/DESIGN-SYSTEM-PHASE3.md). Dynamic color (Material You) is
          intentionally NOT enabled: the whole point of Designer's palette is
          a consistent, curated brand look, which a per-device dynamic
          scheme would override.
 
-         Light mode only, by explicit product decision (DESIGN-SYSTEM-PHASE2.md
-         "there is no dark theme, no *-dark token, and no dark-mode QA item
-         anywhere in this document"). Parent is Theme.Material3.Light.NoActionBar
-         (not ...DayNight...), which forces light mode regardless of the
-         system setting, and there is no values-night/themes.xml counterpart -
-         it was deleted (chefcai/friend-minder#67) and should not be
-         reintroduced.
+         Light mode only, by explicit product decision (§1.6: "there is no
+         values-night, no *-dark token, and no dark-mode QA item anywhere in
+         this document"). Parent is Theme.Material3.Light.NoActionBar (not
+         ...DayNight...), which forces light mode regardless of the system
+         setting, and there is no values-night/themes.xml counterpart.
 
-         The attr mapping below is unchanged in shape from the prior "Warm
-         Circle" pass of this file (#67) - only the color values behind
-         each @color/fm_* reference changed, in colors.xml, to the current
-         cool teal/cyan/blue palette. Every Material3 color role the app
-         actually references via ?attr/color* (per a full grep of
-         app/src/main/res and app/src/main/java) is mapped explicitly below,
-         rather than left to inherit stock Material3 defaults. -->
+         colorSurface / colorOnSurface / colorOutline / colorOutlineVariant
+         below now resolve to the Phase 3 tokens (white ground, split ink,
+         wider-contrast divider) - a value-only change that also fixes every
+         not-yet-re-skinned screen for free (Settings, Contact Detail,
+         dialogs all read secondary text off colorOnSurfaceVariant and
+         dividers off colorOutlineVariant). colorSecondary* keeps pointing at
+         the Phase 2 fm_secondary* tokens: those aren't part of the Phase 3
+         palette but the orphaned Dashboard's streak badge still resolves
+         colorSecondary, so the mapping stays until that code is removed
+         (FRM-101). -->
     <style name="Theme.FriendMinder" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/fm_primary</item>
         <item name="colorOnPrimary">@color/fm_on_primary</item>
@@ -34,22 +35,29 @@
         <item name="colorSurface">@color/fm_surface</item>
         <item name="colorOnSurface">@color/fm_ink</item>
         <item name="colorSurfaceVariant">@color/fm_surface_variant</item>
-        <item name="colorOnSurfaceVariant">@color/fm_on_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/fm_ink_dim</item>
 
         <item name="colorOutline">@color/fm_outline</item>
-        <item name="colorOutlineVariant">@color/fm_outline_variant</item>
+        <item name="colorOutlineVariant">@color/fm_divider</item>
 
         <item name="colorError">@color/fm_error</item>
         <item name="colorErrorContainer">@color/fm_error_container</item>
         <item name="colorOnErrorContainer">@color/fm_on_error_container</item>
+
+        <!-- FRM-98 retirement checklist / DESIGN-SYSTEM-PHASE3.md §2.2:
+             colorSurface alone does not paint the window - without this,
+             every screen renders on stock Material #FEF7FF instead of the
+             brand background. This is the fix. -->
+        <item name="android:windowBackground">@color/fm_surface</item>
     </style>
-    <!-- FRM-65: splash screen (DESIGN-SYSTEM-PHASE2.md §8.3). Uses the
-         Android 12+ SplashScreen API via androidx.core.splashscreen, which
-         back-fills the same behavior on API 26-30 (this app's minSdk is 26)
-         instead of a custom splash Activity - keeps the dependency count at
-         zero beyond the one androidx.core.splashscreen artifact. Set as
-         MainActivity's theme; installSplashScreen() in MainActivity.onCreate()
-         swaps to postSplashScreenTheme (the real app theme) once ready. -->
+    <!-- FRM-65: splash screen (DESIGN-SYSTEM-PHASE3.md §8.3 lineage, unchanged
+         mechanism from Phase 2). Uses the Android 12+ SplashScreen API via
+         androidx.core.splashscreen, which back-fills the same behavior on
+         API 26-30 (this app's minSdk is 26) instead of a custom splash
+         Activity. Set as MainActivity's theme; installSplashScreen() in
+         MainActivity.onCreate() swaps to postSplashScreenTheme (the real
+         app theme) once ready. windowSplashScreenBackground now resolves to
+         white (fm_surface), matching the "white is the ground" principle. -->
     <style name="Theme.FriendMinder.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/fm_surface</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>

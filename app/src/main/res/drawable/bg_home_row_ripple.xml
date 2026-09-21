@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home row press state (DESIGN-SYSTEM-PHASE3.md §6.1): "a Material ripple
+     at 12% fm_primary, nothing else - no elevation change." 12% of 255 is
+     ~31 (0x1F), hence the #1F alpha prefix below. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#1F1F817D" />

@@ -24,7 +24,7 @@ import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.notifications.SmsLaunchActivity
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
 import com.example.friendminder.ui.friendlist.FriendListFragment
-import com.example.friendminder.ui.home.HomeFragment
+import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -42,6 +42,15 @@ import java.util.concurrent.TimeUnit
  * `lifecycle-viewmodel-ktx` in `build.gradle.kts`) — isn't worth the
  * inconsistency; the state-holding here just lives in the Fragment,
  * exactly like its siblings.
+ *
+ * FRM-99: orphaned as of Phase 3. MainActivity and SettingsFragment's
+ * onboarding-completion branch both now route to
+ * [com.example.friendminder.ui.home.HomeFragment] instead - nothing
+ * constructs this fragment any more. Left in place rather than deleted
+ * because FRM-101 ("New Overall History screen ... remove the old
+ * Dashboard route") explicitly owns removing it, and its key-metric
+ * card + monthly chart are meant to be relocated into Overall History
+ * by that ticket, not simply discarded here.
  *
  * Bounded-size sections (top 5 streaks, top 5 neglected, upcoming dates
  * within 14 days) are rendered by inflating item rows straight into a
@@ -99,7 +108,7 @@ class DashboardFragment : Fragment() {
             }
             R.id.action_setup -> {
                 parentFragmentManager.commit {
-                    replace(R.id.nav_host_container, HomeFragment())
+                    replace(R.id.nav_host_container, LegacyDiagnosticsFragment.newInstance())
                     addToBackStack(null)
                 }
                 return true

@@ -22,7 +22,8 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.databinding.FragmentSettingsBinding
-import com.example.friendminder.ui.dashboard.DashboardFragment
+import com.example.friendminder.ui.home.HomeFragment
+import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -32,8 +33,8 @@ import java.util.Locale
  * Reminder configuration (Designer spec §3.2). Onboarding mode is the second
  * step of first launch (no back arrow — back returns to FriendListFragment
  * via the ordinary back stack); edit mode is reachable from HomeFragment.
- * GH #56: onboarding completion now lands on DashboardFragment (the app's
- * root screen), not HomeFragment.
+ * FRM-99: onboarding completion now lands on HomeFragment (the app's
+ * Phase 3 root screen; formerly DashboardFragment, per GH #56 before it).
  *
  * FRM-79 (GH #90): in edit mode only, this screen also carries the
  * "Advanced" row (below the Save button) that opens
@@ -140,6 +141,24 @@ class SettingsFragment : Fragment() {
         binding.advancedRow.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.nav_host_container, AdvancedSettingsFragment.newInstance())
+                addToBackStack(null)
+            }
+        }
+
+        // FRM-99: interim wiring for the retired setup-hub's remaining
+        // content - see LegacyDiagnosticsFragment's kdoc. Onboarding-only
+        // gating mirrors advancedRow above for the same reason (nothing to
+        // diagnose yet on a first-launch flow with no friends added).
+        binding.notificationsDiagnosticsRow.visibility = if (isOnboarding) View.GONE else View.VISIBLE
+        ViewCompat.setAccessibilityDelegate(binding.notificationsDiagnosticsRow, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = "android.widget.Button"
+            }
+        })
+        binding.notificationsDiagnosticsRow.setOnClickListener {
+            parentFragmentManager.commit {
+                replace(R.id.nav_host_container, LegacyDiagnosticsFragment.newInstance())
                 addToBackStack(null)
             }
         }
@@ -265,7 +284,7 @@ class SettingsFragment : Fragment() {
                 // Dashboard exits the app.
                 parentFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 parentFragmentManager.commit {
-                    replace(R.id.nav_host_container, DashboardFragment.newInstance())
+                    replace(R.id.nav_host_container, HomeFragment.newInstance())
                 }
             } else {
                 parentFragmentManager.popBackStack()
