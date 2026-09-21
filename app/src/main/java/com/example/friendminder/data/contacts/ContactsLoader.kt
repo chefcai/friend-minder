@@ -145,6 +145,55 @@ object ContactsLoader {
         }
 
     /**
+     * Looks up the current `PHOTO_URI` for each of [contactIds] directly
+     * from ContactsContract, keyed by contact id. A missing id (deleted
+     * contact, or one with no photo) is simply absent from the result
+     * rather than mapped to null, so callers can use a plain `map[id]`
+     * lookup.
+     *
+     * GH #116: exists because [com.example.friendminder.data.storage.FriendListRepository]'s
+     * persisted snapshot never carries a photo - its SharedPreferences/JSON
+     * storage (PRD §11 MVP choice) predates avatars entirely and only ever
+     * holds id/name/phoneNumber - so it never reflects a photo added or
+     * changed in the device's Contacts app after a friend was tracked.
+     * Screens that render an already-tracked friend's avatar re-query this
+     * on every refresh instead of trusting that stale field (see
+     * [com.example.friendminder.ui.common.withLivePhotoUris], the shared
+     * merge step all of them call).
+     */
+    suspend fun loadPhotoUris(context: Context, contactIds: Set<String>): Map<String, String> =
+        withContext(Dispatchers.IO) {
+            if (contactIds.isEmpty()) return@withContext emptyMap()
+            val result = mutableMapOf<String, String>()
+            val placeholders = contactIds.joinToString(",") { "?" }
+            context.contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                arrayOf(ContactsContract.Contacts._ID, ContactsContract.Contacts.PHOTO_URI),
+                "${ContactsContract.Contacts._ID} IN ($placeholders)",
+                contactIds.toTypedArray(),
+                null
+            )?.use { cursor ->
+                val idIdx = cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID)
+                val photoIdx = cursor.getColumnIndexOrThrow(ContactsContract.Contacts.PHOTO_URI)
+                while (cursor.moveToNext()) {
+                    val entry = readPhotoUriRow(cursor, idIdx, photoIdx) ?: continue
+                    result[entry.first] = entry.second
+                }
+            }
+            result
+        }
+
+    /**
+     * Builds an (id, photoUri) pair from the cursor's current row, or
+     * `null` if either is missing. Keeps [loadPhotoUris]'s loop to a single
+     * jump statement (FRM-#5 convention, see [readContactRow]/[readBirthdayRow]).
+     */
+    private fun readPhotoUriRow(cursor: Cursor, idIdx: Int, photoIdx: Int): Pair<String, String>? =
+        cursor.getString(idIdx)?.let { id ->
+            cursor.getString(photoIdx)?.let { photoUri -> id to photoUri }
+        }
+
+    /**
      * Birthdays (month/day only — no year, PRD §6.3 privacy note) for every
      * id in [contactIds], sourced from ContactsContract's Events table.
      * Contacts with no birthday event, or one in an unparseable format, are

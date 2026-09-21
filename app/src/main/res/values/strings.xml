@@ -386,7 +386,7 @@
          plain, unstyled label as an interim measure so the functionality
          stays reachable rather than going silently dead - see
          SettingsFragment.kt and FRM-99's Jira comment. -->
-    <string name="title_notifications_diagnostics">Notifications &amp; diagnostics</string>
+    <string name="title_notifications_diagnostics">Notifications</string>
 
     <!-- Add-contact flow (FRM-102, SCREENS-PHASE3.md §9). Replaces
          FriendListFragment/ContactAdapter/PickerItem in both of that

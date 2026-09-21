@@ -18,6 +18,7 @@ import com.example.friendminder.domain.services.IntervalSource
 import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
+import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -241,7 +242,11 @@ class ContactDetailFragment : Fragment() {
 
     private fun refresh() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val friends = ServiceLocator.friendListRepository.getFriendList()
+            // GH #116: enrich with the live device-contact photo before
+            // binding the avatar below - see withLivePhotoUris' kdoc.
+            val friends = withLivePhotoUris(
+                requireContext(), ServiceLocator.friendListRepository.getFriendList()
+            )
             val contact = friends.firstOrNull { it.id == contactId }
             if (contact == null) {
                 requireActivity().onBackPressedDispatcher.onBackPressed()

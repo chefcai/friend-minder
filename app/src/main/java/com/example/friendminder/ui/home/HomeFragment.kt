@@ -22,6 +22,7 @@ import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.FragmentHomeBinding
 import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
+import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
@@ -261,7 +262,11 @@ class HomeFragment : Fragment() {
 
     private fun refresh() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val friends = ServiceLocator.friendListRepository.getFriendList()
+            // GH #116: enrich with each friend's live device-contact
+            // photo before building rows - see withLivePhotoUris' kdoc.
+            val friends = withLivePhotoUris(
+                requireContext(), ServiceLocator.friendListRepository.getFriendList()
+            )
 
             if (friends.isEmpty()) {
                 // Defensive: bulk removal always exits selection mode before
