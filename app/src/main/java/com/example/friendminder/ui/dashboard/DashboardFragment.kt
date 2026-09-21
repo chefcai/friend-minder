@@ -155,7 +155,7 @@ class DashboardFragment : Fragment() {
             bindKeyMetric(aggregate)
             bindStreaks(streaks)
             bindNeglected(neglected)
-            binding.monthlyChart.setValues(weeklyChart)
+            binding.monthlyChart.setValues(weeklyChart, weeklyChartAxisLabels(weeklyChart.size))
             bindUpcoming(upcomingEntries)
         }
     }
@@ -270,6 +270,21 @@ class DashboardFragment : Fragment() {
         val cumulative = (0..CHART_WEEKS).map { outreachLogService.countSince(now - it * weekMillis) }
         return DashboardChartCalculator.weeklyBuckets(cumulative)
     }
+
+    /**
+     * Persistent per-bar axis labels for the Monthly outreach chart (GH #101 -
+     * DESIGN-SYSTEM-PHASE2.md §5.6 calls for these, and they were entirely
+     * missing). [DashboardChartCalculator.axisWeeksAgo] does the oldest-first
+     * index math; this just turns each "weeks ago" into a localized string.
+     */
+    private fun weeklyChartAxisLabels(barCount: Int): List<String> =
+        DashboardChartCalculator.axisWeeksAgo(barCount).map { weeksAgo ->
+            if (weeksAgo == 0) {
+                getString(R.string.label_chart_axis_this_week)
+            } else {
+                resources.getQuantityString(R.plurals.format_chart_axis_weeks_ago, weeksAgo, weeksAgo)
+            }
+        }
 
     override fun onDestroyView() {
         super.onDestroyView()

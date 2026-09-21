@@ -38,4 +38,18 @@ object DashboardChartCalculator {
         val perWeek = (0 until cumulativeCounts.size - 1).map { cumulativeCounts[it + 1] - cumulativeCounts[it] }
         return perWeek.reversed()
     }
+
+    /**
+     * How many weeks ago each bar in a [weeklyBuckets]-shaped list represents,
+     * oldest bar first (index 0) to the current week last (`0`) - e.g.
+     * `[3, 2, 1, 0]` for 4 bars. Pure index math, split out so
+     * [DashboardFragment][com.example.friendminder.ui.dashboard.DashboardFragment]
+     * can turn it into localized axis-label strings ("This wk", "2wk ago", ...)
+     * without duplicating the oldest-first ordering [weeklyBuckets] already
+     * established (GH #101 - axis labels were entirely missing from the chart).
+     */
+    fun axisWeeksAgo(barCount: Int): List<Int> {
+        require(barCount >= 0) { "barCount must be >= 0, was $barCount" }
+        return (barCount - 1 downTo 0).toList()
+    }
 }

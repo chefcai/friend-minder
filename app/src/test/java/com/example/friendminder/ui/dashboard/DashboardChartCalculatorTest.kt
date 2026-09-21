@@ -65,4 +65,26 @@ class DashboardChartCalculatorTest {
             DashboardChartCalculator.weeklyBuckets(emptyList())
         }
     }
+
+    @Test
+    fun `axisWeeksAgo counts down to zero for the current week, oldest bar first`() {
+        assertEquals(listOf(3, 2, 1, 0), DashboardChartCalculator.axisWeeksAgo(4))
+    }
+
+    @Test
+    fun `axisWeeksAgo for a single bar is just the current week`() {
+        assertEquals(listOf(0), DashboardChartCalculator.axisWeeksAgo(1))
+    }
+
+    @Test
+    fun `axisWeeksAgo for zero bars is empty`() {
+        assertEquals(emptyList<Int>(), DashboardChartCalculator.axisWeeksAgo(0))
+    }
+
+    @Test
+    fun `axisWeeksAgo rejects a negative bar count`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            DashboardChartCalculator.axisWeeksAgo(-1)
+        }
+    }
 }
