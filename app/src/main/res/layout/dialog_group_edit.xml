@@ -6,28 +6,15 @@
     android:orientation="vertical"
     android:padding="@dimen/fm_space_4">
 
-    <LinearLayout
+    <!-- FRM-120 (FRM-103 §8.1, "One shape for all of them"): dismissal
+         is the handle, the scrim and back - nothing else. The old
+         closeButton (X) is gone; dialogTitle now takes the full row. -->
+    <TextView
+        android:id="@+id/dialogTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="@dimen/fm_space_4">
-
-        <TextView
-            android:id="@+id/dialogTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-        <ImageButton
-            android:id="@+id/closeButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_close"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/action_cancel" />
-    </LinearLayout>
+        android:layout_marginBottom="@dimen/fm_space_4"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -62,6 +49,8 @@
             android:orientation="horizontal" />
     </HorizontalScrollView>
 
+    <!-- FRM-120: the old Cancel text button is gone - the filled
+         primary is the only button, per the same spec above. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -70,17 +59,9 @@
         android:layout_marginTop="@dimen/fm_space_6">
 
         <Button
-            android:id="@+id/cancelButton"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_cancel" />
-
-        <Button
             android:id="@+id/saveButton"
             style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/fm_space_2" />
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </LinearLayout>

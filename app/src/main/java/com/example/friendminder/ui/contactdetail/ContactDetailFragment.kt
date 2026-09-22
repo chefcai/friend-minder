@@ -461,7 +461,10 @@ class ContactDetailFragment : Fragment() {
                     refresh()
                 }
             }
-            .setNegativeButton(R.string.action_cancel, null)
+            // FRM-120 (FRM-103 §8.1): the old Cancel negative button is
+            // gone - the filled primary is the only button; dismissal is
+            // the scrim/back (this is a plain AlertDialog, not a bottom
+            // sheet, so there's no drag handle here to add to that list).
             .show()
     }
 

@@ -51,8 +51,9 @@ class GroupEditDialogFragment : BottomSheetDialogFragment() {
         binding.dialogTitle.text = getString(
             if (groupId == null) R.string.action_new_group else R.string.title_edit_group
         )
-        binding.closeButton.setOnClickListener { dismiss() }
-        binding.cancelButton.setOnClickListener { dismiss() }
+        // FRM-120: closeButton/cancelButton are gone from
+        // dialog_group_edit.xml - dismissal is the sheet's handle, scrim
+        // and back only (FRM-103 §8.1).
         binding.nameInput.doOnTextChanged { text, _, _, _ ->
             binding.saveButton.isEnabled = !text.isNullOrBlank()
         }

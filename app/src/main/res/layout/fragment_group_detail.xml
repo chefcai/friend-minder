@@ -1,141 +1,205 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    GH #132: extended teal header (DESIGN-SYSTEM-PHASE3.md §5), matching
+    fragment_overall_history.xml's established pattern - see
+    EdgeToEdgeHeader's kdoc. headerTitle has no static text: it's set to
+    the group's name in GroupDetailFragment.refresh(), same as the
+    MaterialToolbar it replaces never had a static app:title either.
+
+    FRM-119 (FRM-103 §5, "the gear is now spoken for" + "one add pattern -
+    a FAB, everywhere"): headerActionButton now carries a pencil
+    (ic_edit), since FRM-100 gave the bottom nav's own Settings
+    destination the gear this row used to reuse for "edit group" - two
+    different meanings for one glyph is exactly the collision the spec
+    calls out. The old pinned addContactButton is gone too, replaced by
+    the same 56dp FAB pattern as Home/Groups. Root is now a FrameLayout
+    (was a plain LinearLayout) so the FAB can float bottom|end.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/fm_surface">
 
-    <!--
-        GH #132: extended teal header (DESIGN-SYSTEM-PHASE3.md §5), matching
-        fragment_overall_history.xml's established pattern - see
-        EdgeToEdgeHeader's kdoc. headerTitle has no static text: it's set to
-        the group's name in GroupDetailFragment.refresh(), same as the
-        MaterialToolbar it replaces never had a static app:title either.
-        headerActionButton carries the old toolbar's single
-        menu_group_detail.xml action (edit group).
-    -->
     <LinearLayout
-        android:id="@+id/headerContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/fm_header">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/headerContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/fm_header">
+
+            <View
+                android:id="@+id/statusBarSpacer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/fm_home_header_height">
+
+                <ImageButton
+                    android:id="@+id/backButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/fm_on_primary"
+                    android:contentDescription="@string/content_desc_back" />
+
+                <TextView
+                    android:id="@+id/headerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="72dp"
+                    android:layout_marginEnd="72dp"
+                    android:textColor="@color/fm_on_primary"
+                    android:textSize="@dimen/fm_header_title_size"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <ImageButton
+                    android:id="@+id/headerActionButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="16dp"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/fm_on_primary"
+                    android:contentDescription="@string/title_edit_group" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- GH #121: per-group check-in interval. No SCREENS-PHASE3 addendum
+             specs this row's placement on this screen (§5.2 predates GH #121
+             and only covers member rows/FAB/empty state), so this follows the
+             "label + trailing value + chevron" row shape already established
+             by fragment_add_contacts_step2.xml's checkInEveryRow/groupsRow
+             rather than inventing a new one. -->
+        <LinearLayout
+            android:id="@+id/checkInFrequencyRow"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/fm_space_4"
+            android:paddingEnd="@dimen/fm_space_4"
+            android:background="@drawable/bg_home_row_ripple"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/label_group_checkin_frequency"
+                android:textSize="17sp"
+                android:textColor="@color/fm_ink" />
+
+            <TextView
+                android:id="@+id/groupFrequencyValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/fm_space_2"
+                android:textSize="16sp"
+                android:textColor="@color/fm_ink_dim" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_chevron_right"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
 
         <View
-            android:id="@+id/statusBarSpacer"
             android:layout_width="match_parent"
-            android:layout_height="0dp" />
+            android:layout_height="1dp"
+            android:background="@color/fm_divider" />
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/fm_home_header_height">
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="start|center_vertical"
-                android:layout_marginStart="16dp"
-                android:padding="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="@color/fm_on_primary"
-                android:contentDescription="@string/content_desc_back" />
-
-            <TextView
-                android:id="@+id/headerTitle"
-                android:layout_width="wrap_content"
+            <!-- FRM-119 follow-up: the ticket's "hidden on the empty
+                 state in favour of that state's own button" assumes an
+                 own button exists, the way Home's/Groups' empty states
+                 already have one (emptyStateAddButton /
+                 createFirstGroupButton) - this screen's empty state used
+                 to be bare text with no action, which would have made
+                 hiding the FAB here a dead end for an empty group's first
+                 member. Given the same shape as Groups' emptyStateGroup
+                 (text + one filled button) instead of inventing a new
+                 empty-state pattern. -->
+            <LinearLayout
+                android:id="@+id/emptyStateContainer"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start|center_vertical"
-                android:layout_marginStart="72dp"
-                android:layout_marginEnd="72dp"
-                android:textColor="@color/fm_on_primary"
-                android:textSize="@dimen/fm_header_title_size"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="@dimen/fm_space_8"
+                android:visibility="gone">
 
-            <ImageButton
-                android:id="@+id/headerActionButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="end|center_vertical"
-                android:layout_marginEnd="16dp"
-                android:padding="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_settings"
-                app:tint="@color/fm_on_primary"
-                android:contentDescription="@string/title_edit_group" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_group_no_members"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:layout_marginBottom="@dimen/fm_space_4" />
+
+                <Button
+                    android:id="@+id/addMemberButton"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/action_add_contact_to_group" />
+            </LinearLayout>
+
+            <!-- FAB floats over this list once there's at least one
+                 member (FRM-119), so it needs the same
+                 clipToPadding=false + bottom-padding treatment as
+                 fragment_home.xml's contactRecyclerView, to avoid the
+                 GH #124-class "FAB covers the last row" bug. -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/memberRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="@dimen/fm_home_list_bottom_padding"
+                android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
 
-    <!-- GH #121: per-group check-in interval. No SCREENS-PHASE3 addendum
-         specs this row's placement on this screen (§5.2 predates GH #121
-         and only covers member rows/FAB/empty state), so this follows the
-         "label + trailing value + chevron" row shape already established
-         by fragment_add_contacts_step2.xml's checkInEveryRow/groupsRow
-         rather than inventing a new one. -->
-    <LinearLayout
-        android:id="@+id/checkInFrequencyRow"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/fm_space_4"
-        android:paddingEnd="@dimen/fm_space_4"
-        android:background="@drawable/bg_home_row_ripple"
-        android:clickable="true"
-        android:focusable="true">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/label_group_checkin_frequency"
-            android:textSize="17sp"
-            android:textColor="@color/fm_ink" />
-
-        <TextView
-            android:id="@+id/groupFrequencyValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/fm_space_2"
-            android:textSize="16sp"
-            android:textColor="@color/fm_ink_dim" />
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_chevron_right"
-            android:importantForAccessibility="no" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/fm_divider" />
-
-    <TextView
-        android:id="@+id/emptyStateText"
-        android:layout_width="match_parent"
+    <!--
+        FRM-119: unified 56dp FAB replacing the old pinned full-width
+        outlined addContactButton, same position/style as Home's
+        addContactFab. Hidden on the empty state, where addMemberButton
+        (above) is that state's own affordance - see FRM-103's "hidden on
+        each screen's empty state in favour of that state's own button".
+    -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addContactFab"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="@dimen/fm_space_8"
-        android:text="@string/label_group_no_members"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:visibility="gone" />
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:layout_marginBottom="@dimen/fm_space_4"
+        android:contentDescription="@string/action_add_contact_to_group"
+        app:elevation="3dp"
+        app:backgroundTint="@color/fm_primary"
+        app:tint="@color/fm_on_primary"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
+        app:srcCompat="@drawable/ic_add" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/memberRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/addContactButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_margin="@dimen/fm_space_4"
-        android:text="@string/action_add_contact_to_group" />
-</LinearLayout>
+</FrameLayout>
