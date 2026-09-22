@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FRM-127 (GH #95 / SCREENS-PHASE3 §5.3, signed off via GH #95 comments
+  2026-09-21): AddContactToGroupDialogFragment previously built each
+  candidate row as a bare CheckBox(context) with just contact.name - no
+  room for a second line. This row matches item_group.xml's established
+  76dp two-line shape (leading element + name/secondary column) instead of
+  inventing a new one, with a CheckBox standing in for item_group.xml's
+  colour dot as the leading element. The checkbox itself is not clickable
+  so the whole row is the tap target, same convention as item_group.xml.
+
+  Deliberately its own file, not a reuse of item_add_contact_candidate.xml
+  (the unrelated FRM-102 add-contact-flow Step 1 row) or item_group_member.xml
+  (Group Detail's own member-list row) - different shape, different screen.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="76dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <CheckBox
+        android:id="@+id/candidateCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        android:minWidth="48dp"
+        android:minHeight="48dp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/candidateName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+        <TextView
+            android:id="@+id/candidateMembership"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
