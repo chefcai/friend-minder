@@ -1,30 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom-nav "Groups" glyph, active/filled state. Same three figures as
-     ic_nav_groups_outline.xml, solid instead of stroked - the active state
-     is a shape change, not just a colour one (DESIGN-SYSTEM-PHASE3.md §6.9).
-     Heads are larger here to compensate for the lost stroke width; the open
-     shoulder arcs become closed wedges. -->
+<!-- Bottom-nav "Groups" glyph, active/filled state.
+
+     Geometry is character-for-character ic_nav_groups_outline.xml, with one
+     documented exception (the body subpath, noted inline below). The stroke
+     is kept at its full 1.9 width and simply recoloured; only the interior
+     fill changes. See the Design Decisions Log in Confluence, "Selected nav
+     glyphs keep their stroke" (2026-09-22), and DESIGN-SYSTEM-PHASE3.md 6.9.
+
+     Why the stroke is kept: dropping it, as the previous version did, removes
+     0.95 from every edge, so the glyph shrank 1.0dp at the moment of
+     selection while also getting much heavier. Shrinking and darkening in one
+     frame is what read as a "jump". With the stroke retained the outer
+     silhouette is identical in both states.
+
+     Do not reintroduce the old size compensation (back heads 2.7->3.0, front
+     head 3.5->3.9, shoulder arcs closed into wedges). It existed only to make
+     up for the missing stroke and now double-counts.
+
+     INVARIANT: the selected silhouette must be a strict superset of the
+     unselected one - zero pixels lost at any edge. Verified by render-diff. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="28dp"
     android:height="28dp"
     android:viewportWidth="28"
     android:viewportHeight="28">
     <path
-        android:pathData="M2,8.2 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:pathData="M2.3,8.2 a2.7,2.7 0 1,0 5.4,0 a2.7,2.7 0 1,0 -5.4,0"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.9"
         android:fillColor="@color/fm_primary" />
     <path
-        android:pathData="M20,8.2 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:pathData="M20.3,8.2 a2.7,2.7 0 1,0 5.4,0 a2.7,2.7 0 1,0 -5.4,0"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.9"
         android:fillColor="@color/fm_primary" />
     <path
-        android:pathData="M1.2,19.2c0,-2.9 1.9,-4.4 4.4,-4.4v4.4z"
+        android:pathData="M1.2,19.2c0,-2.9 1.9,-4.4 4.4,-4.4"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
         android:fillColor="@color/fm_primary" />
     <path
-        android:pathData="M26.8,19.2c0,-2.9 -1.9,-4.4 -4.4,-4.4v4.4z"
+        android:pathData="M26.8,19.2c0,-2.9 -1.9,-4.4 -4.4,-4.4"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
         android:fillColor="@color/fm_primary" />
     <path
-        android:pathData="M10.1,10.2 a3.9,3.9 0 1,0 7.8,0 a3.9,3.9 0 1,0 -7.8,0"
+        android:pathData="M10.5,10.2 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.9"
         android:fillColor="@color/fm_primary" />
+    <!-- Front figure's body. Closed with a trailing "z" in this state only.
+         Left open, the 1.9 stroke terminates in two round caps that hang
+         below the fill's flat baseline as nubs at the bottom corners - the
+         border sitting outside the fill. Closing the subpath runs the stroke
+         along the baseline instead, so the body reads as one flat-bottomed
+         solid. strokeLineCap is replaced by strokeLineJoin="round", which
+         softens the two baseline corners with the join's own 0.95 radius
+         (half the stroke width), matching the round caps used elsewhere in
+         the glyph. The outline state keeps the path open - there it is an
+         arch and the caps are correct. Bottom edge is y=23.55 either way. -->
     <path
         android:pathData="M6.4,22.6c0,-3.5 3.4,-5.6 7.6,-5.6s7.6,2.1 7.6,5.6z"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.9"
+        android:strokeLineJoin="round"
         android:fillColor="@color/fm_primary" />
 </vector>
