@@ -36,9 +36,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FriendMinder">
 
+        <!-- GH #153: without an explicit windowSoftInputMode, the keyboard's
+             behavior on a single-activity/many-fragments app like this one
+             is effectively unspecified per-screen - confirmed via
+             uiautomator that a focused EditText's containing window never
+             resized at all when the keyboard opened, so the keyboard just
+             drew over whatever was focused. adjustResize is the fix for
+             every screen that keeps the platform's normal
+             decorFitsSystemWindows(true) behavior; the handful of screens
+             that opt into edge-to-edge (EdgeToEdgeHeader.
+             applyEdgeToEdgeHeader) turn that off for themselves and are
+             responsible for consuming the IME inset manually (see
+             ImeInsetPadding) - adjustResize is still the right mode for
+             them too, since it's what makes WindowInsetsCompat report a
+             nonzero ime() inset once they've opted out of the automatic
+             resize. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.FriendMinder.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

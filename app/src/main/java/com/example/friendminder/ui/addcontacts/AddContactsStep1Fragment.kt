@@ -211,7 +211,20 @@ class AddContactsStep1Fragment : Fragment() {
 
         val baseFooterPaddingBottom = binding.footerBar.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(binding.footerBar) { view, insets ->
-            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            // GH #153: this screen's edge-to-edge header (applyEdgeToEdgeHeader
+            // above) opts it out of the platform's automatic keyboard resize
+            // (see ImeInsetPadding's kdoc) - folding ime() into the same
+            // bottom-inset mask navigationBars() already used here means the
+            // footer (and the "Next" button on it) gets pushed clear of the
+            // keyboard exactly the way it already got pushed clear of the
+            // gesture-nav area (FRM-118), rather than needing a second,
+            // separate listener. getInsets(mask) with multiple types unioned
+            // returns the max of the two for a given edge, so this is a
+            // superset of the old navigationBars()-only behavior, not a
+            // replacement that could regress it.
+            val bottomInset = insets.getInsets(
+                WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.ime()
+            ).bottom
             view.updatePadding(bottom = baseFooterPaddingBottom + bottomInset)
             insets
         }

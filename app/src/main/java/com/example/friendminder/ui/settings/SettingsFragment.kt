@@ -21,6 +21,7 @@ import com.example.friendminder.R
 import com.example.friendminder.data.storage.SlotScheduling
 import com.example.friendminder.databinding.FragmentSettingsBinding
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
+import com.example.friendminder.ui.common.ImeInsetPadding
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
@@ -90,6 +91,11 @@ class SettingsFragment : Fragment() {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
         EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
+        // GH #153: this screen's edge-to-edge header opts it out of the
+        // platform's automatic keyboard resize (see ImeInsetPadding's
+        // kdoc) - without this, the keyboard drew straight over
+        // messageTemplateInput with no accommodation at all.
+        ImeInsetPadding.applyToBottom(binding.settingsScrollView)
 
         binding.contactsPerDaySpinner.adapter = ArrayAdapter(
             requireContext(), android.R.layout.simple_spinner_dropdown_item, (1..5).toList()
