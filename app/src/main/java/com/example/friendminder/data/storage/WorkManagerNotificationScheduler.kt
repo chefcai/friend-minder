@@ -102,8 +102,16 @@ class WorkManagerNotificationScheduler(private val context: Context) : Notificat
             .setInputData(input)
             .build()
 
+        // GH #150: ExistingPeriodicWorkPolicy.UPDATE does not reliably apply a
+        // changed initialDelay to a periodic request that's already pending or
+        // has already fired at least once - WorkManager can silently keep the
+        // stale schedule (or drop the run entirely) instead of adopting the
+        // new hour/minute, so a Settings save that only changes the time can
+        // produce zero reminders that day with no error and no log. REPLACE
+        // guarantees the old work is torn down and a fresh request - honoring
+        // this call's freshly computed initialDelay - takes its place.
         WorkManager.getInstance(context)
-            .enqueueUniquePeriodicWork(slotName(slot), ExistingPeriodicWorkPolicy.UPDATE, request)
+            .enqueueUniquePeriodicWork(slotName(slot), ExistingPeriodicWorkPolicy.REPLACE, request)
     }
 
     private fun cancelSlotsFrom(startSlot: Int) {
