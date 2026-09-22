@@ -177,29 +177,21 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- GH #150 follow-up: a single shared status line, always
+                     styled like a validation error (colorError), so the
+                     "invalid range" error and the "next reminder lands
+                     today/tomorrow" notice can never both be on screen or
+                     visually collide - there's only one view, and its text
+                     is swapped depending on validation state. Not a true
+                     error in the notice case, but it still wants the same
+                     visual weight/attention as one. -->
                 <TextView
-                    android:id="@+id/timeRangeErrorText"
+                    android:id="@+id/timeStatusText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/error_end_before_start"
                     android:textColor="?attr/colorError"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:visibility="gone" />
-
-                <!-- GH #150 follow-up: previews whether the next reminder
-                     from the currently entered time/window will land today
-                     or tomorrow, since a same-day resave after today's
-                     reminder already fired legitimately produces another one
-                     later today - surfaced here rather than silently
-                     blocked, so it's a visible, deliberate choice. Hidden
-                     whenever timeRangeErrorText is shown instead. -->
-                <TextView
-                    android:id="@+id/nextReminderNoticeText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textAppearance="?attr/textAppearanceBodySmall" />
 
                 <!-- Contacts Per Day -->

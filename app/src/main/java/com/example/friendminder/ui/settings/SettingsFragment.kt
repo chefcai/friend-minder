@@ -326,11 +326,13 @@ class SettingsFragment : Fragment() {
     // no midnight-wrap case to account for here.
     // Property-typed lambda rather than a function, same dodge as
     // renderCooldownValue above - keeps the class under detekt's
-    // TooManyFunctions threshold.
-    private val renderNextReminderNotice = {
+    // TooManyFunctions threshold. Returns the text rather than setting it
+    // directly, since the caller (validateTimeRange) is now what owns
+    // timeStatusText - the one shared view also used for the range error.
+    private val nextReminderNoticeText = {
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val now = System.currentTimeMillis()
-        binding.nextReminderNoticeText.text = if (isRandom) {
+        if (isRandom) {
             val isToday = SlotScheduling.occursLaterToday(randomEndHour, minute = 0, nowMillis = now)
             getString(
                 if (isToday) R.string.notice_next_reminder_today_random else R.string.notice_next_reminder_tomorrow_random,
@@ -346,12 +348,23 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    // GH #150 follow-up: timeRangeErrorText and nextReminderNoticeText used
+    // to be two separate views toggled opposite each other by visibility -
+    // correct as long as nothing raced the two flags, but fragile, and it
+    // meant the "not really an error, but pay attention" notice was styled
+    // as neutral/muted instead of getting the same visual weight as the
+    // real error. Now there's exactly one view (timeStatusText), always
+    // styled like the error (colorError/textAppearanceBodySmall) and always
+    // visible, so the two can't structurally collide or fight for
+    // attention - only one message is ever showing, whichever applies.
     private fun validateTimeRange(): Boolean {
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val valid = !isRandom || randomEndHour > randomStartHour
-        binding.timeRangeErrorText.visibility = if (valid) View.GONE else View.VISIBLE
-        binding.nextReminderNoticeText.visibility = if (valid) View.VISIBLE else View.GONE
-        if (valid) renderNextReminderNotice()
+        binding.timeStatusText.text = if (valid) {
+            nextReminderNoticeText()
+        } else {
+            getString(R.string.error_end_before_start)
+        }
         return valid
     }
 
