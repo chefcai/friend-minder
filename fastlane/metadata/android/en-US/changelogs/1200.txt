@@ -1,0 +1,8 @@
+Groups gets a real makeover, plus small polish across Settings and dialogs
+
+- Groups list: bigger, easier-to-read color circles, group rows with more breathing room, and the member count on its own line.
+- Groups screen: the "+" in the header is now a proper floating "+" button, matching the rest of the app.
+- Group Detail: the edit icon (pencil) replaces the gear that used to collide visually with the bottom nav's own gear; adding members uses the same floating button pattern, and an empty group now has its own "Add contact" button so it's never a dead end.
+- New Group, Log Outreach, and Add Special Date dialogs drop their separate Cancel/✕ button - tap outside, swipe down, or back still dismisses them, so there's just one clear "do it" button now.
+- Settings and Advanced Settings checkboxes are now switches, with clearer label-and-description rows.
+- The "next reminder" preview under the time picker no longer says "sometime" - it's just "today between..." or "tomorrow between...".
