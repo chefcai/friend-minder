@@ -34,8 +34,9 @@
          deliberate choice, not a surprise. -->
     <string name="notice_next_reminder_today_fixed">Next reminder: today at %1$s</string>
     <string name="notice_next_reminder_tomorrow_fixed">Next reminder: tomorrow at %1$s</string>
-    <string name="notice_next_reminder_today_random">Next reminder: sometime today between %1$s and %2$s</string>
-    <string name="notice_next_reminder_tomorrow_random">Next reminder: sometime tomorrow between %1$s and %2$s</string>
+    <!-- GH #156: "sometime" was redundant given the range that follows -->
+    <string name="notice_next_reminder_today_random">Next reminder: today between %1$s and %2$s</string>
+    <string name="notice_next_reminder_tomorrow_random">Next reminder: tomorrow between %1$s and %2$s</string>
     <string name="label_contacts_per_day">How many reminders per day?</string>
     <string name="helper_contacts_per_day">Each reminder shows one contact</string>
     <string name="label_cooldown">Don\'t repeat a contact within</string>
