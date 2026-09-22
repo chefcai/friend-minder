@@ -118,4 +118,22 @@ class SlotSchedulingTest {
         val delay = SlotScheduling.delayMillisUntil(hour = 0, minute = 0, nowMillis = now)
         assertTrue(delay > 0)
     }
+
+    @Test
+    fun `occursLaterToday is true when the time has not passed yet today`() {
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        assertTrue(SlotScheduling.occursLaterToday(hour = 14, minute = 0, nowMillis = now))
+    }
+
+    @Test
+    fun `occursLaterToday is false when the time has already passed today`() {
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        assertEquals(false, SlotScheduling.occursLaterToday(hour = 9, minute = 0, nowMillis = now))
+    }
+
+    @Test
+    fun `occursLaterToday is true at the exact instant it targets`() {
+        val now = millisAt(2026, 9, 20, hour = 10, minute = 0)
+        assertTrue(SlotScheduling.occursLaterToday(hour = 10, minute = 0, nowMillis = now))
+    }
 }

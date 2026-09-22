@@ -187,6 +187,21 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:visibility="gone" />
 
+                <!-- GH #150 follow-up: previews whether the next reminder
+                     from the currently entered time/window will land today
+                     or tomorrow, since a same-day resave after today's
+                     reminder already fired legitimately produces another one
+                     later today - surfaced here rather than silently
+                     blocked, so it's a visible, deliberate choice. Hidden
+                     whenever timeRangeErrorText is shown instead. -->
+                <TextView
+                    android:id="@+id/nextReminderNoticeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
+
                 <!-- Contacts Per Day -->
                 <TextView
                     style="?attr/textAppearanceTitleSmall"
