@@ -1,0 +1,1 @@
+Fixed the bottom navigation icons shrinking slightly when selected — they now keep their outline stroke instead of losing it on tap.
