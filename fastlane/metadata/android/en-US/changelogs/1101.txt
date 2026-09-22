@@ -1,0 +1,4 @@
+Fix: keyboard no longer covers the field you're typing into on Settings
+
+- Fixed a bug where opening the keyboard on Settings (for example, editing your reminder message templates) could leave the on-screen keyboard covering the field you were typing into, with no way to see what you'd entered. The screen now scrolls the field clear of the keyboard automatically.
+- The same fix applies to the search box in "Add people to track."
