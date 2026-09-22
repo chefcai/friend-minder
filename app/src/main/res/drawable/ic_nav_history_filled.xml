@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom-nav "Overall History" glyph, active/filled state - same
-     three-bar geometry as ic_nav_history_outline.xml, solid instead of
-     stroked (DESIGN-SYSTEM-PHASE3.md §6.9). -->
+<!-- Bottom-nav "Overall History" glyph, active/filled state.
+
+     Geometry is character-for-character ic_nav_history_outline.xml - same
+     three bars, same 1.8 stroke. The stroke moves from fm_ink_dim to
+     fm_primary and the transparent fill becomes fm_primary, so the outer
+     silhouette does not move between states (it previously shrank 0.9dp on
+     selection). See the Design Decisions Log in Confluence, "Selected nav
+     glyphs keep their stroke" (2026-09-22), and DESIGN-SYSTEM-PHASE3.md 6.9.
+
+     INVARIANT: the selected silhouette must be a strict superset of the
+     unselected one - zero pixels lost at any edge. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="28dp"
     android:height="28dp"
@@ -9,11 +17,17 @@
     android:viewportHeight="28">
     <path
         android:pathData="M5.9,15 L7.7,15 A1.4,1.4 0 0,1 9.1,16.4 L9.1,22.0 A1.4,1.4 0 0,1 7.7,23.4 L5.9,23.4 A1.4,1.4 0 0,1 4.5,22.0 L4.5,16.4 A1.4,1.4 0 0,1 5.9,15 Z"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.8"
         android:fillColor="@color/fm_primary" />
     <path
         android:pathData="M13.1,9.4 L14.9,9.4 A1.4,1.4 0 0,1 16.3,10.8 L16.3,22.0 A1.4,1.4 0 0,1 14.9,23.4 L13.1,23.4 A1.4,1.4 0 0,1 11.7,22.0 L11.7,10.8 A1.4,1.4 0 0,1 13.1,9.4 Z"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.8"
         android:fillColor="@color/fm_primary" />
     <path
         android:pathData="M20.3,12.6 L22.1,12.6 A1.4,1.4 0 0,1 23.5,14.0 L23.5,22.0 A1.4,1.4 0 0,1 22.1,23.4 L20.3,23.4 A1.4,1.4 0 0,1 18.9,22.0 L18.9,14.0 A1.4,1.4 0 0,1 20.3,12.6 Z"
+        android:strokeColor="@color/fm_primary"
+        android:strokeWidth="1.8"
         android:fillColor="@color/fm_primary" />
 </vector>
