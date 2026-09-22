@@ -64,26 +64,57 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
+            <!-- FRM-122 (FRM-103 §7.1 cross-cutting decision 3,
+                 "Switches, not checkboxes"): the old shape put a three-line
+                 explanation paragraph ABOVE the CheckBox, so you read the
+                 explanation before knowing what it explains. Fixed shape,
+                 both rows on this screen: label at Row Primary, description
+                 beneath, switch trailing. -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/helper_direct_send_explanation"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:layout_marginBottom="16dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <CheckBox
-                android:id="@+id/directSendCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/checkbox_direct_send" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/fm_space_4"
+                    android:orientation="vertical">
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/checkbox_direct_send"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/helper_direct_send_explanation"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/directSendSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- FRM-122 / §7.3: this is informational ("permission isn't
+                 granted yet, here's the fallback"), not a validation error,
+                 so it no longer borrows colorError - matches
+                 SettingsFragment's own helper-text muted color. -->
             <TextView
                 android:id="@+id/permissionDeniedHelper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/label_direct_send_permission_denied"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorError"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginTop="16dp"
                 android:visibility="gone" />
 
@@ -94,18 +125,39 @@
                 android:layout_marginBottom="24dp"
                 android:background="?attr/colorOutlineVariant" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/helper_birthday_check_explanation"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:layout_marginBottom="16dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <CheckBox
-                android:id="@+id/birthdayCheckCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/checkbox_birthday_check" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/fm_space_4"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/checkbox_birthday_check"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/helper_birthday_check_explanation"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/birthdayCheckSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

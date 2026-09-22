@@ -45,7 +45,7 @@ class GroupsFragment : Fragment() {
         binding.backButton.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.headerActionButton.setOnClickListener { openEditDialog(null) }
+        binding.addGroupFab.setOnClickListener { openEditDialog(null) }
         EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
         adapter = GroupAdapter(
@@ -117,6 +117,9 @@ class GroupsFragment : Fragment() {
 
             binding.emptyStateGroup.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
             binding.groupRecyclerView.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
+            // FRM-118: FAB is that other state's own action (createFirstGroupButton) -
+            // hidden here the same way addContactFab is on Group Detail's empty state.
+            binding.addGroupFab.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
             adapter.submitList(rows)
         }
     }

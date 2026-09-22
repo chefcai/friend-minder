@@ -192,7 +192,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setUpMessageTemplateControls() {
-        binding.includeMessageCheckbox.setOnCheckedChangeListener { _, checked ->
+        binding.includeMessageSwitch.setOnCheckedChangeListener { _, checked ->
             binding.messageTemplateInput.isEnabled = checked
             scheduleAutoSaveUnlessLoading()
         }
@@ -280,7 +280,7 @@ class SettingsFragment : Fragment() {
 
             val messageEnabled = repo.isMessageEnabled()
             val templatesText = repo.getMessageTemplates().joinToString("\n")
-            binding.includeMessageCheckbox.isChecked = messageEnabled
+            binding.includeMessageSwitch.isChecked = messageEnabled
             binding.messageTemplateInput.isEnabled = messageEnabled
             binding.messageTemplateInput.setText(templatesText)
             updateTemplateCounter(templatesText)
@@ -379,7 +379,7 @@ class SettingsFragment : Fragment() {
 
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val contactsPerDay = (binding.contactsPerDaySpinner.selectedItemPosition + 1).coerceIn(1, 5)
-        val includeMessage = binding.includeMessageCheckbox.isChecked
+        val includeMessage = binding.includeMessageSwitch.isChecked
         val templates = binding.messageTemplateInput.text?.toString().orEmpty()
             .lines()
             .map { it.trim() }

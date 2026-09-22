@@ -1,103 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    GH #132: extended teal header (DESIGN-SYSTEM-PHASE3.md §5), matching
+    fragment_overall_history.xml's established pattern - see
+    EdgeToEdgeHeader's kdoc for why this is centralized rather than a
+    fifth/sixth copy of the same three functions.
+
+    FRM-118 (FRM-103 §5, "one add pattern - a FAB, everywhere"): the old
+    trailing header icon (menu_groups.xml's single "new group" action) is
+    gone. Root is now a FrameLayout, same shape as fragment_home.xml, so
+    the FAB can float bottom|end over the list rather than living in the
+    header row.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/fm_surface">
 
-    <!--
-        GH #132: extended teal header (DESIGN-SYSTEM-PHASE3.md §5), matching
-        fragment_overall_history.xml's established pattern - see
-        EdgeToEdgeHeader's kdoc for why this is centralized rather than a
-        fifth/sixth copy of the same three functions. headerActionButton
-        carries the old toolbar's single menu_groups.xml action (new group)
-        directly, since no screen in this app has more than one trailing
-        header action and a full menu system would be over-engineering for
-        that.
-    -->
     <LinearLayout
-        android:id="@+id/headerContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/fm_header">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <View
-            android:id="@+id/statusBarSpacer"
+        <LinearLayout
+            android:id="@+id/headerContainer"
             android:layout_width="match_parent"
-            android:layout_height="0dp" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/fm_header">
+
+            <View
+                android:id="@+id/statusBarSpacer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/fm_home_header_height">
+
+                <ImageButton
+                    android:id="@+id/backButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:padding="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/fm_on_primary"
+                    android:contentDescription="@string/content_desc_back" />
+
+                <!-- §5: title starts at 72dp when a back arrow is present and
+                     there is no trailing header action (FRM-118 removed the
+                     old one). -->
+                <TextView
+                    android:id="@+id/headerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="72dp"
+                    android:layout_marginEnd="@dimen/fm_space_6"
+                    android:text="@string/title_groups"
+                    android:textColor="@color/fm_on_primary"
+                    android:textSize="@dimen/fm_header_title_size"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </FrameLayout>
+        </LinearLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/fm_home_header_height">
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="start|center_vertical"
-                android:layout_marginStart="16dp"
-                android:padding="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="@color/fm_on_primary"
-                android:contentDescription="@string/content_desc_back" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/groupRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="@dimen/fm_home_list_bottom_padding"
+                android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/headerTitle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/emptyStateGroup"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start|center_vertical"
-                android:layout_marginStart="72dp"
-                android:layout_marginEnd="72dp"
-                android:text="@string/title_groups"
-                android:textColor="@color/fm_on_primary"
-                android:textSize="@dimen/fm_header_title_size"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="@dimen/fm_space_8"
+                android:visibility="gone">
 
-            <ImageButton
-                android:id="@+id/headerActionButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="end|center_vertical"
-                android:layout_marginEnd="16dp"
-                android:padding="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_add"
-                app:tint="@color/fm_on_primary"
-                android:contentDescription="@string/action_new_group" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_groups_empty"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:layout_marginBottom="@dimen/fm_space_4" />
+
+                <Button
+                    android:id="@+id/createFirstGroupButton"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/action_create_first_group" />
+            </LinearLayout>
         </FrameLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/emptyStateGroup"
-        android:layout_width="match_parent"
+    <!--
+        FRM-118: unified 56dp FAB, same position/style as Home's
+        addContactFab. Hidden on the empty state (createFirstGroupButton is
+        that state's own action) - GroupsFragment toggles visibility
+        alongside emptyStateGroup/groupRecyclerView.
+    -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addGroupFab"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="@dimen/fm_space_8"
-        android:visibility="gone">
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fm_space_6"
+        android:layout_marginBottom="@dimen/fm_space_4"
+        android:contentDescription="@string/action_new_group"
+        app:elevation="3dp"
+        app:backgroundTint="@color/fm_primary"
+        app:tint="@color/fm_on_primary"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
+        app:srcCompat="@drawable/ic_add" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/label_groups_empty"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:layout_marginBottom="@dimen/fm_space_4" />
-
-        <Button
-            android:id="@+id/createFirstGroupButton"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_create_first_group" />
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/groupRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone" />
-</LinearLayout>
+</FrameLayout>

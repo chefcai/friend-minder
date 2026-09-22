@@ -59,9 +59,14 @@ class GroupDetailFragment : Fragment() {
         binding.memberRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.memberRecyclerView.adapter = adapter
 
-        binding.addContactButton.setOnClickListener {
+        val openAddContactDialog = {
             AddContactToGroupDialogFragment.newInstance(groupId).show(childFragmentManager, "add_to_group")
         }
+        binding.addContactFab.setOnClickListener { openAddContactDialog() }
+        // FRM-119 follow-up: this empty-state button is the "own button"
+        // the FAB defers to per FRM-103's spec - same destination as the
+        // FAB itself, just reachable when the FAB is hidden.
+        binding.addMemberButton.setOnClickListener { openAddContactDialog() }
         binding.checkInFrequencyRow.setOnClickListener { showFrequencyPicker() }
 
         childFragmentManager.setFragmentResultListener(AddContactToGroupDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ ->
@@ -181,8 +186,13 @@ class GroupDetailFragment : Fragment() {
             val members = withLivePhotoUris(
                 requireContext(), ServiceLocator.groupService.getContactsInGroup(groupId)
             ).sortedBy { it.name.lowercase() }
-            binding.emptyStateText.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
+            binding.emptyStateContainer.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
             binding.memberRecyclerView.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
+            // FRM-119: FAB is hidden on the empty state in favour of that
+            // state's own affordance (emptyStateContainer's
+            // addMemberButton), same convention as GroupsFragment's
+            // addGroupFab/createFirstGroupButton.
+            binding.addContactFab.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
             adapter.submitList(members)
         }
     }

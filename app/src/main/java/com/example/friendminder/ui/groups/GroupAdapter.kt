@@ -3,6 +3,7 @@ package com.example.friendminder.ui.groups
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -36,10 +37,24 @@ class GroupAdapter(
             binding.groupColorDot.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(row.group.color)
+                // FRM-117: "fm_group_color_7 (Mist) is pale enough to need
+                // the same hairline the light avatars get" - mirrors
+                // AvatarBinder's isLightFill() stroke treatment, but group
+                // colors are a raw stored Int rather than a palette index,
+                // so this compares directly against the one color Designer
+                // called out rather than reusing AvatarPalette's lookup.
+                if (row.group.color == mistColor(binding.root.context)) {
+                    val hairlineWidthPx = (binding.root.context.resources.displayMetrics.density).toInt()
+                        .coerceAtLeast(1)
+                    setStroke(hairlineWidthPx, ContextCompat.getColor(binding.root.context, R.color.fm_divider))
+                }
             }
             binding.root.setOnClickListener { onClick(row.group) }
             binding.root.setOnLongClickListener { onLongClick(row.group); true }
         }
+
+        private fun mistColor(context: android.content.Context): Int =
+            ContextCompat.getColor(context, R.color.fm_group_color_7)
     }
 
     companion object {

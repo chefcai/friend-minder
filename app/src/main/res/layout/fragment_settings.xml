@@ -276,13 +276,35 @@
                     android:layout_marginTop="24dp"
                     android:text="@string/label_message_templates" />
 
-                <CheckBox
-                    android:id="@+id/includeMessageCheckbox"
-                    android:layout_width="wrap_content"
+                <!-- FRM-122 (FRM-103 §7.1 cross-cutting decision 3,
+                     "Switches, not checkboxes"): a settings boolean is a
+                     switch idiom, not a form-selection CheckBox - label at
+                     Row Primary, switch trailing, full-row touch target
+                     instead of the CheckBox's small one. No separate
+                     description applies to this one (unlike Advanced's two
+                     rows below), so it's label-only. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp"
-                    android:checked="true"
-                    android:text="@string/checkbox_include_message" />
+                    android:minHeight="48dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="@dimen/fm_space_4"
+                        android:text="@string/checkbox_include_message"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/includeMessageSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true" />
+                </LinearLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"

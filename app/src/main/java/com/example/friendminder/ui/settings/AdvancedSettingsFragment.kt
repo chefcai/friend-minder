@@ -70,7 +70,7 @@ class AdvancedSettingsFragment : Fragment() {
         }
         EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
 
-        binding.directSendCheckbox.setOnCheckedChangeListener { _, isChecked ->
+        binding.directSendSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isSyncingUi) return@setOnCheckedChangeListener
             if (isChecked && !isSendSmsGranted()) {
                 requestSmsPermission.launch(Manifest.permission.SEND_SMS)
@@ -82,7 +82,7 @@ class AdvancedSettingsFragment : Fragment() {
             }
         }
 
-        binding.birthdayCheckCheckbox.setOnCheckedChangeListener { _, isChecked ->
+        binding.birthdayCheckSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isSyncingBirthdayUi) return@setOnCheckedChangeListener
             viewLifecycleOwner.lifecycleScope.launch {
                 ServiceLocator.settingsRepository.setBirthdayCheckEnabled(isChecked)
@@ -120,13 +120,13 @@ class AdvancedSettingsFragment : Fragment() {
         }
 
         isSyncingUi = true
-        binding.directSendCheckbox.isChecked = permissionGranted && settingsRepo.isDirectSendEnabled()
+        binding.directSendSwitch.isChecked = permissionGranted && settingsRepo.isDirectSendEnabled()
         isSyncingUi = false
 
         binding.permissionDeniedHelper.visibility = if (permissionGranted) View.GONE else View.VISIBLE
 
         isSyncingBirthdayUi = true
-        binding.birthdayCheckCheckbox.isChecked = settingsRepo.isBirthdayCheckEnabled()
+        binding.birthdayCheckSwitch.isChecked = settingsRepo.isBirthdayCheckEnabled()
         isSyncingBirthdayUi = false
     }
 

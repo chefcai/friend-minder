@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    FRM-117 (FRM-103 §5, "Per screen, the substance - Groups", signed off
+    2026-09-21): the 16dp decorative dot becomes a 48dp circle so the
+    group's colour is actually identifiable and rows align to the same
+    grid Home uses for its own 48dp avatars. Row grows 64dp -> 76dp to fit
+    the bigger circle plus the two-line name/count column the trailing
+    chevron used to leave no room for. The chevron itself is gone - no
+    other list row in the app has one, and the whole row is already the
+    tap target (GroupsFragment.onClick).
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="64dp"
+    android:layout_height="76dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:paddingStart="16dp"
@@ -12,30 +22,30 @@
 
     <View
         android:id="@+id/groupColorDot"
-        android:layout_width="16dp"
-        android:layout_height="16dp" />
+        android:layout_width="48dp"
+        android:layout_height="48dp" />
 
-    <TextView
-        android:id="@+id/groupName"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="16dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceBodyLarge" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/groupMemberCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        <TextView
+            android:id="@+id/groupName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-    <ImageView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/ic_chevron_right"
-        android:contentDescription="@null" />
+        <TextView
+            android:id="@+id/groupMemberCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
 </LinearLayout>

@@ -46,8 +46,9 @@ class OutreachLogDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.closeButton.setOnClickListener { dismiss() }
-        binding.cancelButton.setOnClickListener { dismiss() }
+        // FRM-120: closeButton/cancelButton are gone from
+        // dialog_outreach_log.xml - dismissal is the sheet's handle, scrim
+        // and back only (FRM-103 §8.1).
         binding.typeChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
             binding.saveButton.isEnabled = checkedIds.isNotEmpty()
         }
