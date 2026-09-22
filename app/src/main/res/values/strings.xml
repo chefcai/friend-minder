@@ -177,6 +177,13 @@
     <string name="label_group_checkin_frequency">Check in every</string>
     <string name="label_group_frequency_no_override">Uses app default</string>
     <string name="label_add_to_group_empty">All your friends are already in this group</string>
+    <!-- FRM-127 (GH #95 / SCREENS-PHASE3 §5.3): AddContactToGroupDialogFragment's
+         candidate rows surface a contact's existing OTHER-group membership so
+         whoever is adding them can see it before deciding. %1$s/%2$s are group
+         names; label_already_in_many's %2$d is "how many more" (total - 1). -->
+    <string name="label_already_in_one">In %1$s</string>
+    <string name="label_already_in_two">In %1$s and %2$s</string>
+    <string name="label_already_in_many">In %1$s +%2$d</string>
     <string name="action_remove_from_group">Remove from group</string>
     <string name="toast_removed_from_group">Removed from group</string>
     <string name="action_undo">Undo</string>
