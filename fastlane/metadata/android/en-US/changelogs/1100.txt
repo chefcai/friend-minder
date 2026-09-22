@@ -1,0 +1,4 @@
+Reminder time changes now actually stick, plus a preview of your next reminder
+
+- Fixed a bug where changing your reminder time (or window) in Settings could silently fail to take effect - the app could keep firing on the old schedule, or in some cases not fire at all, with no error shown. Saving a new time now always reschedules reliably.
+- Settings now shows a note under the time picker telling you exactly when your next reminder will land - today or tomorrow, at the time (or between the times) you've set. If that's later today, you may get a reminder later today in addition to any that already fired - that's expected, not a bug.
