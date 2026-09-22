@@ -64,4 +64,26 @@ object SlotScheduling {
         }
         return target.timeInMillis - now.timeInMillis
     }
+
+    /**
+     * Whether the next occurrence of ([hour], [minute]) from [nowMillis]
+     * falls later today (true) or has already passed and will next occur
+     * tomorrow (false). Same "has this passed today" check [delayMillisUntil]
+     * already does, pulled out standalone for SettingsFragment's "next
+     * reminder" preview notice (GH #150 follow-up) - re-saving the reminder
+     * time on the same day it already fired legitimately schedules another
+     * one later today rather than being silently blocked, so this lets the
+     * screen say which one is about to happen.
+     */
+    fun occursLaterToday(hour: Int, minute: Int, nowMillis: Long): Boolean {
+        val now = Calendar.getInstance().apply { timeInMillis = nowMillis }
+        val target = Calendar.getInstance().apply {
+            timeInMillis = nowMillis
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return !target.before(now)
+    }
 }

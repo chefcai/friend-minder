@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
+import com.example.friendminder.data.storage.SlotScheduling
 import com.example.friendminder.databinding.FragmentSettingsBinding
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
@@ -129,9 +130,8 @@ class SettingsFragment : Fragment() {
         loadCurrentSettings()
     }
 
-    // A property-typed lambda rather than a function, same move as
-    // renderRandomButtons' hourLabel - both dodge detekt's TooManyFunctions,
-    // which only counts declared functions, not lambdas.
+    // A property-typed lambda rather than a function - dodges detekt's
+    // TooManyFunctions, which only counts declared functions, not lambdas.
     private val renderCooldownValue = {
         binding.cooldownValue.text = when (cooldownDays) {
             COOLDOWN_OPTION_3 -> getString(R.string.cooldown_option_3)
@@ -162,19 +162,24 @@ class SettingsFragment : Fragment() {
 
         binding.fixedTimeButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, minute ->
-                fixedHour = hour; fixedMinute = minute; renderFixedTimeButton()
+                fixedHour = hour; fixedMinute = minute; renderTimeButtons()
+                // GH #150 follow-up: fixed-time changes don't affect
+                // validateTimeRange()'s pass/fail (that's random-window-only),
+                // but the notice it renders depends on fixedHour/fixedMinute,
+                // so it still needs a call here to pick up the new time.
+                validateTimeRange()
                 scheduleAutoSaveUnlessLoading()
             }, fixedHour, fixedMinute, false).show()
         }
         binding.randomFromButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, _ ->
-                randomStartHour = hour; renderRandomButtons(); validateTimeRange()
+                randomStartHour = hour; renderTimeButtons(); validateTimeRange()
                 scheduleAutoSaveUnlessLoading()
             }, randomStartHour, 0, false).show()
         }
         binding.randomToButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, _ ->
-                randomEndHour = hour; renderRandomButtons(); validateTimeRange()
+                randomEndHour = hour; renderTimeButtons(); validateTimeRange()
                 scheduleAutoSaveUnlessLoading()
             }, randomEndHour, 0, false).show()
         }
@@ -261,8 +266,7 @@ class SettingsFragment : Fragment() {
 
             repo.getReminderTime()?.let { (h, m) -> fixedHour = h; fixedMinute = m }
             repo.getRandomTimeRange()?.let { (s, e) -> randomStartHour = s; randomEndHour = e }
-            renderFixedTimeButton()
-            renderRandomButtons()
+            renderTimeButtons()
 
             binding.contactsPerDaySpinner.setSelection((repo.getContactsPerDay() - 1).coerceIn(0, 4))
             cooldownDays = repo.getCooldownDays()
@@ -286,33 +290,81 @@ class SettingsFragment : Fragment() {
             resources.getQuantityString(R.plurals.format_template_counter, count, count)
     }
 
-    private fun renderFixedTimeButton() {
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, fixedHour); set(Calendar.MINUTE, fixedMinute)
-        }
-        binding.fixedTimeButton.text =
-            java.text.SimpleDateFormat("h:mm a", Locale.getDefault()).format(cal.time)
+    // Shared by renderTimeButtons/renderNextReminderNotice rather than each
+    // formatting its own Calendar+SimpleDateFormat. Omitting minute formats
+    // hour-only ("h a"), matching NotificationScheduler.scheduleWithRandomTime
+    // only accepting whole hours for the random window's from/to pickers -
+    // flagged for Architect/Designer, see FRM-5 status notes. Folded into one
+    // function (rather than a separate hour-only variant) to stay under
+    // detekt's TooManyFunctions threshold - GH #150 follow-up added a third
+    // caller ([renderNextReminderNotice]) that would otherwise have needed a
+    // third near-identical copy of this formatting.
+    private fun formatTimeLabel(hour: Int, minute: Int? = null): String {
+        val cal = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, minute ?: 0) }
+        val pattern = if (minute != null) "h:mm a" else "h a"
+        return java.text.SimpleDateFormat(pattern, Locale.getDefault()).format(cal.time)
     }
 
-    private fun renderRandomButtons() {
-        // NotificationScheduler.scheduleWithRandomTime only accepts whole
-        // hours, so these pickers intentionally show/store hour granularity
-        // only (minute is discarded) - flagged for Architect/Designer, see
-        // FRM-5 status notes. hourLabel folded into a local lambda (only
-        // used here) to make room for GH #132's onResume/onPause under
-        // detekt's TooManyFunctions threshold.
-        val hourLabel = { hour: Int ->
-            val cal = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, 0) }
-            java.text.SimpleDateFormat("h a", Locale.getDefault()).format(cal.time)
-        }
-        binding.randomFromButton.text = hourLabel(randomStartHour)
-        binding.randomToButton.text = hourLabel(randomEndHour)
+    // Combines what were separate renderFixedTimeButton/renderRandomButtons
+    // functions - both are cheap no-ops when their mode isn't active, and
+    // merging keeps the class under detekt's TooManyFunctions threshold now
+    // that GH #150 follow-up added renderNextReminderNotice.
+    private fun renderTimeButtons() {
+        binding.fixedTimeButton.text = formatTimeLabel(fixedHour, fixedMinute)
+        binding.randomFromButton.text = formatTimeLabel(randomStartHour)
+        binding.randomToButton.text = formatTimeLabel(randomEndHour)
     }
 
+    // GH #150 follow-up: a same-day resave of the reminder time (e.g. after
+    // today's reminder already fired) legitimately schedules another one
+    // later today rather than being silently blocked - see
+    // WorkManagerNotificationScheduler's enqueueDailySlot kdoc. This previews
+    // which one (today vs. tomorrow) the currently entered time/window will
+    // actually produce, so that's a visible, deliberate choice rather than a
+    // surprise. Random mode uses the window's end hour as the today/tomorrow
+    // threshold - validateTimeRange already guarantees end > start, so there's
+    // no midnight-wrap case to account for here.
+    // Property-typed lambda rather than a function, same dodge as
+    // renderCooldownValue above - keeps the class under detekt's
+    // TooManyFunctions threshold. Returns the text rather than setting it
+    // directly, since the caller (validateTimeRange) is now what owns
+    // timeStatusText - the one shared view also used for the range error.
+    private val nextReminderNoticeText = {
+        val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
+        val now = System.currentTimeMillis()
+        if (isRandom) {
+            val isToday = SlotScheduling.occursLaterToday(randomEndHour, minute = 0, nowMillis = now)
+            getString(
+                if (isToday) R.string.notice_next_reminder_today_random else R.string.notice_next_reminder_tomorrow_random,
+                formatTimeLabel(randomStartHour),
+                formatTimeLabel(randomEndHour)
+            )
+        } else {
+            val isToday = SlotScheduling.occursLaterToday(fixedHour, fixedMinute, nowMillis = now)
+            getString(
+                if (isToday) R.string.notice_next_reminder_today_fixed else R.string.notice_next_reminder_tomorrow_fixed,
+                formatTimeLabel(fixedHour, fixedMinute)
+            )
+        }
+    }
+
+    // GH #150 follow-up: timeRangeErrorText and nextReminderNoticeText used
+    // to be two separate views toggled opposite each other by visibility -
+    // correct as long as nothing raced the two flags, but fragile, and it
+    // meant the "not really an error, but pay attention" notice was styled
+    // as neutral/muted instead of getting the same visual weight as the
+    // real error. Now there's exactly one view (timeStatusText), always
+    // styled like the error (colorError/textAppearanceBodySmall) and always
+    // visible, so the two can't structurally collide or fight for
+    // attention - only one message is ever showing, whichever applies.
     private fun validateTimeRange(): Boolean {
         val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
         val valid = !isRandom || randomEndHour > randomStartHour
-        binding.timeRangeErrorText.visibility = if (valid) View.GONE else View.VISIBLE
+        binding.timeStatusText.text = if (valid) {
+            nextReminderNoticeText()
+        } else {
+            getString(R.string.error_end_before_start)
+        }
         return valid
     }
 

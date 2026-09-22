@@ -27,6 +27,15 @@
     <string name="label_from">From</string>
     <string name="label_to">To</string>
     <string name="error_end_before_start">End time must be after start time</string>
+    <!-- GH #150 follow-up: a same-day resave of the reminder time (e.g. after
+         the day's reminder already fired) will legitimately produce another
+         reminder later that same day - this is allowed, not blocked, but the
+         "today" vs "tomorrow" distinction is surfaced up front so it's a
+         deliberate choice, not a surprise. -->
+    <string name="notice_next_reminder_today_fixed">Next reminder: today at %1$s</string>
+    <string name="notice_next_reminder_tomorrow_fixed">Next reminder: tomorrow at %1$s</string>
+    <string name="notice_next_reminder_today_random">Next reminder: sometime today between %1$s and %2$s</string>
+    <string name="notice_next_reminder_tomorrow_random">Next reminder: sometime tomorrow between %1$s and %2$s</string>
     <string name="label_contacts_per_day">How many reminders per day?</string>
     <string name="helper_contacts_per_day">Each reminder shows one contact</string>
     <string name="label_cooldown">Don\'t repeat a contact within</string>
