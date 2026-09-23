@@ -11,33 +11,37 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.setFragmentResult
 import com.example.friendminder.R
 import com.example.friendminder.databinding.DialogTemplatesEditorBinding
-import com.example.friendminder.ui.common.applyPhaseThreeSheetChrome
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.example.friendminder.ui.common.FmBottomSheet
 
 /**
  * FRM-165 (ST-2): full-height editor for the message templates, one per
- * line. Settings shows only a "Templates" value row now; this sheet is
- * where the text is edited. The edited text is handed back through a
- * fragment result whenever the sheet is dismissed (Done, handle, scrim or
- * back), so no edit is lost to a dismissal path the user didn't expect to
- * be a "cancel".
+ * line. Settings shows only a "Templates" value row; this sheet is where
+ * the text is edited. The edited text is handed back through a fragment
+ * result whenever the sheet is dismissed (Done, handle, scrim or back), so
+ * no edit is lost to a dismissal path the user didn't expect to be a
+ * "cancel". FRM-172: built on the shared [FmBottomSheet].
  */
-class TemplatesEditorSheet : BottomSheetDialogFragment() {
+class TemplatesEditorSheet : FmBottomSheet() {
 
     private var _binding: DialogTemplatesEditorBinding? = null
     private val binding get() = checkNotNull(_binding)
     private var currentText: String = ""
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = DialogTemplatesEditorBinding.inflate(inflater, container, false)
+    override val isFullHeight: Boolean = true
+
+    override fun sheetTitle(): CharSequence = getString(R.string.title_edit_templates)
+
+    override fun primaryLabel(): CharSequence = getString(R.string.action_done)
+
+    override fun onPrimaryClick() = dismiss()
+
+    override fun onCreateSheetContent(inflater: LayoutInflater, parent: ViewGroup, savedInstanceState: Bundle?): View {
+        _binding = DialogTemplatesEditorBinding.inflate(inflater, parent, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        applyPhaseThreeSheetChrome()
         if (savedInstanceState == null) {
             binding.templatesInput.setText(requireArguments().getString(ARG_TEXT).orEmpty())
         }
@@ -47,22 +51,12 @@ class TemplatesEditorSheet : BottomSheetDialogFragment() {
             currentText = it?.toString().orEmpty()
             renderCounter(currentText)
         }
-        binding.templatesDoneButton.setOnClickListener { dismiss() }
     }
 
     override fun onStart() {
         super.onStart()
-        // Full height, opened expanded: the point of moving the field here
-        // is room to see every template at once.
-        val sheetDialog = dialog as? BottomSheetDialog ?: return
-        sheetDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-        sheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
-            sheet.layoutParams = sheet.layoutParams.apply { height = ViewGroup.LayoutParams.MATCH_PARENT }
-        }
-        sheetDialog.behavior.apply {
-            skipCollapsed = true
-            state = BottomSheetBehavior.STATE_EXPANDED
-        }
+        @Suppress("DEPRECATION") // still the working path for a dialog window's IME resize
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
     }
 
     override fun onDismiss(dialog: DialogInterface) {

@@ -152,4 +152,6 @@
     <color name="fm_group_color_6">#276274</color>
     <color name="fm_group_color_7">#CCE0E9</color>
     <color name="fm_group_color_8">#152A2B</color>
+    <!-- FRM-172 (DL-1): sheet scrim, fm_ink #1B2E30 at 40%. -->
+    <color name="fm_scrim">#661B2E30</color>
 </resources>
