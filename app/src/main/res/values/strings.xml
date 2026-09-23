@@ -71,6 +71,14 @@
     <string name="label_message_templates">Message Templates</string>
     <string name="hint_message_templates">One message per line — a random one is used each time</string>
     <string name="checkbox_include_message">Include a pre-filled message</string>
+    <!-- FRM-165 (ST-2): Settings sections and the templates drill-in. -->
+    <string name="label_section_reminders">Reminders</string>
+    <string name="label_section_messages">Messages</string>
+    <string name="label_section_more">More</string>
+    <string name="label_templates_row">Templates</string>
+    <string name="label_templates_field">Templates</string>
+    <string name="title_edit_templates">Message templates</string>
+    <string name="action_done">Done</string>
     <plurals name="format_template_counter">
         <item quantity="zero">No templates yet — a default will be used</item>
         <item quantity="one">%1$d template</item>

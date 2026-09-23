@@ -5,8 +5,6 @@ import android.app.TimePickerDialog
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,6 +62,7 @@ class SettingsFragment : Fragment() {
 
     private var isLoadingSettings = false
     private var autoSaveJob: Job? = null
+    private var templatesText: String = ""
     private var savedPillJob: Job? = null
 
     // GH #98/#121: cooldownRow replaced cooldownSpinner, so this is now the
@@ -103,7 +102,9 @@ class SettingsFragment : Fragment() {
         // GH #153: this screen's edge-to-edge header opts it out of the
         // platform's automatic keyboard resize (see ImeInsetPadding's
         // kdoc) - without this, the keyboard drew straight over
-        // messageTemplateInput with no accommodation at all.
+        // messageTemplateInput with no accommodation at all. (FRM-165: the
+        // templates field now lives in TemplatesEditorSheet; the padding is
+        // kept so the scroll still clears the keyboard if one is up.)
         ImeInsetPadding.applyToBottom(binding.settingsScrollView)
 
         // GH #165/FRM-130: contactsPerDayRow replaced contactsPerDaySpinner
@@ -227,22 +228,26 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    // FRM-165 (ST-2): the templates are edited in TemplatesEditorSheet, a
+    // full-height sheet opened from the Templates value row; Settings keeps
+    // the text in templatesText and shows only the count.
     private fun setUpMessageTemplateControls() {
         binding.includeMessageSwitch.setOnCheckedChangeListener { _, checked ->
-            binding.messageTemplateInput.isEnabled = checked
+            renderTemplatesRowEnabled(checked)
             scheduleAutoSaveUnlessLoading()
         }
-        // One template per line (chefcai/friend-minder#30); the char counter
-        // now reports how many usable templates that resolves to rather than
-        // a single field's character count.
-        binding.messageTemplateInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                updateTemplateCounter(s?.toString().orEmpty())
+        binding.templatesRow.setOnClickListener {
+            TemplatesEditorSheet.newInstance(TEMPLATES_EDITOR_REQUEST_KEY, templatesText)
+                .show(childFragmentManager, "settings_templates_editor")
+        }
+        childFragmentManager.setFragmentResultListener(TEMPLATES_EDITOR_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            val edited = bundle.getString(TemplatesEditorSheet.RESULT_TEXT).orEmpty()
+            if (edited != templatesText) {
+                templatesText = edited
+                renderTemplatesValue()
                 scheduleAutoSaveUnlessLoading()
             }
-            override fun afterTextChanged(s: Editable?) = Unit
-        })
+        }
     }
 
     // FRM-99: interim wiring for the retired setup-hub's remaining content -
@@ -318,19 +323,25 @@ class SettingsFragment : Fragment() {
             val messageEnabled = repo.isMessageEnabled()
             val templatesText = repo.getMessageTemplates().joinToString("\n")
             binding.includeMessageSwitch.isChecked = messageEnabled
-            binding.messageTemplateInput.isEnabled = messageEnabled
-            binding.messageTemplateInput.setText(templatesText)
-            updateTemplateCounter(templatesText)
+            renderTemplatesRowEnabled(messageEnabled)
+            this@SettingsFragment.templatesText = templatesText
+            renderTemplatesValue()
 
             validateTimeRange()
             isLoadingSettings = false
         }
     }
 
-    private fun updateTemplateCounter(text: String) {
-        val count = text.lines().map { it.trim() }.count { it.isNotBlank() }
-        binding.charCounterText.text =
-            resources.getQuantityString(R.plurals.format_template_counter, count, count)
+    // Property-typed lambdas, same TooManyFunctions dodge as
+    // renderCooldownValue. The value is the bare count ("Templates  3 >");
+    // the sheet itself spells it out.
+    private val renderTemplatesValue = {
+        binding.templatesValue.text = TemplatesEditorSheet.countTemplates(templatesText).toString()
+    }
+
+    private val renderTemplatesRowEnabled = { enabled: Boolean ->
+        binding.templatesRow.isEnabled = enabled
+        binding.templatesRow.alpha = if (enabled) 1f else DISABLED_ROW_ALPHA
     }
 
     // Shared by renderTimeButtons/renderNextReminderNotice rather than each
@@ -440,7 +451,7 @@ class SettingsFragment : Fragment() {
 
         val isRandom = isRandomTimeMode
         val includeMessage = binding.includeMessageSwitch.isChecked
-        val templates = binding.messageTemplateInput.text?.toString().orEmpty()
+        val templates = templatesText
             .lines()
             .map { it.trim() }
             .filter { it.isNotBlank() }
@@ -505,6 +516,8 @@ class SettingsFragment : Fragment() {
     }
 
     companion object {
+        private const val TEMPLATES_EDITOR_REQUEST_KEY = "settings_templates_editor"
+        private const val DISABLED_ROW_ALPHA = 0.38f
         private const val AUTO_SAVE_DEBOUNCE_MS = 600L
         private const val PILL_FADE_IN_MS = 150L
         private const val PILL_VISIBLE_MS = 1500L
