@@ -213,6 +213,14 @@
                     android:text="@string/error_end_before_start"
                     android:textAppearance="@style/TextAppearance.FM.RowSecondary" />
 
+                <!-- FRM-165 (ST-2): REMINDERS section. -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="@string/label_section_reminders"
+                    android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
+
                 <!-- Contacts Per Day - GH #165/FRM-130: bare Spinner
                      converted to a tappable row + bottom-sheet picker
                      (SCREENS-PHASE3.md Section 7.2 - this pair asks the
@@ -306,12 +314,14 @@
                         android:importantForAccessibility="no" />
                 </LinearLayout>
 
-                <!-- Message Templates (chefcai/friend-minder#30: multiple, randomly picked) -->
+                <!-- FRM-165 (ST-2): MESSAGES section - the switch plus a Templates value
+                     row that opens TemplatesEditorSheet (chefcai/friend-minder#30:
+                     multiple templates, one picked at random). -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="@string/label_message_templates"
+                    android:text="@string/label_section_messages"
                     android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
                 <!-- FRM-122 (FRM-103 §7.1 cross-cutting decision 3,
@@ -344,125 +354,106 @@
                         android:checked="true" />
                 </LinearLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.FM.TextInput"
+                <LinearLayout
+                    android:id="@+id/templatesRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="56dp"
                     android:layout_marginTop="8dp"
-                    android:hint="@string/hint_message_templates">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_home_row_ripple"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/messageTemplateInput"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:inputType="textMultiLine"
-                        android:minLines="4"
-                        android:maxLines="8" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_weight="1"
+                        android:text="@string/label_templates_row"
+                        android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
 
+                    <TextView
+                        android:id="@+id/templatesValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/fm_space_4"
+                        android:textSize="17sp"
+                        android:textColor="@color/fm_ink_dim" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_chevron_right"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <!-- FRM-165 (ST-2): MORE section. Notifications and Advanced
+                     used to be pinned below the scroll area (outside it),
+                     eating ~300px of every screen and unreachable-by-scroll
+                     at large text sizes; they now scroll with everything else.
+                     Same row shape as the value rows above (no inner gutter:
+                     the scroll content already carries the 24dp gutter). -->
                 <TextView
-                    android:id="@+id/charCounterText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="@string/label_section_more"
+                    android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
+
+                <LinearLayout
+                    android:id="@+id/notificationsDiagnosticsRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="end"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textAppearance="?attr/textAppearanceBodySmall" />
+                    android:minHeight="56dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_home_row_ripple"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/title_notifications_diagnostics"
+                        android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_chevron_right"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/advancedRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_home_row_ripple"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/title_advanced_settings"
+                        android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_chevron_right"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
 
             </LinearLayout>
         </ScrollView>
-
-        <!--
-            FRM-130: there is no "Save Settings" button (SCREENS-PHASE3 §7.2)
-            - every control above writes to SettingsRepository on change,
-            debounced (SettingsFragment.scheduleAutoSave), confirmed by
-            settingsSavedPill rather than a Toast. This also resolves GH
-            #130's occlusion report outright: the removed button was the
-            only thing ever overlapping the message-templates field.
-        -->
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/fm_divider" />
-
-        <!--
-            FRM-131: rows with a trailing chevron (SCREENS-PHASE3 §7.2: "a
-            normal row with a chevron in its own section, not a bare text
-            link floating at the bottom"), matching item_group.xml's
-            established row pattern. Previously plain TextViews styled as
-            bold links in fm_status_healthy - an orphaned Phase 2 status
-            color, not a brand token (see colors.xml) - which is why they
-            read as stock-Android link blue instead of brand teal.
-        -->
-        <LinearLayout
-            android:id="@+id/advancedRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="@dimen/fm_gutter"
-            android:paddingEnd="@dimen/fm_gutter"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="?attr/colorOnSurface"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:text="@string/title_advanced_settings" />
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_chevron_right"
-                android:contentDescription="@null" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/fm_divider" />
-
-        <!--
-            FRM-99: interim home for the retired setup-hub's banners/test-
-            notification content (see LegacyDiagnosticsFragment's kdoc) - not
-            a Designer-P3 spec, just wired here so the functionality stays
-            reachable pending the FRM-103 pass that's meant to design its
-            real home. Mirrors advancedRow's row pattern above rather than
-            introducing a new row convention.
-        -->
-        <LinearLayout
-            android:id="@+id/notificationsDiagnosticsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="@dimen/fm_gutter"
-            android:paddingEnd="@dimen/fm_gutter"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="?attr/colorOnSurface"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:text="@string/title_notifications_diagnostics" />
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_chevron_right"
-                android:contentDescription="@null" />
-        </LinearLayout>
 
     </LinearLayout>
 
