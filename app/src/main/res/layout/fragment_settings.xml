@@ -109,7 +109,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/fixedTimeToggleButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.FM.SegmentedButton"
                         android:layout_width="0dp"
                         android:layout_height="48dp"
                         android:layout_weight="1"
@@ -117,7 +117,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/randomWindowToggleButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.FM.SegmentedButton"
                         android:layout_width="0dp"
                         android:layout_height="48dp"
                         android:layout_weight="1"

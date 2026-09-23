@@ -23,4 +23,25 @@
         <item name="android:textColorHint">@color/fm_ink_dim</item>
         <item name="placeholderTextColor">@color/fm_ink_dim</item>
     </style>
+
+    <!--
+      FRM-159 (audit CD-4): one segmented-control segment, used by Contact
+      Detail's History / Special Dates and Settings' Fixed time / Random
+      window. Selected = fm_primary fill, white label and a 16dp check;
+      unselected = white with an fm_ink label; 1dp fm_outline border.
+      The selection is carried by fill contrast (4.67:1) and by the check,
+      not by a tint alone.
+    -->
+    <style name="Widget.FM.SegmentedButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/fm_segment_background</item>
+        <item name="android:textColor">@color/fm_segment_label</item>
+        <item name="strokeColor">@color/fm_outline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="icon">@drawable/ic_check_small</item>
+        <item name="iconSize">16dp</item>
+        <item name="iconPadding">4dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconTint">@color/fm_segment_icon</item>
+        <item name="rippleColor">@color/fm_primary</item>
+    </style>
 </resources>

@@ -53,7 +53,7 @@ Unchanged from Phase 2 / the marketing site. These four hexes are the brand and 
 | Token | Hex | Where it is allowed |
 |---|---|---|
 | `fm_surface` | `#FFFFFF` | Every screen background, every list row, bottom nav, bottom sheets |
-| `fm_surface_sunken` | `#EFF8FA` | Text inputs, search fields, segmented-control track, unselected chips |
+| `fm_surface_sunken` | `#EFF8FA` | Text inputs, search fields, unselected chips. (Segmented controls: unselected segments are `fm_surface`, selected `fm_primary`; see SCREENS Section 6.2, FRM-159.) |
 | `fm_surface_accent` | `#E6F5FB` | **One block per screen, maximum.** In practice: the Overall History key-metric block, and the notification-preview block in Settings. Nowhere else. |
 | `fm_header` | `#1F817D` | Status bar + title bar, as one continuous fill |
 
