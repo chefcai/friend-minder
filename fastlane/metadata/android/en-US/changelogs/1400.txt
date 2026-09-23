@@ -1,0 +1,5 @@
+Phase 3 design polish: consistent screen edges, Contact Detail's numbers, and Settings' controls
+
+- Every screen's side edges now line up at the same 24dp gutter - Groups, Group Detail, Contact Detail, and Settings previously sat a bit tighter (16dp) than Home.
+- Contact Detail's stats are numbers again: "12 / outreaches," "5 / day streak," "40% / reach rate" replace the old three sentences, with a simple dash where there's nothing to show yet.
+- Settings: "Fixed time / Random window" is now a segmented control instead of radio buttons, and "How many reminders per day" opens the same kind of picker as "Don't repeat a contact within," instead of an old-style dropdown.
