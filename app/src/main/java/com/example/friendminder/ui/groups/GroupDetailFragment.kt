@@ -1,9 +1,14 @@
 package com.example.friendminder.ui.groups
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
@@ -30,6 +35,18 @@ class GroupDetailFragment : Fragment() {
     private lateinit var adapter: GroupMemberAdapter
     private var currentGroup: ContactGroup? = null
 
+    // FRM-167 (GD-1): selection mode for removing members, same model as
+    // Home (SCREENS Section 10) - the mode is on while the set is non-empty.
+    private val selectedIds = linkedSetOf<String>()
+    private val isSelectionMode: Boolean get() = selectedIds.isNotEmpty()
+    private var members: List<Contact> = emptyList()
+    private lateinit var selectionBackCallback: OnBackPressedCallback
+
+    // Set by Undo: once the restored rows are committed, scroll so the
+    // first restored member is on screen. Otherwise a member re-inserted
+    // above the first visible row lands just off-screen.
+    private var scrollToAfterCommit: String? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -42,9 +59,21 @@ class GroupDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.backButton.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+        // FRM-167: in selection mode the leading icon is the mode's X
+        // (Section 10.2: leave via the X, system back, or deselecting the
+        // last member).
+        val exitSelection = {
+            selectedIds.clear()
+            updateSelectionModeUi()
+            renderRows()
         }
+        binding.backButton.setOnClickListener {
+            if (isSelectionMode) exitSelection() else requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+        selectionBackCallback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, enabled = false) {
+            exitSelection()
+        }
+        ViewCompat.setAccessibilityLiveRegion(binding.headerTitle, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
         binding.headerActionButton.setOnClickListener {
             GroupEditDialogFragment.newInstance(groupId).show(childFragmentManager, "group_edit")
         }
@@ -53,8 +82,8 @@ class GroupDetailFragment : Fragment() {
         adapter = GroupMemberAdapter(
             photoLoader = ServiceLocator.contactPhotoLoader,
             scope = viewLifecycleOwner.lifecycleScope,
-            onRowClicked = { contact -> openContactDetail(contact) },
-            onRemoveClicked = { contact -> removeMember(contact) }
+            onRowClicked = { contact -> if (isSelectionMode) toggleSelection(contact.id) else openContactDetail(contact) },
+            onRowLongPressed = { contact -> toggleSelection(contact.id) }
         )
         binding.memberRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.memberRecyclerView.adapter = adapter
@@ -62,7 +91,9 @@ class GroupDetailFragment : Fragment() {
         val openAddContactDialog = {
             AddContactToGroupDialogFragment.newInstance(groupId).show(childFragmentManager, "add_to_group")
         }
-        binding.addContactFab.setOnClickListener { openAddContactDialog() }
+        binding.addContactFab.setOnClickListener {
+            if (isSelectionMode) removeSelected() else openAddContactDialog()
+        }
         // FRM-119 follow-up: this empty-state button is the "own button"
         // the FAB defers to per FRM-103's spec - same destination as the
         // FAB itself, just reachable when the FAB is hidden.
@@ -155,46 +186,115 @@ class GroupDetailFragment : Fragment() {
         }
     }
 
-    private fun removeMember(contact: Contact) {
+    private fun toggleSelection(contactId: String) {
+        if (!selectedIds.remove(contactId)) selectedIds.add(contactId)
+        updateSelectionModeUi()
+        renderRows()
+    }
+
+    /**
+     * FRM-167: header, leading icon, edit action and FAB swap together.
+     * The FAB stays fm_primary in both modes - leaving a group is
+     * non-destructive (the contact is still tracked), unlike Home's
+     * bulk stop-tracking, which is red.
+     */
+    private fun updateSelectionModeUi() {
+        selectionBackCallback.isEnabled = isSelectionMode
+        val fab = binding.addContactFab
+        fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.fm_primary))
+        if (isSelectionMode) {
+            binding.backButton.setImageResource(R.drawable.ic_close)
+            binding.backButton.contentDescription = getString(R.string.content_desc_close_selection_mode)
+            binding.headerTitle.text = getString(R.string.format_selected_count, selectedIds.size)
+            binding.headerActionButton.visibility = View.GONE
+            fab.setImageResource(R.drawable.ic_person_remove)
+            fab.contentDescription = resources.getQuantityString(
+                R.plurals.content_desc_remove_members_fab, selectedIds.size, selectedIds.size
+            )
+        } else {
+            binding.backButton.setImageResource(R.drawable.ic_arrow_back)
+            binding.backButton.contentDescription = getString(R.string.content_desc_back)
+            binding.headerTitle.text = currentGroup?.name.orEmpty()
+            binding.headerActionButton.visibility = View.VISIBLE
+            fab.setImageResource(R.drawable.ic_add)
+            fab.contentDescription = getString(R.string.action_add_contact_to_group)
+        }
+    }
+
+    /**
+     * FRM-167: removal is immediate, then a 4-second "N removed" snackbar
+     * with Undo (PHASE-3-LESSONS decision) re-adds the same members. The
+     * snackbar is anchored to the FAB (or the bottom nav when the FAB is
+     * hidden on the empty state), so it sits above both instead of over
+     * them and the Undo tap can't land on either.
+     */
+    private fun removeSelected() {
+        val ids = selectedIds.toList()
+        if (ids.isEmpty()) return
+        selectedIds.clear()
+        updateSelectionModeUi()
         viewLifecycleOwner.lifecycleScope.launch {
-            ServiceLocator.groupService.removeContactFromGroup(contact.id, groupId)
-            refresh()
-            Snackbar.make(binding.root, R.string.toast_removed_from_group, Snackbar.LENGTH_LONG)
-                .setAction(R.string.action_undo) {
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        ServiceLocator.groupService.assignContactToGroup(contact.id, groupId)
-                        refresh()
-                    }
+            val groupService = ServiceLocator.groupService
+            ids.forEach { groupService.removeContactFromGroup(it, groupId) }
+            reload()
+            val anchor = binding.addContactFab.takeIf { it.visibility == View.VISIBLE }
+                ?: requireActivity().findViewById<View>(R.id.bottomNav)?.takeIf { it.visibility == View.VISIBLE }
+            Snackbar.make(
+                binding.root,
+                resources.getQuantityString(R.plurals.format_members_removed_snackbar, ids.size, ids.size),
+                UNDO_SNACKBAR_DURATION_MS
+            ).setAction(R.string.action_undo) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    ids.forEach { groupService.assignContactToGroup(it, groupId) }
+                    scrollToAfterCommit = ids.first()
+                    reload()
                 }
-                .show()
+            }.setAnchorView(anchor).show()
+        }
+    }
+
+    private fun renderRows() {
+        adapter.submitList(
+            members.map { GroupMemberRow(it, isSelectionMode = isSelectionMode, isSelected = it.id in selectedIds) }
+        ) {
+            val target = scrollToAfterCommit ?: return@submitList
+            scrollToAfterCommit = null
+            val index = members.indexOfFirst { it.id == target }
+            if (index >= 0 && _binding != null) binding.memberRecyclerView.scrollToPosition(index)
         }
     }
 
     private fun refresh() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val group = ServiceLocator.contactGroupRepository.getGroup(groupId)
-            if (group == null) {
-                requireActivity().onBackPressedDispatcher.onBackPressed()
-                return@launch
-            }
-            currentGroup = group
-            binding.headerTitle.text = group.name
-            renderFrequencyValue(group)
+        viewLifecycleOwner.lifecycleScope.launch { reload() }
+    }
 
-            // GH #116: enrich with each member's live device-contact
-            // photo before building rows - see withLivePhotoUris' kdoc.
-            val members = withLivePhotoUris(
-                requireContext(), ServiceLocator.groupService.getContactsInGroup(groupId)
-            ).sortedBy { it.name.lowercase() }
-            binding.emptyStateContainer.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
-            binding.memberRecyclerView.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
-            // FRM-119: FAB is hidden on the empty state in favour of that
-            // state's own affordance (emptyStateContainer's
-            // addMemberButton), same convention as GroupsFragment's
-            // addGroupFab/createFirstGroupButton.
-            binding.addContactFab.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
-            adapter.submitList(members)
+    // FRM-167: suspend form of refresh() so removeSelected can pick its
+    // snackbar anchor after the FAB's visibility is settled.
+    private suspend fun reload() {
+        val group = ServiceLocator.contactGroupRepository.getGroup(groupId)
+        if (group == null) {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+            return
         }
+        currentGroup = group
+        renderFrequencyValue(group)
+
+        // GH #116: enrich with each member's live device-contact
+        // photo before building rows - see withLivePhotoUris' kdoc.
+        members = withLivePhotoUris(
+            requireContext(), ServiceLocator.groupService.getContactsInGroup(groupId)
+        ).sortedBy { it.name.lowercase() }
+        binding.emptyStateContainer.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
+        binding.memberRecyclerView.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
+        // FRM-119: FAB is hidden on the empty state in favour of that
+        // state's own affordance (emptyStateContainer's
+        // addMemberButton), same convention as GroupsFragment's
+        // addGroupFab/createFirstGroupButton.
+        binding.addContactFab.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
+        // Drop selected ids that are no longer members (removed elsewhere).
+        selectedIds.retainAll(members.map { it.id }.toSet())
+        updateSelectionModeUi()
+        renderRows()
     }
 
     private fun renderFrequencyValue(group: ContactGroup) {
@@ -228,6 +328,7 @@ class GroupDetailFragment : Fragment() {
         private const val FREQUENCY_OPTION_14 = 14
         private val FREQUENCY_OPTIONS = intArrayOf(FREQUENCY_OPTION_3, FREQUENCY_OPTION_7, FREQUENCY_OPTION_14)
         private const val FREQUENCY_PICKER_REQUEST_KEY = "group_detail_frequency_picker"
+        private const val UNDO_SNACKBAR_DURATION_MS = 4000
 
         fun newInstance(groupId: String): GroupDetailFragment = GroupDetailFragment().apply {
             arguments = Bundle().apply { putString(ARG_GROUP_ID, groupId) }

@@ -224,6 +224,15 @@
     <string name="label_already_in_many">In %1$s +%2$d</string>
     <string name="action_remove_from_group">Remove from group</string>
     <string name="toast_removed_from_group">Removed from group</string>
+    <!-- FRM-167 (GD-1): selection-mode removal on Group Detail. -->
+    <plurals name="format_members_removed_snackbar">
+        <item quantity="one">%1$d removed</item>
+        <item quantity="other">%1$d removed</item>
+    </plurals>
+    <plurals name="content_desc_remove_members_fab">
+        <item quantity="one">Remove %1$d member from group</item>
+        <item quantity="other">Remove %1$d members from group</item>
+    </plurals>
     <string name="action_undo">Undo</string>
 
     <!-- Contact Detail (ContactDetailFragment, FRM-57) -->

@@ -103,6 +103,7 @@ class MissingContactsDialogFragment : BottomSheetDialogFragment() {
                 ServiceLocator.contactPhotoLoader,
                 viewLifecycleOwner.lifecycleScope
             )
+            rowBinding.removeButton.visibility = View.VISIBLE // FRM-167: hidden by default in the shared row
             rowBinding.removeButton.contentDescription =
                 getString(R.string.format_action_remove_missing_contact, contact.name)
             rowBinding.removeButton.setOnClickListener { removeContact(contact) }
