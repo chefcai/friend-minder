@@ -124,72 +124,40 @@
                         android:text="@string/option_random_window" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
+                <!-- FRM-166 (ST-4): the reminder time is a value row like every
+                     other setting with a value (label left, value and chevron
+                     right, minHeight 64dp) instead of outlined pill buttons.
+                     Fixed time: "Time  5:00 AM >". Random window: "Window
+                     8:00 AM - 12:00 PM >", which opens the start picker and then
+                     the end picker. -->
                 <LinearLayout
-                    android:id="@+id/fixedTimeGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
+                    android:id="@+id/timeRow"
+                    style="@style/Widget.FM.ValueRow"
                     android:layout_marginTop="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_time" />
-
-                    <Button
-                        android:id="@+id/fixedTimeButton"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/randomWindowGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp"
-                    android:visibility="gone">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/label_from" />
-
-                        <Button
-                            android:id="@+id/randomFromButton"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp" />
-                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/timeLabel"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/label_to" />
-
-                        <Button
-                            android:id="@+id/randomToButton"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp" />
+                            android:text="@string/label_time"
+                            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/timeValue"
+                        style="@style/Widget.FM.ValueRow.Value" />
+
+                    <ImageView
+                        style="@style/Widget.FM.ValueRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
 
                 <!-- FRM-164 (ST-1): the next-reminder notice is now Row
@@ -221,96 +189,71 @@
                     android:text="@string/label_section_reminders"
                     android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
-                <!-- Contacts Per Day - GH #165/FRM-130: bare Spinner
-                     converted to a tappable row + bottom-sheet picker
-                     (SCREENS-PHASE3.md Section 7.2 - this pair asks the
-                     same shape of question as the cooldown row below,
-                     which was already converted), matching cooldownRow's
-                     shape exactly. Row anatomy also reordered per Section
-                     7.1 ("label first, description beneath, control
-                     trailing") - the description used to sit under the
-                     Spinner instead of under the label. -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/label_contacts_per_day"
-                    android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/helper_contacts_per_day"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textAppearance="?attr/textAppearanceBodySmall" />
-
+                <!-- GH #165/FRM-130 + #98/#121: both open the shared
+                     ValuePickerDialogFragment. FRM-166 (ST-4): now in the one
+                     value-row shape (label and helper left, value and chevron
+                     right) instead of a heading above a separate value row. -->
                 <LinearLayout
                     android:id="@+id/contactsPerDayRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="56dp"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_home_row_ripple"
-                    android:clickable="true"
-                    android:focusable="true">
+                    style="@style/Widget.FM.ValueRow"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_contacts_per_day"
+                            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/helper_contacts_per_day"
+                            android:textAppearance="@style/TextAppearance.FM.RowSecondary" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/contactsPerDayValue"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textSize="17sp"
-                        android:textColor="@color/fm_ink" />
+                        style="@style/Widget.FM.ValueRow.Value" />
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_chevron_right"
+                        style="@style/Widget.FM.ValueRow.Chevron"
                         android:importantForAccessibility="no" />
                 </LinearLayout>
 
-                <!-- Cooldown Period - GH #98/#121: migrated off Spinner to
-                     the shared ValuePickerDialogFragment (SCREENS-PHASE3.md
-                     §7.2/§8.4: "the global cooldown ... are the same
-                     control asking the same question"), so it gets the
-                     Custom... entry path for free instead of needing a
-                     fourth bespoke one. Matches item_group.xml's / this
-                     screen's own advancedRow's row-with-chevron shape
-                     rather than introducing a third row style. -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/label_cooldown"
-                    android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
-
                 <LinearLayout
                     android:id="@+id/cooldownRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="56dp"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_home_row_ripple"
-                    android:clickable="true"
-                    android:focusable="true">
+                    style="@style/Widget.FM.ValueRow"
+                    android:layout_marginTop="0dp">
 
-                    <TextView
-                        android:id="@+id/cooldownValue"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:textSize="17sp"
-                        android:textColor="@color/fm_ink" />
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_cooldown"
+                            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/cooldownValue"
+                        style="@style/Widget.FM.ValueRow.Value" />
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_chevron_right"
+                        style="@style/Widget.FM.ValueRow.Chevron"
                         android:importantForAccessibility="no" />
                 </LinearLayout>
 
@@ -356,35 +299,30 @@
 
                 <LinearLayout
                     android:id="@+id/templatesRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="56dp"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_home_row_ripple"
-                    android:clickable="true"
-                    android:focusable="true">
+                    style="@style/Widget.FM.ValueRow"
+                    android:layout_marginTop="8dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/label_templates_row"
-                        android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_templates_row"
+                            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/templatesValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/fm_space_4"
-                        android:textSize="17sp"
-                        android:textColor="@color/fm_ink_dim" />
+                        style="@style/Widget.FM.ValueRow.Value" />
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_chevron_right"
+                        style="@style/Widget.FM.ValueRow.Chevron"
                         android:importantForAccessibility="no" />
                 </LinearLayout>
 
