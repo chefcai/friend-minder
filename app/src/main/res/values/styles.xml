@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      FRM-154 (AC-2): the one text-input style, DESIGN-SYSTEM Section 6.3.
+      fm_surface_sunken fill, 1dp fm_outline border, 12dp radius, 2dp
+      fm_primary border on focus, fm_ink text, fm_ink_dim hint. Also the
+      theme's textInputStyle, so a TextInputLayout with no style gets it.
+
+      The floating label, when collapsed onto the border, is teal text on a
+      tinted field, so it uses fm_accent (Section 2.4), not fm_primary.
+    -->
+    <style name="Widget.FM.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundMode">outline</item>
+        <item name="boxBackgroundColor">@color/fm_surface_sunken</item>
+        <item name="boxStrokeColor">@color/fm_text_input_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="hintTextColor">@color/fm_accent</item>
+        <item name="android:textColorHint">@color/fm_ink_dim</item>
+        <item name="placeholderTextColor">@color/fm_ink_dim</item>
+    </style>
+</resources>
