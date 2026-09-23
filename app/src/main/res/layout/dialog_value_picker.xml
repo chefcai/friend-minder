@@ -96,7 +96,8 @@
             android:id="@+id/customDaysSetButton"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:layout_marginTop="@dimen/fm_space_2"
             android:text="@string/action_set" />
     </LinearLayout>
