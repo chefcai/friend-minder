@@ -272,6 +272,13 @@ Phase 2's use of `fm_secondary #5ABBEB` as a large button fill is retired: a pal
 ### 6.6 Bottom sheets (dialogs)
 All dialogs are bottom sheets. `fm_surface` ground, 16dp top corners, 24dp gutter, a 4dp × 32dp `fm_divider` drag handle centred at the top, scrim `#1B2E30` at 40%. Title in Screen Heading style. Primary action is a full-width filled button at the bottom; dismissal is the handle, the scrim, and back — **not** a paired Cancel button competing with the primary.
 
+**Implementation (FRM-172, DL-1).** Every sheet extends `ui/common/FmBottomSheet`, which builds this chrome from `sheet_fm_base.xml`:
+- **Title:** `TextAppearance.FM.ScreenHeading` (22sp, medium weight, `fm_ink`, sentence case).
+- **Primary:** `Widget.FM.Button.Primary` (56dp, `fm_primary`). When disabled it uses a `fm_surface_sunken` fill with an `fm_ink_dim` label.
+- **Scrim:** `fm_scrim` (#661B2E30), which replaces the platform black dim.
+
+Subclasses supply only `sheetTitle()`, the content view, and optionally `primaryLabel()` / `onPrimaryClick()`. Pickers return no primary label and keep tap-to-select-and-dismiss. `setPrimaryEnabled(false, reason)` requires a reason, which shows as helper text above the button: a disabled primary always says why. `isFullHeight` opens the sheet expanded to full height with the content filling it (used by the templates editor).
+
 ### 6.7 Empty states
 See SCREENS-PHASE3 for per-screen copy. Shape: 96dp glyph in `fm_ink_dim` at 40% opacity, 32dp gap, headline in Screen Heading, 8dp gap, one line of Body in `fm_ink_dim`, 48dp gap, one filled button. Vertically centred in the content area, never top-aligned. Never a card, never coloured.
 

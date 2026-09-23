@@ -39,4 +39,12 @@
         <item name="android:textColor">@color/fm_ink_dim</item>
         <item name="lineHeight">20sp</item>
     </style>
+
+    <!-- FRM-172 (DL-1): sheet titles - Screen Heading, 22sp/500, fm_ink, sentence case. -->
+    <style name="TextAppearance.FM.ScreenHeading" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">22sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/fm_ink</item>
+        <item name="lineHeight">28sp</item>
+    </style>
 </resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FRM-172: primary fill; disabled uses the sunken surface so it reads as
+     unavailable (its helper text says why - DESIGN-SYSTEM Section 6.6). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="@color/fm_surface_sunken" />
+    <item android:color="@color/fm_primary" />
+</selector>

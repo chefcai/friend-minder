@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FRM-172 (DL-1): the one bottom-sheet shape (DESIGN-SYSTEM Section 6.6).
+  fm_surface ground with 16dp top corners, a 4x32dp fm_divider handle, a
+  24dp gutter, a Screen Heading title, the subclass's content, and at most
+  one full-width 56dp primary. No close X and no Cancel: dismissal is the
+  handle (drag), the scrim or back. Pickers leave the primary out.
+  Built by FmBottomSheet; subclasses supply only the content.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sheetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_surface"
+    android:paddingStart="@dimen/fm_gutter"
+    android:paddingEnd="@dimen/fm_gutter"
+    android:paddingBottom="@dimen/fm_gutter">
+
+    <View
+        android:layout_width="@dimen/fm_dialog_handle_width"
+        android:layout_height="@dimen/fm_dialog_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/fm_dialog_handle_margin_top"
+        android:background="@drawable/bg_dialog_drag_handle"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/sheetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_4"
+        android:accessibilityHeading="true"
+        android:textAppearance="@style/TextAppearance.FM.ScreenHeading" />
+
+    <FrameLayout
+        android:id="@+id/sheetContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_4" />
+
+    <TextView
+        android:id="@+id/sheetPrimaryHelper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_4"
+        android:textAppearance="@style/TextAppearance.FM.RowSecondary"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/sheetPrimaryButton"
+        style="@style/Widget.FM.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fm_space_4"
+        android:visibility="gone" />
+</LinearLayout>
