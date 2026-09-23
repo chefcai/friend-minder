@@ -21,6 +21,7 @@ import com.example.friendminder.databinding.FragmentSettingsBinding
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ImeInsetPadding
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
+import com.example.friendminder.ui.common.stackIfLabelsDontFit
 import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.Job
@@ -197,6 +198,7 @@ class SettingsFragment : Fragment() {
             validateTimeRange()
             scheduleAutoSaveUnlessLoading()
         }
+        binding.timeModeGroup.stackIfLabelsDontFit()
         binding.fixedTimeToggleButton.setOnClickListener { selectTimeMode(isRandom = false) }
         binding.randomWindowToggleButton.setOnClickListener { selectTimeMode(isRandom = true) }
 

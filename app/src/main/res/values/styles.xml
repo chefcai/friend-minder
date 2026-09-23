@@ -43,5 +43,37 @@
         <item name="iconGravity">textStart</item>
         <item name="iconTint">@color/fm_segment_icon</item>
         <item name="rippleColor">@color/fm_primary</item>
+        <!-- FRM-160 (audit CD-8): the segment grows with its label
+             (wrap_content height, 48dp minimum). At large text sizes the
+             control stacks vertically at full width whenever a label would
+             be cut off - see ui/common/SegmentedControls.kt. -->
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <!--
+      FRM-160 (audit CD-8): the caption under each Contact Detail figure
+      ("outreaches", "day streak", "reach rate"). At 200% text a single
+      word no longer fits a third of the screen and was split mid-word
+      ("outreache / s"). Now: one line, centred, shrinking down to 9sp so the
+      whole caption fits its column; words are never split (simple break
+      strategy, no hyphenation). Measured on device: allowing two lines let
+      autosize accept a mid-word break instead of shrinking.
+    -->
+    <style name="Widget.FM.StatLabel" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/fm_ink_dim</item>
+        <item name="android:gravity">center_horizontal|top</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:breakStrategy">simple</item>
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">9sp</item>
+        <item name="autoSizeMaxTextSize">13sp</item>
+        <item name="autoSizeStepGranularity">1sp</item>
+        <item name="android:importantForAccessibility">no</item>
     </style>
 </resources>

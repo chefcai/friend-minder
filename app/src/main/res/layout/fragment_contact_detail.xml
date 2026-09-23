@@ -197,14 +197,9 @@
                         android:importantForAccessibility="no" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/Widget.FM.StatLabel"
                         android:layout_marginTop="@dimen/fm_space_1"
-                        android:text="@string/label_stat_outreaches"
-                        android:textSize="13sp"
-                        android:textColor="@color/fm_ink_dim"
-                        android:gravity="center"
-                        android:importantForAccessibility="no" />
+                        android:text="@string/label_stat_outreaches" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -228,14 +223,9 @@
                         android:importantForAccessibility="no" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/Widget.FM.StatLabel"
                         android:layout_marginTop="@dimen/fm_space_1"
-                        android:text="@string/label_stat_day_streak"
-                        android:textSize="13sp"
-                        android:textColor="@color/fm_ink_dim"
-                        android:gravity="center"
-                        android:importantForAccessibility="no" />
+                        android:text="@string/label_stat_day_streak" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -259,14 +249,9 @@
                         android:importantForAccessibility="no" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/Widget.FM.StatLabel"
                         android:layout_marginTop="@dimen/fm_space_1"
-                        android:text="@string/label_stat_reach_rate"
-                        android:textSize="13sp"
-                        android:textColor="@color/fm_ink_dim"
-                        android:gravity="center"
-                        android:importantForAccessibility="no" />
+                        android:text="@string/label_stat_reach_rate" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -355,7 +340,7 @@
                     android:id="@+id/historyToggleButton"
                     style="@style/Widget.FM.SegmentedButton"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/label_tab_history" />
 
@@ -363,7 +348,7 @@
                     android:id="@+id/specialDatesToggleButton"
                     style="@style/Widget.FM.SegmentedButton"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/label_tab_special_dates" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
