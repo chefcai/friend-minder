@@ -150,23 +150,27 @@ class OverallHistoryFragment : Fragment() {
                 return@launch
             }
 
-            val monthlyOutreachCount = statisticsService.getAggregateStatistics().monthlyOutreachCount
+            // FRM-170 (OH-1): the key figure counts people, not events - distinct
+            // tracked contacts with at least one outreach this calendar month
+            // (Architect, FRM-169). monthlyOutreachCount counted every log, so
+            // it could read "15 contacts reached" with 4 contacts tracked.
+            val contactsReached = statisticsService.getAggregateStatistics().contactsReachedThisMonth
             val weeklyChart = computeWeeklyChart(outreachLogService)
 
             binding.contentScroll.visibility = View.VISIBLE
-            bindKeyMetric(monthlyOutreachCount)
+            bindKeyMetric(contactsReached)
             binding.monthlyChart.setValues(weeklyChart, weeklyChartAxisLabels(weeklyChart.size))
             bindStreaks(byId, stats)
         }
     }
 
-    private fun bindKeyMetric(monthlyOutreachCount: Int) {
-        binding.keyMetricFigure.text = monthlyOutreachCount.toString()
+    private fun bindKeyMetric(contactsReached: Int) {
+        binding.keyMetricFigure.text = contactsReached.toString()
         binding.keyMetricLabel.text = resources.getQuantityString(
-            R.plurals.label_overall_history_key_metric, monthlyOutreachCount
+            R.plurals.label_overall_history_key_metric, contactsReached
         )
         binding.keyMetricBlock.contentDescription = resources.getQuantityString(
-            R.plurals.format_overall_history_key_metric_description, monthlyOutreachCount, monthlyOutreachCount
+            R.plurals.format_overall_history_key_metric_description, contactsReached, contactsReached
         )
     }
 
