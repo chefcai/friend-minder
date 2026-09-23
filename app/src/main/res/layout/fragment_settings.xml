@@ -192,7 +192,12 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- GH #150 follow-up: a single shared status line, always
+                <!-- FRM-164 (ST-1): the next-reminder notice is now Row
+                     Secondary in fm_ink_dim with a leading clock icon; only
+                     the invalid-range error (something the user has to fix)
+                     switches it to fm_error with no icon. See
+                     SettingsFragment.validateTimeRange.
+                     GH #150 follow-up: a single shared status line, originally
                      styled like a validation error (colorError), so the
                      "invalid range" error and the "next reminder lands
                      today/tomorrow" notice can never both be on screen or
@@ -206,8 +211,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/error_end_before_start"
-                    android:textColor="?attr/colorError"
-                    android:textAppearance="?attr/textAppearanceBodySmall" />
+                    android:textAppearance="@style/TextAppearance.FM.RowSecondary" />
 
                 <!-- Contacts Per Day - GH #165/FRM-130: bare Spinner
                      converted to a tappable row + bottom-sheet picker

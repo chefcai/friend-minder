@@ -32,4 +32,11 @@
         <item name="android:textAllCaps">false</item>
         <item name="lineHeight">24sp</item>
     </style>
+
+    <!-- FRM-164 (ST-1): Row Secondary - 14sp, fm_ink_dim (5.84:1 on fm_surface). -->
+    <style name="TextAppearance.FM.RowSecondary" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/fm_ink_dim</item>
+        <item name="lineHeight">20sp</item>
+    </style>
 </resources>

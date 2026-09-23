@@ -403,8 +403,32 @@ class SettingsFragment : Fragment() {
     private fun validateTimeRange(): Boolean {
         val isRandom = isRandomTimeMode
         val valid = !isRandom || randomEndHour > randomStartHour
-        binding.timeStatusText.text = if (valid) {
-            nextReminderNoticeText()
+        val status = binding.timeStatusText
+        // FRM-164 (ST-1): the notice is informational - fm_ink_dim with a
+        // leading 16dp clock icon and a 4dp gap. fm_error (no icon) is kept
+        // for the one state the user has to fix: an end hour at or before
+        // the start hour. The icon is an inline ImageSpan rather than a
+        // compound drawable so that when the line wraps at large font scales
+        // it stays on the first line instead of centring across both.
+        val context = requireContext()
+        val colorRes = if (valid) R.color.fm_ink_dim else R.color.fm_error
+        status.setTextColor(androidx.core.content.ContextCompat.getColor(context, colorRes))
+        status.text = if (valid) {
+            val size = resources.getDimensionPixelSize(R.dimen.fm_status_icon_size)
+            val gap = resources.getDimensionPixelSize(R.dimen.fm_status_icon_gap)
+            val icon = checkNotNull(androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_schedule_24)).mutate()
+            icon.setTint(androidx.core.content.ContextCompat.getColor(context, R.color.fm_ink_dim))
+            val inset = android.graphics.drawable.InsetDrawable(icon, 0, 0, gap, 0)
+            inset.setBounds(0, 0, size + gap, size)
+            val align = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                android.text.style.DynamicDrawableSpan.ALIGN_CENTER
+            } else {
+                android.text.style.DynamicDrawableSpan.ALIGN_BASELINE
+            }
+            android.text.SpannableStringBuilder(" ").apply {
+                setSpan(android.text.style.ImageSpan(inset, align), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                append(nextReminderNoticeText())
+            }
         } else {
             getString(R.string.error_end_before_start)
         }

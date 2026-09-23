@@ -69,4 +69,7 @@
          HomeFragment toggles it at runtime rather than fixing it in XML. -->
     <dimen name="fm_header_title_margin_with_leading_icon">72dp</dimen>
 
+    <!-- FRM-164: leading icon on the Settings next-reminder line. -->
+    <dimen name="fm_status_icon_size">16dp</dimen>
+    <dimen name="fm_status_icon_gap">4dp</dimen>
 </resources>
