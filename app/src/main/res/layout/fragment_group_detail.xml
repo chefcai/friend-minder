@@ -92,8 +92,8 @@
             android:layout_height="56dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="@dimen/fm_space_4"
-            android:paddingEnd="@dimen/fm_space_4"
+            android:paddingStart="@dimen/fm_gutter"
+            android:paddingEnd="@dimen/fm_gutter"
             android:background="@drawable/bg_home_row_ripple"
             android:clickable="true"
             android:focusable="true">

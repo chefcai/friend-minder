@@ -62,7 +62,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="@dimen/fm_gutter"
+            android:paddingTop="16dp"
+            android:paddingEnd="@dimen/fm_gutter"
+            android:paddingBottom="16dp">
 
             <!-- FRM-122 (FRM-103 §7.1 cross-cutting decision 3,
                  "Switches, not checkboxes"): the old shape put a three-line

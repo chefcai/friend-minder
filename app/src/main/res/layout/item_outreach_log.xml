@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
+    android:paddingStart="@dimen/fm_gutter"
+    android:paddingEnd="@dimen/fm_gutter"
     android:paddingTop="@dimen/fm_space_2"
     android:paddingBottom="@dimen/fm_space_2">
 
