@@ -389,7 +389,7 @@ It is not card-boxed, so the structural work is small — but the content is wri
 - **CHECK-IN FREQUENCY** section label, then a single tappable row: the **effective** interval and where it came from, with a trailing chevron, opening the frequency bottom sheet. This is what replaces the header gear. See §6.2a — the row shows the interval that will actually fire, not the one stored against this contact.
 - Segmented control **History / Special Dates**: `fm_surface_sunken` track, selected segment `fm_primary_container` with an `fm_accent` label. Note this is a live instance of the DESIGN-SYSTEM §2.4 trap — `fm_primary` as the label here would fail AA on the container.
 - The selected list beneath, flat rows, 1dp dividers inset 24dp.
-- **No pinned primary action.** The "Log outreach" button is removed — manual outreach logging is deferred to a possible higher subscription tier (FRM-114 hides it behind a flag; FRM-115 is the Phase 4 backlog story). The screen's one control is the remove FAB in §6.3.
+- **No pinned primary action.** The "Log outreach" button is removed — manual outreach logging is deferred to a possible higher subscription tier (FRM-114 hides it behind a flag; FRM-115 is the Phase 4 backlog story). The screen has no pinned or floating control; Stop tracking sits in the header overflow (Section 6.3).
 
 **Why there is no pinned button here any more.** The earlier rule — a **FAB** where the screen is a list you extend (Home, Groups, Group Detail), a **pinned button** where the screen is about one entity with one dominant action — assumed Contact Detail *had* a dominant action. With logging deferred, it does not. Contact Detail is a record you open to read, not a form you open to submit. Do not reach for a pinned button to fill the space the old one left.
 
@@ -425,18 +425,16 @@ Shown only when a group interval is shorter than at least one selectable option;
 
 ### 6.3 Stop tracking a contact
 
-This is the **single-contact** removal path. Home's long-press selection mode (§10) is the bulk one; they share the confirmation copy below and nothing else.
+This is the **single-contact** removal path. Home's long-press selection mode (Section 10) is the bulk one; they share the confirmation copy below and nothing else.
 
-**The control is a FAB, in the same position as Home's add FAB** — Cai's direction, 2026-09-21: add and remove sit in the same place on their respective screens, so the gesture transfers.
+**Revised 2026-09-23 (Phase 3.1, audit CD-1, FRM-158): the control is a header overflow item, not a FAB.** Cai's decision: hidden until deliberately opened, then confirmed a second time.
 
-- 56dp circle, `fm_error` fill, white 26dp **person-minus** outline glyph, 3dp elevation.
-- 24dp from the right gutter, **16dp above the bottom system inset**. Contact Detail is a pushed screen with **no bottom nav**, so that 16dp measures off the inset, not off a bar — do not copy Home's "16dp above the nav" literally.
-- `contentDescription`: "Stop tracking {name}".
-- The scroll container carries **72dp** bottom padding (56dp FAB + 16dp) with `clipToPadding="false"`, so the FAB never sits permanently over the last history row. This is the §1.3 rule at this screen's measurements; it is also the defect filed as GH #124 on Home, so it is a known way to get this wrong.
+- The Contact Detail header carries a white **more_vert** (⋮) icon button at the trailing edge: 48dp target, 16dp from the edge, `contentDescription` "More options". It is the header's only action; the title reserves 72dp at the end for it.
+- The menu holds one item, **"Stop tracking…"**, in `fm_error`. The ellipsis says a confirmation follows.
+- Choosing it opens the confirmation sheet described below. Three deliberate steps: overflow, item, confirm.
+- There is **no FAB on this screen.** Nothing floats over the page, so the one-scroll content (Section 6.2, FRM-157) needs no extra bottom padding for a control.
 
-This FAB and Home's are the only elevated components in the app (DESIGN-SYSTEM §4.4). They are never on screen together.
-
-**The mis-tap objection, answered rather than waved off.** A destructive control sitting where muscle memory says "add" is a real risk, and it deserves a real answer. Four things separate them: the fill is `fm_error`, not `fm_primary`; the glyph is a person-minus, not a plus; the screen carries a 96dp avatar and the contact's name in the header, so the context is unmistakable; and completing the action takes three deliberate steps with the cost stated in words. That is the same structure as §10, where Cai was right to prefer four deliberate steps over a buried settings screen.
+**Why the FAB went.** The 2026-09-21 design put the remove FAB in the same corner as Home's add FAB so the gesture would transfer. On device it sat *inside* the full-width "Add special date" button on the Special Dates tab ([870,1977] within [42,1982]-[1038,2108]): the right ~15% of an add button was a delete button. On the History tab it covered the timestamp column. A destructive action should not share a hit area with a constructive one, whatever its colour and glyph.
 
 Unlike removing a group member, this **does** destroy data — the outreach history goes with it — so it gets a confirmation bottom sheet that says so plainly, with the count: *"This will delete {n} logged outreaches. {Name} stays in your phone's contacts."*
 

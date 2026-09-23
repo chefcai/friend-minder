@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    GH #117: root is a FrameLayout (was a plain vertical LinearLayout) so
-    stopTrackingFab below can float over the screen's content in the same
-    bottom-right spot as Home's addContactFab - add and remove now live in
-    the same position on their respective screens, per Cai's direction on
-    #117. This is also what freed up the corner: the old pinned
-    logOutreachButton that used to occupy the bottom of this screen is
-    gone - manual outreach logging (FRM-114) was pulled from this build
-    (Cai, 2026-09-21) rather than merely demoted, which is what resolved
-    #117's original FAB/pinned-button placement conflict.
+    Contact Detail. FRM-158 (audit CD-1, Cai 2026-09-23) removed the GH #117
+    Stop-tracking FAB: it sat inside "Add special date" and over the history
+    timestamps, so part of an add button was a delete button. Stop tracking
+    is now header overflow > "Stop tracking…" > confirmation sheet
+    (SCREENS-PHASE3 Section 6.3). The root stays a FrameLayout; nothing
+    floats over the page any more.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -58,24 +55,34 @@
                 app:tint="@color/fm_on_primary"
                 android:contentDescription="@string/content_desc_back" />
 
-            <!-- GH #121/SCREENS-PHASE3.md §6.2: "No header action at all -
-                 the gear ('Reminder Frequency') is removed, and frequency
-                 becomes a tappable row in the body." headerTitle's end
-                 margin follows the no-action-button convention already
-                 used by fragment_overall_history.xml/fragment_settings.xml
-                 rather than reserving space for a button that no longer
-                 exists here. -->
+            <!-- GH #121 removed the frequency gear from this header.
+                 FRM-158 (audit CD-1) adds the one header action this screen
+                 has: an overflow menu holding "Stop tracking…". The title
+                 reserves 72dp at the end for it, like Group Detail's edit
+                 action. -->
             <TextView
                 android:id="@+id/headerTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start|center_vertical"
                 android:layout_marginStart="72dp"
-                android:layout_marginEnd="@dimen/fm_space_6"
+                android:layout_marginEnd="72dp"
                 android:textColor="@color/fm_on_primary"
                 android:textSize="@dimen/fm_header_title_size"
                 android:maxLines="1"
                 android:ellipsize="end" />
+
+            <ImageButton
+                android:id="@+id/overflowButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="16dp"
+                android:padding="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/fm_on_primary"
+                android:contentDescription="@string/content_desc_more_options" />
         </FrameLayout>
     </LinearLayout>
 
@@ -428,27 +435,4 @@
     </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 
-    <!-- GH #117 (SCREENS-PHASE3.md §6.3): destructive "Stop tracking" entry
-         point, in the same bottom-right spot as Home's addContactFab
-         (fm_space_6 end margin, fm_space_4 bottom margin) so add and
-         remove share a position across their respective screens.
-         contentDescription is set dynamically in refresh() once the
-         contact's name is known - static "Stop tracking" alone isn't a
-         sufficient a11y label for a destructive per-contact action. Styled
-         like the bulk-removal FAB (FRM-112): fm_error fill, ic_trash,
-         fm_on_primary tint - the one other destructive-styled control in
-         the app. -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/stopTrackingFab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="@dimen/fm_space_6"
-        android:layout_marginBottom="@dimen/fm_space_4"
-        android:contentDescription="@string/action_stop_tracking"
-        app:elevation="3dp"
-        app:backgroundTint="@color/fm_error"
-        app:tint="@color/fm_on_primary"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialComponents.FloatingActionButton"
-        app:srcCompat="@drawable/ic_trash" />
 </FrameLayout>

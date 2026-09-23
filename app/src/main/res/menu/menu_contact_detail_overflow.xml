@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FRM-158 (audit CD-1): Contact Detail header overflow. Stop tracking is
+     reached only through here, then the confirmation sheet. The item title
+     is coloured fm_error in ContactDetailFragment (a PopupMenu can't take
+     a per-item colour from XML). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_stop_tracking_overflow"
+        android:title="@string/action_stop_tracking_ellipsis" />
+</menu>
