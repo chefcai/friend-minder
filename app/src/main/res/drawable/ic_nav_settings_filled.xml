@@ -2,30 +2,34 @@
 <!-- Bottom-nav "Settings" glyph, active/filled state.
 
      Geometry is character-for-character ic_nav_settings_outline.xml - same
-     gear path, same 1.0 stroke. The stroke moves from fm_ink_dim to
+     gear path, same 1.8 stroke. The stroke moves from fm_ink_dim to
      fm_primary and the transparent fill becomes fm_primary, so the outer
      silhouette does not move between states (it previously shrank 0.6dp on
      selection). See the Design Decisions Log in Confluence, "Selected nav
-     glyphs keep their stroke" (2026-09-22), and DESIGN-SYSTEM-PHASE3.md 6.9.
+     glyphs keep their stroke" (2026-09-22), and DESIGN-SYSTEM-PHASE3.md
+     6.9/6.9a.
 
-     KNOWN, TRACKED SEPARATELY: this pair is still on a 24x24 viewport while
-     ic_nav_groups_* and ic_nav_history_* are on 28x28. itemIconSize is 28dp,
-     so this glyph is scaled 1.167x at render and its 1.0 stroke lands at
-     ~1.17dp against 1.9dp and 1.8dp on its neighbours - the gear outline
-     reads about a third lighter than the other two. Do NOT "fix" that by
-     changing strokeWidth here alone: the two states would stop matching. It
-     needs the same 24->28 viewport migration History already had.
+     FRM-125 / GH #160 (this migration): moved from a 24x24 viewport /
+     strokeWidth 1.0 to 28x28 / strokeWidth 1.8, matching ic_nav_groups_*
+     (1.9) and ic_nav_history_* (1.8) so all three bottom-nav marks render
+     at the same visual weight under the shared 28dp itemIconSize - the
+     gear previously rendered at ~1.17dp effective stroke, about a third
+     lighter than its neighbours. Path coordinates were scaled by 7/6 with
+     a script (not retyped by hand); strokeWidth was set explicitly to
+     match History rather than scaled, per §6.9. The inner circle's
+     centring on the cog body - a defect once already - was re-verified
+     after the rescale.
 
-     INVARIANT: the selected silhouette must be a strict superset of the
-     unselected one - zero pixels lost at any edge. -->
+     INVARIANT (§6.9a): the selected silhouette must be a strict superset
+     of the unselected one - zero pixels lost at any edge. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="28"
+    android:viewportHeight="28">
     <path
-        android:pathData="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87c-0.12,0.21 -0.08,0.47 0.12,0.61l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z"
+        android:pathData="M22.33,15.1c0.05,-0.35 0.07,-0.71 0.07,-1.1c0,-0.37 -0.02,-0.75 -0.08,-1.1l2.37,-1.84c0.21,-0.16 0.27,-0.48 0.14,-0.71l-2.24,-3.87c-0.14,-0.26 -0.43,-0.34 -0.69,-0.26l-2.79,1.12c-0.58,-0.44 -1.2,-0.82 -1.89,-1.1L16.8,3.28c-0.05,-0.28 -0.28,-0.48 -0.56,-0.48h-4.48c-0.28,0 -0.5,0.2 -0.55,0.48L10.79,6.24C10.1,6.52 9.47,6.91 8.9,7.34L6.11,6.22c-0.26,-0.09 -0.55,0 -0.69,0.26L3.2,10.35c-0.14,0.24 -0.09,0.55 0.14,0.71l2.37,1.84C5.65,13.25 5.6,13.64 5.6,14s0.02,0.75 0.08,1.1l-2.37,1.84c-0.21,0.16 -0.27,0.48 -0.14,0.71l2.24,3.87c0.14,0.26 0.43,0.34 0.69,0.26l2.79,-1.12c0.58,0.44 1.2,0.82 1.89,1.1l0.42,2.96c0.06,0.28 0.28,0.48 0.56,0.48h4.48c0.28,0 0.51,-0.2 0.55,-0.48l0.42,-2.96c0.69,-0.28 1.32,-0.65 1.89,-1.1l2.79,1.12c0.26,0.09 0.55,0 0.69,-0.26l2.24,-3.87c0.14,-0.26 0.08,-0.55 -0.14,-0.71L22.33,15.1zM14,18.2c-2.31,0 -4.2,-1.89 -4.2,-4.2s1.89,-4.2 4.2,-4.2s4.2,1.89 4.2,4.2S16.31,18.2 14,18.2z"
         android:strokeColor="@color/fm_primary"
-        android:strokeWidth="1"
+        android:strokeWidth="1.8"
         android:fillColor="@color/fm_primary" />
 </vector>

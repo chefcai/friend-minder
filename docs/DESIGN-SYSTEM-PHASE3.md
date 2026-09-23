@@ -324,7 +324,31 @@ rect x=18.9 y=12.6 w=4.6 h=10.8 rx=1.4
 
 Inactive: stroke `1.8`, no fill. Active: fill, no stroke.
 
-**Slot 3 — Settings.** The gear from FRM-100, drawn in a **24×24** viewBox and rendered at 28dp. Its inner circle is centred on the cog body at `cx=12 cy=12`; that centring was a defect Cai caught once already and it is the first thing to re-check if the glyph is ever redrawn.
+**Slot 3 — Settings.** The gear from FRM-100. Its inner circle is centred on the cog body; that centring was a defect Cai caught once already and it is the first thing to re-check if the glyph is ever redrawn.
+
+**The gear must be migrated to a 28×28 viewBox** (GH #160). It currently ships at `android:width="24dp"` / `viewportWidth="24"` with `strokeWidth="1"`, while Groups and History are at 28/28 with 1.9 and 1.8. With `itemIconSize` at 28dp the gear is scaled 1.167×, so its stroke renders at roughly 1.17dp — about a third lighter than its neighbours, in a bar whose design depends on three marks reading as one set.
+
+Rescale the **shipped** path by 7/6 with a script; do not retype the coordinates, and do not simply raise `strokeWidth` in one file — that desynchronises the two states, which is the defect §6.9a exists to prevent. Re-verify the inner circle's centring after the rescale.
+
+### 6.9a The selected-state invariant — applies to every nav glyph
+
+**The selected silhouette must be a strict superset of the unselected one. Zero pixels lost at any edge.**
+
+The filled state is the outline state with the stroke **recoloured, not removed**. Per path, exactly two attributes change:
+
+| Attribute | Inactive | Active |
+|---|---|---|
+| `strokeColor` | `fm_ink_dim` `#4C6A6E` | `fm_primary` `#1F817D` |
+| `fillColor` | `#00000000` | `fm_primary` `#1F817D` |
+| `strokeWidth` | *(unchanged)* | *(unchanged)* |
+
+**Why this is a rule and not a preference.** A stroke straddles its path, extending half its width to either side. A filled variant that drops the stroke therefore loses half a stroke-width from *every* edge: the selected glyph becomes strictly **smaller** than the unselected one at the same moment it becomes much heavier. Shrinking and darkening in one frame is what reads as a jump, and it was measurable — the Groups glyph moved 1.00dp at its edges, History 0.90dp, Settings 0.60dp.
+
+**Do not compensate by growing the filled geometry.** That was tried and it cannot work: the stroke is a uniform offset around an arbitrary path, and matching it needs a true path offset, not enlarged radii. Every glyph ends up with hand-tuned numbers that silently drift from its outline as either file is edited. Keeping the stroke makes both states share one geometry by construction.
+
+**One permitted exception,** where a stroke would otherwise hang outside the fill: a subpath whose open ends sit on the shape's baseline may be closed with a trailing `z` in the **filled state only**, with `strokeLineJoin="round"` replacing `strokeLineCap="round"`. The outline state keeps the path open. This is the front figure's body on the Groups glyph and nothing else so far.
+
+**How to verify:** render both states and diff the alpha masks. Expect **0px** difference at any edge and identical bounding boxes. This is cheap, objective, and the only check that actually catches the failure.
 
 ---
 
