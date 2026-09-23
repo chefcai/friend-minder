@@ -79,10 +79,26 @@
         </FrameLayout>
     </LinearLayout>
 
-    <ScrollView
+    <!-- FRM-157 (audit CD-2): the whole page below the header is ONE
+         scroll container. It used to be a wrap_content ScrollView for the
+         top block plus a separate 156dp scrolling strip for History (4 of
+         5 rows visible, 1 at 200% text) and a third ScrollView for Special
+         Dates. The history RecyclerView below is now a non-scrolling
+         (nestedScrollingEnabled=false, wrap_content) list inside this
+         NestedScrollView. The inner wrapper has no horizontal padding so
+         the history rows keep their own 24dp gutter instead of doubling it. -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/contentScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/fm_space_2">
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/fm_space_4">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -345,17 +361,16 @@
                     android:text="@string/label_tab_special_dates" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </LinearLayout>
-    </ScrollView>
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="wrap_content">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/historyRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
 
         <TextView
             android:id="@+id/historyEmptyText"
@@ -368,10 +383,10 @@
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:visibility="gone" />
 
-        <ScrollView
+        <FrameLayout
             android:id="@+id/specialDatesScroll"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:visibility="gone">
 
             <LinearLayout
@@ -407,8 +422,10 @@
                     android:layout_marginTop="@dimen/fm_space_4"
                     android:text="@string/action_add_special_date" />
             </LinearLayout>
-        </ScrollView>
+        </FrameLayout>
     </FrameLayout>
+    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 
     <!-- GH #117 (SCREENS-PHASE3.md §6.3): destructive "Stop tracking" entry
