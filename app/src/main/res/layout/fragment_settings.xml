@@ -236,7 +236,8 @@
                 <LinearLayout
                     android:id="@+id/contactsPerDayRow"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
                     android:layout_marginTop="8dp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
@@ -277,7 +278,8 @@
                 <LinearLayout
                     android:id="@+id/cooldownRow"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
                     android:layout_marginTop="8dp"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
@@ -392,7 +394,8 @@
         <LinearLayout
             android:id="@+id/advancedRow"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingStart="@dimen/fm_gutter"
@@ -432,7 +435,8 @@
         <LinearLayout
             android:id="@+id/notificationsDiagnosticsRow"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingStart="@dimen/fm_gutter"

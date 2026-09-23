@@ -10,8 +10,10 @@
     tap target (GroupsFragment.onClick).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/groupRow"
     android:layout_width="match_parent"
-    android:layout_height="76dp"
+    android:layout_height="wrap_content"
+    android:minHeight="76dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:paddingStart="@dimen/fm_gutter"

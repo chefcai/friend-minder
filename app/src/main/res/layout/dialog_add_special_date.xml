@@ -24,7 +24,8 @@
         android:id="@+id/pickDateButton"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
         android:layout_marginTop="@dimen/fm_space_2" />
 
     <RadioGroup
