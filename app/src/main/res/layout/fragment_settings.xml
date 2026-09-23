@@ -111,7 +111,7 @@
                         android:id="@+id/fixedTimeToggleButton"
                         style="@style/Widget.FM.SegmentedButton"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/option_fixed_time" />
 
@@ -119,7 +119,7 @@
                         android:id="@+id/randomWindowToggleButton"
                         style="@style/Widget.FM.SegmentedButton"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/option_random_window" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>

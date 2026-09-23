@@ -28,6 +28,7 @@ import com.example.friendminder.ui.common.AvatarBinder
 import com.example.friendminder.ui.common.BottomNavPolicy
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
+import com.example.friendminder.ui.common.stackIfLabelsDontFit
 import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -111,6 +112,7 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
         binding.historyRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.historyRecyclerView.adapter = historyAdapter
 
+        binding.tabToggleGroup.stackIfLabelsDontFit()
         binding.historyToggleButton.setOnClickListener { showHistory() }
         binding.specialDatesToggleButton.setOnClickListener { showSpecialDates() }
         showHistory()
