@@ -106,9 +106,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingStart="@dimen/fm_space_6"
-                    android:paddingEnd="@dimen/fm_space_6"
                     android:paddingBottom="@dimen/fm_space_8">
+
+                    <!-- FRM-171 (OH-2): no horizontal padding on this column.
+                         The streak rows reuse item_home_contact, which carries
+                         its own 24dp gutter, so padding here inset them twice
+                         (avatar at x=126 instead of Home's 63). The 24dp gutter
+                         moves onto the non-row children below instead. -->
 
                     <!-- §4.4: the one fm_surface_accent block this screen is
                          allowed. Figure and label are two separate views
@@ -120,6 +124,8 @@
                         android:id="@+id/keyMetricBlock"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/fm_gutter"
+                        android:layout_marginEnd="@dimen/fm_gutter"
                         android:layout_marginTop="@dimen/fm_space_8"
                         android:orientation="vertical"
                         android:background="@drawable/bg_key_metric_accent"
@@ -161,6 +167,8 @@
                         android:id="@+id/chartSectionLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/fm_gutter"
+                        android:layout_marginEnd="@dimen/fm_gutter"
                         android:layout_marginTop="@dimen/fm_space_8"
                         android:text="@string/label_overall_history_chart_header"
                         android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
@@ -169,6 +177,8 @@
                         android:id="@+id/monthlyChart"
                         android:layout_width="match_parent"
                         android:layout_height="160dp"
+                        android:layout_marginStart="@dimen/fm_gutter"
+                        android:layout_marginEnd="@dimen/fm_gutter"
                         android:layout_marginTop="@dimen/fm_space_2" />
 
                     <!-- §4.6: "Longest streaks" - identical Home contact
@@ -186,6 +196,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/fm_gutter"
+                            android:layout_marginEnd="@dimen/fm_gutter"
                             android:text="@string/label_overall_history_streaks_header"
                             android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
