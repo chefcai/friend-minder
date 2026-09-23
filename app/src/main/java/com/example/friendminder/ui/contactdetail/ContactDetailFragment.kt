@@ -2,11 +2,17 @@ package com.example.friendminder.ui.contactdetail
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -46,6 +52,31 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
 
     /** FRM-155: no bottom nav here (CD-3 / AC-1); see [BottomNavPolicy]. */
     override val showsBottomNav = false
+
+    /**
+     * FRM-158 (audit CD-1): Stop tracking is behind the header overflow,
+     * then the existing confirmation sheet - never a one-tap control on the
+     * page. The item is tinted fm_error because it leads to a destructive
+     * action. A property lambda, not a member fun, to stay under detekt's
+     * TooManyFunctions limit.
+     */
+    private val showOverflowMenu = View.OnClickListener { anchor ->
+        PopupMenu(requireContext(), anchor, Gravity.END).apply {
+            menuInflater.inflate(R.menu.menu_contact_detail_overflow, menu)
+            menu.findItem(R.id.action_stop_tracking_overflow)?.let { item ->
+                item.title = SpannableString(item.title).apply {
+                    setSpan(
+                        ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.fm_error)),
+                        0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            }
+            setOnMenuItemClickListener { item ->
+                if (item.itemId == R.id.action_stop_tracking_overflow) confirmStopTracking()
+                true
+            }
+        }.show()
+    }
 
 
     private var _binding: FragmentContactDetailBinding? = null
@@ -87,7 +118,7 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
         binding.addGroupButton.setOnClickListener {
             EditContactGroupsDialogFragment.newInstance(contactId).show(childFragmentManager, "edit_groups")
         }
-        binding.stopTrackingFab.setOnClickListener { confirmStopTracking() }
+        binding.overflowButton.setOnClickListener(showOverflowMenu)
         binding.addSpecialDateButton.setOnClickListener { showAddSpecialDateDialog() }
 
         childFragmentManager.setFragmentResultListener(EditContactGroupsDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
@@ -262,7 +293,6 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
             }
 
             binding.headerTitle.text = contact.name
-            binding.stopTrackingFab.contentDescription = getString(R.string.format_content_desc_stop_tracking, contact.name)
             binding.contactNameText.text = contact.name
             AvatarBinder.bind(
                 binding.contactPhoto,

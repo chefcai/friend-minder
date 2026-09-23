@@ -380,7 +380,9 @@
          action_stop_tracking and the format_bulk_removal_confirm_outreaches
          plural above rather than duplicating either - only the
          name-carrying strings are new. -->
-    <string name="format_content_desc_stop_tracking">Stop tracking %1$s</string>
+    <!-- FRM-158: Stop tracking lives in the Contact Detail header overflow. -->
+    <string name="action_stop_tracking_ellipsis">Stop tracking…</string>
+    <string name="content_desc_more_options">More options</string>
     <string name="format_stop_tracking_confirm_title">Stop tracking %1$s?</string>
     <string name="format_stop_tracking_confirm_body">This deletes %1$s. %2$s stays in your phone\'s contacts.</string>
     <string name="format_stop_tracking_removed_snackbar">%1$s removed</string>
