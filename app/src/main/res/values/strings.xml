@@ -26,6 +26,9 @@
     <string name="label_time">Time</string>
     <string name="label_from">From</string>
     <string name="label_to">To</string>
+    <!-- FRM-166 (ST-4): the Time row in Random window mode. -->
+    <string name="label_time_window">Window</string>
+    <string name="format_time_window">%1$s – %2$s</string>
     <string name="error_end_before_start">End time must be after start time</string>
     <!-- GH #150 follow-up: a same-day resave of the reminder time (e.g. after
          the day's reminder already fired) will legitimately produce another

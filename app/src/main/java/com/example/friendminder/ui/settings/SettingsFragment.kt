@@ -194,8 +194,7 @@ class SettingsFragment : Fragment() {
             isRandomTimeMode = isRandom
             binding.fixedTimeToggleButton.isChecked = !isRandom
             binding.randomWindowToggleButton.isChecked = isRandom
-            binding.fixedTimeGroup.visibility = if (isRandom) View.GONE else View.VISIBLE
-            binding.randomWindowGroup.visibility = if (isRandom) View.VISIBLE else View.GONE
+            renderTimeButtons()
             validateTimeRange()
             scheduleAutoSaveUnlessLoading()
         }
@@ -203,28 +202,28 @@ class SettingsFragment : Fragment() {
         binding.fixedTimeToggleButton.setOnClickListener { selectTimeMode(isRandom = false) }
         binding.randomWindowToggleButton.setOnClickListener { selectTimeMode(isRandom = true) }
 
-        binding.fixedTimeButton.setOnClickListener {
-            TimePickerDialog(requireContext(), { _, hour, minute ->
-                fixedHour = hour; fixedMinute = minute; renderTimeButtons()
-                // GH #150 follow-up: fixed-time changes don't affect
-                // validateTimeRange()'s pass/fail (that's random-window-only),
-                // but the notice it renders depends on fixedHour/fixedMinute,
-                // so it still needs a call here to pick up the new time.
-                validateTimeRange()
+        // FRM-166 (ST-4): one Time row for both modes. Fixed time opens the
+        // time picker; the random window opens the start-hour picker and,
+        // once that's set, the end-hour picker (hour-only, as before - the
+        // random scheduler only takes whole hours).
+        binding.timeRow.setOnClickListener {
+            if (!isRandomTimeMode) {
+                TimePickerDialog(requireContext(), { _, hour, minute ->
+                    fixedHour = hour; fixedMinute = minute; renderTimeButtons()
+                    // GH #150 follow-up: the notice depends on the fixed time.
+                    validateTimeRange()
+                    scheduleAutoSaveUnlessLoading()
+                }, fixedHour, fixedMinute, false).show()
+                return@setOnClickListener
+            }
+            TimePickerDialog(requireContext(), { _, startHour, _ ->
+                randomStartHour = startHour; renderTimeButtons(); validateTimeRange()
                 scheduleAutoSaveUnlessLoading()
-            }, fixedHour, fixedMinute, false).show()
-        }
-        binding.randomFromButton.setOnClickListener {
-            TimePickerDialog(requireContext(), { _, hour, _ ->
-                randomStartHour = hour; renderTimeButtons(); validateTimeRange()
-                scheduleAutoSaveUnlessLoading()
-            }, randomStartHour, 0, false).show()
-        }
-        binding.randomToButton.setOnClickListener {
-            TimePickerDialog(requireContext(), { _, hour, _ ->
-                randomEndHour = hour; renderTimeButtons(); validateTimeRange()
-                scheduleAutoSaveUnlessLoading()
-            }, randomEndHour, 0, false).show()
+                TimePickerDialog(requireContext(), { _, endHour, _ ->
+                    randomEndHour = endHour; renderTimeButtons(); validateTimeRange()
+                    scheduleAutoSaveUnlessLoading()
+                }, randomEndHour, 0, false).apply { setTitle(R.string.label_to) }.show()
+            }, randomStartHour, 0, false).apply { setTitle(R.string.label_from) }.show()
         }
     }
 
@@ -308,8 +307,6 @@ class SettingsFragment : Fragment() {
             isRandomTimeMode = isRandom
             binding.fixedTimeToggleButton.isChecked = !isRandom
             binding.randomWindowToggleButton.isChecked = isRandom
-            binding.fixedTimeGroup.visibility = if (isRandom) View.GONE else View.VISIBLE
-            binding.randomWindowGroup.visibility = if (isRandom) View.VISIBLE else View.GONE
 
             repo.getReminderTime()?.let { (h, m) -> fixedHour = h; fixedMinute = m }
             repo.getRandomTimeRange()?.let { (s, e) -> randomStartHour = s; randomEndHour = e }
@@ -363,10 +360,19 @@ class SettingsFragment : Fragment() {
     // functions - both are cheap no-ops when their mode isn't active, and
     // merging keeps the class under detekt's TooManyFunctions threshold now
     // that GH #150 follow-up added renderNextReminderNotice.
+    // FRM-166 (ST-4): renders the single Time row for whichever mode is on.
     private fun renderTimeButtons() {
-        binding.fixedTimeButton.text = formatTimeLabel(fixedHour, fixedMinute)
-        binding.randomFromButton.text = formatTimeLabel(randomStartHour)
-        binding.randomToButton.text = formatTimeLabel(randomEndHour)
+        if (isRandomTimeMode) {
+            binding.timeLabel.setText(R.string.label_time_window)
+            binding.timeValue.text = getString(
+                R.string.format_time_window,
+                formatTimeLabel(randomStartHour, 0),
+                formatTimeLabel(randomEndHour, 0)
+            )
+        } else {
+            binding.timeLabel.setText(R.string.label_time)
+            binding.timeValue.text = formatTimeLabel(fixedHour, fixedMinute)
+        }
     }
 
     // GH #150 follow-up: a same-day resave of the reminder time (e.g. after

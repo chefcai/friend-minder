@@ -250,6 +250,8 @@ Setting `android:statusBarColor` to the same teal also removes the visible seam 
 ### 6.1 Lists
 Flat rows on `fm_surface`, separated by a 1dp `fm_divider` hairline **inset 24dp at both ends**, with no divider after the final row. No backgrounds, no borders, no cards. Row press state is a Material ripple at 12% `fm_primary`, nothing else — no elevation change.
 
+**Value rows (FRM-166, ST-4).** Every setting that has a value uses one row shape, `Widget.FM.ValueRow`: label (Row Primary, with optional Row Secondary helper beneath) on the left; value (17sp `fm_ink_dim`, right-aligned, capped at 180dp so a long value wraps instead of squeezing the label) and a 24dp chevron on the right; minHeight 64dp; value and chevron vertically centred on the row. Tapping the row opens that setting's picker. No outlined pill buttons for values.
+
 ### 6.2 Buttons
 - **Filled** — `fm_primary` ground, white label, 56dp, pill radius. The one primary action on a screen.
 - **Text** — label in `fm_primary` on white, `fm_accent` on any tint (§2.4). 48dp target.

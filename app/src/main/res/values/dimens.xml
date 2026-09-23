@@ -72,4 +72,6 @@
     <!-- FRM-164: leading icon on the Settings next-reminder line. -->
     <dimen name="fm_status_icon_size">16dp</dimen>
     <dimen name="fm_status_icon_gap">4dp</dimen>
+    <!-- FRM-166: widest a settings value may get before it wraps. -->
+    <dimen name="fm_value_row_value_max_width">180dp</dimen>
 </resources>

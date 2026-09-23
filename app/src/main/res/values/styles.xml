@@ -76,4 +76,39 @@
         <item name="autoSizeStepGranularity">1sp</item>
         <item name="android:importantForAccessibility">no</item>
     </style>
+
+    <!-- FRM-166 (ST-4): the one row shape for every setting with a value -
+         label (and optional helper) left, value and chevron right, 64dp min. -->
+    <style name="Widget.FM.ValueRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">64dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <!-- Centre the value and chevron on the row, not on the label's
+             first baseline. -->
+        <item name="android:baselineAligned">false</item>
+        <item name="android:background">@drawable/bg_home_row_ripple</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="Widget.FM.ValueRow.Value">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">@dimen/fm_space_4</item>
+        <item name="android:gravity">end|center_vertical</item>
+        <!-- Capped so a long value (the random window) wraps at the dash at
+             large text sizes instead of squeezing the label into mid-word
+             breaks. -->
+        <item name="android:maxWidth">@dimen/fm_value_row_value_max_width</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/fm_ink_dim</item>
+    </style>
+
+    <style name="Widget.FM.ValueRow.Chevron">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:src">@drawable/ic_chevron_right</item>
+    </style>
 </resources>
