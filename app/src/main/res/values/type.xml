@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!--
       Text appearances from DESIGN-SYSTEM-PHASE3.md Section 3 (Typography).
       Apply with android:textAppearance and do not also set textColor /
@@ -21,7 +21,7 @@
         <item name="android:letterSpacing">0.08</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textFontWeight">600</item>
+        <item name="android:textFontWeight" tools:targetApi="28">600</item>
         <item name="lineHeight">16sp</item>
     </style>
 
