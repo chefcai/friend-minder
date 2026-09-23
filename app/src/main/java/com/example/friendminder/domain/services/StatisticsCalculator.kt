@@ -1,5 +1,9 @@
 package com.example.friendminder.domain.services
 
+import com.example.friendminder.data.models.OutreachLog
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
 /**
@@ -72,4 +76,35 @@ object StatisticsCalculator {
         shuffle: (List<T>) -> List<T> = List<T>::shuffled,
         key: (T) -> Int
     ): List<T> = shuffle(items).sortedByDescending(key).take(n)
+
+    /** Epoch millis of 00:00 on the 1st of the calendar month containing [now], in [zone]. */
+    fun startOfMonthMillis(now: Long, zone: ZoneId): Long =
+        monthStart(now, zone).toInstant().toEpochMilli()
+
+    /**
+     * Number of distinct contacts in [trackedContactIds] with at least one
+     * log in the calendar month containing [now], in [zone] (FRM-169 / OH-1:
+     * "contacts reached this month" counts people, not outreach events).
+     * The window is [start of month, start of next month); logs for
+     * untracked (removed or never-added) contacts are ignored.
+     */
+    fun distinctContactsReachedInMonth(
+        logs: List<OutreachLog>,
+        trackedContactIds: Set<String>,
+        now: Long,
+        zone: ZoneId
+    ): Int {
+        val start = monthStart(now, zone)
+        val startMillis = start.toInstant().toEpochMilli()
+        val endMillis = start.plusMonths(1).toInstant().toEpochMilli()
+        return logs.asSequence()
+            .filter { it.timestamp in startMillis until endMillis }
+            .map { it.contactId }
+            .filter { it in trackedContactIds }
+            .distinct()
+            .count()
+    }
+
+    private fun monthStart(now: Long, zone: ZoneId): ZonedDateTime =
+        Instant.ofEpochMilli(now).atZone(zone).toLocalDate().withDayOfMonth(1).atStartOfDay(zone)
 }

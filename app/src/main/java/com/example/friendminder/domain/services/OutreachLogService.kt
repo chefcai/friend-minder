@@ -38,4 +38,7 @@ interface OutreachLogService {
 
     /** Count of logs across all contacts with a timestamp >= [sinceMillis] (PRD §6.5 "Monthly Outreach"). */
     suspend fun countSince(sinceMillis: Long): Int
+
+    /** All logs across all contacts with a timestamp >= [sinceMillis], in no particular order (FRM-169). */
+    suspend fun getSince(sinceMillis: Long): List<OutreachLog>
 }
