@@ -148,11 +148,26 @@ class MainActivity : AppCompatActivity() {
         // layout XML - AAPT2 link failure), so it's set programmatically.
         binding.bottomNav.setItemActiveIndicatorEnabled(false)
         binding.bottomNav.setOnItemSelectedListener { item ->
-            val current = supportFragmentManager.findFragmentById(R.id.nav_host_container)
+            // FRM-134: tapping a destination's own icon always navigates -
+            // never a no-op, even when already sitting on that exact
+            // destination (or a sub-screen pushed on top of it). Earlier
+            // this short-circuited to null ("if current is GroupsFragment,
+            // do nothing") when already on the destination itself, which
+            // is exactly the no-op the ticket reported; a sub-screen (e.g.
+            // Advanced Settings) already fell into the non-null branch and
+            // navigated correctly, since `current` there is never an
+            // instance of the parent fragment. Always building a fresh
+            // instance and calling navigateToDestination (which pops any
+            // existing NAV_DESTINATION_BACK_STACK_NAME entry first, see
+            // its own kdoc) gives both cases the same one Instagram/
+            // Twitter-style outcome: tapping a nav icon always lands you
+            // on a clean root instance of that section, discarding any
+            // pushed sub-screen and any transient state (e.g. scroll
+            // position) the previous instance had.
             val destination = when (item.itemId) {
-                R.id.nav_groups -> if (current is GroupsFragment) null else GroupsFragment.newInstance()
-                R.id.nav_overall_history -> if (current is OverallHistoryFragment) null else OverallHistoryFragment.newInstance()
-                R.id.nav_settings -> if (current is SettingsFragment) null else SettingsFragment.newInstance()
+                R.id.nav_groups -> GroupsFragment.newInstance()
+                R.id.nav_overall_history -> OverallHistoryFragment.newInstance()
+                R.id.nav_settings -> SettingsFragment.newInstance()
                 else -> null
             }
             destination?.let { navigateToDestination(it) }
