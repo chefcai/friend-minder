@@ -2,6 +2,7 @@ package com.example.friendminder
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -14,6 +15,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
 import com.example.friendminder.databinding.ActivityMainBinding
+import com.example.friendminder.ui.common.BottomNavPolicy
 import com.example.friendminder.ui.groups.GroupDetailFragment
 import com.example.friendminder.ui.groups.GroupsFragment
 import com.example.friendminder.ui.history.OverallHistoryFragment
@@ -37,13 +39,14 @@ import com.example.friendminder.ui.settings.SettingsFragment
  *
  * Also owns the bottom nav (FRM-100, revised on GH #117's own follow-up
  * discussion, Cai 2026-09-21): exactly three icon-only destinations
- * (Groups, Overall History, Settings), now permanently visible on every
- * screen in the app rather than only the four original Phase 3 "shell"
- * screens - Contact Detail, Group Detail, Advanced Settings, Notifications
- * & Diagnostics, and the add-contacts flow's two steps all show it too, so
+ * (Groups, Overall History, Settings), visible on every screen in the app
+ * rather than only the four original Phase 3 "shell" screens - Group
+ * Detail, Advanced Settings and Notifications & Diagnostics show it too, so
  * you can always jump to a top-level destination without backing all the
- * way out first. [updateBottomNav] is the single source of truth for the
- * bar's selected item (never its visibility anymore - see below), driven
+ * way out first. FRM-155 (Cai, 2026-09-23, audit CD-3 / AC-1) carves out
+ * exactly three screens that opt out via [BottomNavPolicy]: Contact Detail
+ * and the add-contacts flow's two steps. [updateBottomNav] is the single
+ * source of truth for the bar's visibility and selected item, driven
  * off whatever fragment [R.id.nav_host_container] currently holds - re-run
  * on every back-stack change (a fragment-manager listener, registered
  * once) and, for the one case that isn't a back-stack change, the very
@@ -85,6 +88,9 @@ import com.example.friendminder.ui.settings.SettingsFragment
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    /** Latest system nav/gesture-bar bottom inset, from [applyBottomNavInsets]. */
+    private var systemBottomInset = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // FRM-65: must run before super.onCreate() per the SplashScreen API contract.
@@ -220,15 +226,32 @@ class MainActivity : AppCompatActivity() {
      */
     private fun applyBottomNavInsets() {
         val barContentHeight = binding.bottomNav.layoutParams.height
-        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { view, insets ->
-            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
-            view.updatePadding(bottom = bottomInset)
-            view.layoutParams = view.layoutParams.apply {
-                height = barContentHeight + bottomInset
+        // FRM-155: listen on the root rather than the bar itself, so the
+        // inset is still known while the bar is GONE (screens whose
+        // BottomNavPolicy hides it) and can be handed to the content
+        // instead - see applyContentBottomInset(). Insets are returned
+        // unconsumed, so the fragments' own listeners still receive them.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            systemBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            binding.bottomNav.updatePadding(bottom = systemBottomInset)
+            binding.bottomNav.layoutParams = binding.bottomNav.layoutParams.apply {
+                height = barContentHeight + systemBottomInset
             }
+            applyContentBottomInset()
             insets
         }
-        ViewCompat.requestApplyInsets(binding.bottomNav)
+        ViewCompat.requestApplyInsets(binding.root)
+    }
+
+    /**
+     * FRM-155: when the bar is shown it already pads itself by the system
+     * gesture/nav inset, so the content needs none. When a screen hides it,
+     * the content would otherwise run under the gesture pill, so the host
+     * container takes that inset as bottom padding instead.
+     */
+    private fun applyContentBottomInset() {
+        val navShown = binding.bottomNav.visibility == View.VISIBLE
+        binding.navHostContainer.updatePadding(bottom = if (navShown) 0 else systemBottomInset)
     }
 
     /**
@@ -251,9 +274,10 @@ class MainActivity : AppCompatActivity() {
     /**
      * Single source of truth for the bottom nav's selected item
      * (SCREENS-PHASE3.md §2.1/§2.2). Cai's 2026-09-21 follow-up to GH #117
-     * made the bar permanently visible on every screen - see this class's
-     * own kdoc - so this function no longer touches visibility at all,
-     * only which item (if any) shows selected, driven off whichever
+     * made the bar visible on every screen; FRM-155 (2026-09-23) narrows
+     * that - a screen can opt out through [BottomNavPolicy] (Contact Detail
+     * and both add-contacts steps do). Beyond that visibility check, this
+     * decides which item (if any) shows selected, driven off whichever
      * fragment [R.id.nav_host_container] currently holds. Home and every
      * screen that isn't itself Groups/Overall History/Settings (Contact
      * Detail, Group Detail, Advanced Settings, Notifications &
@@ -263,6 +287,13 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updateBottomNav() {
         val current = supportFragmentManager.findFragmentById(R.id.nav_host_container)
+        // FRM-155: visibility is per screen again, but declared by the
+        // screen itself (BottomNavPolicy), not listed here.
+        val showsNav = (current as? BottomNavPolicy)?.showsBottomNav ?: true
+        val navVisibility = if (showsNav) View.VISIBLE else View.GONE
+        binding.bottomNav.visibility = navVisibility
+        binding.bottomNavDivider.visibility = navVisibility
+        applyContentBottomInset()
         val destinationItemId = when (current) {
             is GroupsFragment -> R.id.nav_groups
             is OverallHistoryFragment -> R.id.nav_overall_history

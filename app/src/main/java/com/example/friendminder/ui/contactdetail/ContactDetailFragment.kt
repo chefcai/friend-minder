@@ -19,6 +19,7 @@ import com.example.friendminder.databinding.FragmentContactDetailBinding
 import com.example.friendminder.databinding.ItemSpecialDateBinding
 import com.example.friendminder.domain.services.IntervalSource
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.ui.common.BottomNavPolicy
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.common.withLivePhotoUris
@@ -41,7 +42,11 @@ import java.util.Calendar
  * own "isn't a third entry point" caveat both predate FRM-101/FRM-102,
  * which retired the fragments they referred to.
  */
-class ContactDetailFragment : Fragment() {
+class ContactDetailFragment : Fragment(), BottomNavPolicy {
+
+    /** FRM-155: no bottom nav here (CD-3 / AC-1); see [BottomNavPolicy]. */
+    override val showsBottomNav = false
+
 
     private var _binding: FragmentContactDetailBinding? = null
     private val binding get() = _binding!!

@@ -27,6 +27,7 @@ import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactsLoader
 import com.example.friendminder.data.models.Contact
 import com.example.friendminder.databinding.FragmentAddContactsStep1Binding
+import com.example.friendminder.ui.common.BottomNavPolicy
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
@@ -50,7 +51,11 @@ import java.util.Locale
  * OverallHistoryFragment rather than shared - see those classes' kdoc for
  * why (no base Fragment class in this codebase).
  */
-class AddContactsStep1Fragment : Fragment() {
+class AddContactsStep1Fragment : Fragment(), BottomNavPolicy {
+
+    /** FRM-155: no bottom nav here (CD-3 / AC-1); see [BottomNavPolicy]. */
+    override val showsBottomNav = false
+
 
     private var _binding: FragmentAddContactsStep1Binding? = null
     private val binding get() = _binding!!
