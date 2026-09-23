@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FRM-151 (HM-4): bottom-nav glyph tint. Inactive fm_ink_dim, active
+  (checked) fm_primary - DESIGN-SYSTEM-PHASE3.md Section 6.2 / 6.9a.
+
+  This replaces app:itemIconTint="@null". A null attribute reads as "not
+  set", so NavigationBarView fell back to its default tint built from
+  ?android:attr/textColorSecondary - stock M3 #49454F - and every inactive
+  glyph rendered in that instead of fm_ink_dim. The glyph drawables already
+  carry these same two colours per state, so tinting them SRC_IN is
+  value-identical to the drawables' own colours.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/fm_primary" android:state_checked="true" />
+    <item android:color="@color/fm_ink_dim" />
+</selector>

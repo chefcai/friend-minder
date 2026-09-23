@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FRM-151 (HM-4): ?android:textColorPrimaryDisableOnly, which compound
+  buttons (radio buttons, checkboxes) use for their label. Stock M3 resolves
+  it to #1D1B20. fm_ink, dimmed to the M3 38% disabled alpha when disabled.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:alpha="0.38" android:color="@color/fm_ink" android:state_enabled="false" />
+    <item android:color="@color/fm_ink" />
+</selector>

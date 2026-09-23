@@ -44,7 +44,8 @@
         while the items themselves stay within the top @dimen/fm_bottom_nav_height,
         matching statusBarSpacer's pattern in fragment_home.xml for the top
         inset. itemIconSize overrides the default M3 unlabeled-item 24dp
-        icon up to the spec's 28dp. -->
+        icon up to the spec's 28dp. itemIconTint must be a real colour
+        state list, never @null (FRM-151, see fm_nav_icon_tint.xml). -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
@@ -52,7 +53,7 @@
         android:background="@color/fm_surface"
         app:elevation="0dp"
         app:itemIconSize="@dimen/fm_bottom_nav_icon_size"
-        app:itemIconTint="@null"
+        app:itemIconTint="@color/fm_nav_icon_tint"
         app:itemBackground="@drawable/bg_nav_item_ripple"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/menu_bottom_nav" />
