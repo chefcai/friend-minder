@@ -26,5 +26,12 @@ data class AggregateStatistics(
     val medianDaysSinceContact: Int?,
     val healthiestStreaks: List<ContactStatistics>,
     val mostNeglected: List<ContactStatistics>,
-    val monthlyOutreachCount: Int
+    /** Outreach *events* in the trailing 30 days, across all contacts. Kept for existing consumers. */
+    val monthlyOutreachCount: Int,
+    /**
+     * Distinct tracked contacts with at least one outreach in the current
+     * calendar month, in the device time zone (FRM-169 / OH-1). This is the
+     * figure behind Overall History's "N contacts reached this month".
+     */
+    val contactsReachedThisMonth: Int
 )

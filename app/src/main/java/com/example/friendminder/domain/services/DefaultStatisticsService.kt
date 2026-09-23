@@ -5,6 +5,7 @@ import com.example.friendminder.data.models.ContactStatistics
 import com.example.friendminder.data.storage.CooldownRepository
 import com.example.friendminder.data.storage.FriendListRepository
 import com.example.friendminder.data.storage.StatisticsCacheRepository
+import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 private const val CACHE_TTL_MILLIS = 24 * 60 * 60 * 1000L // PRD §8.4: refresh on contact change or daily.
@@ -33,7 +34,10 @@ class DefaultStatisticsService(
     override suspend fun getAggregateStatistics(forceRefresh: Boolean): AggregateStatistics {
         val friends = friendListRepository.getFriendList()
         val stats = friends.map { getStatistics(it.id, forceRefresh) }
-        val monthAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(AGGREGATE_WINDOW_DAYS)
+        val now = System.currentTimeMillis()
+        val monthAgo = now - TimeUnit.DAYS.toMillis(AGGREGATE_WINDOW_DAYS)
+        val zone = ZoneId.systemDefault()
+        val calendarMonthLogs = outreachLogService.getSince(StatisticsCalculator.startOfMonthMillis(now, zone))
         return AggregateStatistics(
             totalFriends = friends.size,
             medianDaysSinceContact = StatisticsCalculator.median(stats.mapNotNull { it.daysSinceContact }),
@@ -43,7 +47,13 @@ class DefaultStatisticsService(
             // always surface the same TOP_N contacts (whichever were added to the
             // Friend List earliest) out of potentially many equally-neglected ones.
             mostNeglected = StatisticsCalculator.topNRandomizedTies(stats, TOP_N) { it.daysSinceContact ?: Int.MAX_VALUE },
-            monthlyOutreachCount = outreachLogService.countSince(monthAgo)
+            monthlyOutreachCount = outreachLogService.countSince(monthAgo),
+            contactsReachedThisMonth = StatisticsCalculator.distinctContactsReachedInMonth(
+                logs = calendarMonthLogs,
+                trackedContactIds = friends.mapTo(HashSet()) { it.id },
+                now = now,
+                zone = zone
+            )
         )
     }
 

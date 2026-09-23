@@ -36,4 +36,7 @@ class DefaultOutreachLogService(
 
     override suspend fun countSince(sinceMillis: Long): Int =
         outreachLogRepository.getAll().count { it.timestamp >= sinceMillis }
+
+    override suspend fun getSince(sinceMillis: Long): List<OutreachLog> =
+        outreachLogRepository.getAll().filter { it.timestamp >= sinceMillis }
 }
