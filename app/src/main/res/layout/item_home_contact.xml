@@ -21,6 +21,7 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/homeContactRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -77,10 +78,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:textSize="14sp"
+            android:maxLines="1"
+            android:includeFontPadding="false"
+            android:textSize="14dp"
             android:textStyle="bold"
+            tools:ignore="SpUsage"
             android:textColor="@color/fm_on_primary"
             android:importantForAccessibility="no" />
+        <!-- FRM-162 (HM-3): the numeral is sized in dp, not sp. The badge is a
+             fixed 28dp circle, so a font-scaled numeral clipped at 200%. The
+             row's description (contentDescription) still carries the streak
+             for screen readers, so the fixed size costs no information. -->
 
         <!-- FRM-112 (§10.3): selection mode swaps this same 28dp slot from
              the streak numeral above to this check glyph - nothing moves,
