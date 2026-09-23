@@ -89,11 +89,10 @@
 
                 <!-- Reminder Time -->
                 <TextView
-                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:text="@string/label_reminder_time" />
+                    android:text="@string/label_reminder_time"
+                    android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
                 <!-- GH #165/FRM-130: segmented control replacing the radio
                      pair (SCREENS-PHASE3.md Section 7.2), matching Contact
@@ -220,12 +219,11 @@
                      trailing") - the description used to sit under the
                      Spinner instead of under the label. -->
                 <TextView
-                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginTop="24dp"
-                    android:text="@string/label_contacts_per_day" />
+                    android:text="@string/label_contacts_per_day"
+                    android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -270,12 +268,11 @@
                      screen's own advancedRow's row-with-chevron shape
                      rather than introducing a third row style. -->
                 <TextView
-                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginTop="24dp"
-                    android:text="@string/label_cooldown" />
+                    android:text="@string/label_cooldown"
+                    android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
 
                 <LinearLayout
                     android:id="@+id/cooldownRow"
@@ -305,12 +302,11 @@
 
                 <!-- Message Templates (chefcai/friend-minder#30: multiple, randomly picked) -->
                 <TextView
-                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginTop="24dp"
-                    android:text="@string/label_message_templates" />
+                    android:text="@string/label_message_templates"
+                    android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
                 <!-- FRM-122 (FRM-103 §7.1 cross-cutting decision 3,
                      "Switches, not checkboxes"): a settings boolean is a

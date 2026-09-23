@@ -163,11 +163,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/fm_space_8"
                         android:text="@string/label_overall_history_chart_header"
-                        android:textAllCaps="true"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.08"
-                        android:textSize="13sp"
-                        android:textColor="@color/fm_heading" />
+                        android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
                     <com.example.friendminder.ui.dashboard.BarChartView
                         android:id="@+id/monthlyChart"
@@ -191,11 +187,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/label_overall_history_streaks_header"
-                            android:textAllCaps="true"
-                            android:textStyle="bold"
-                            android:letterSpacing="0.08"
-                            android:textSize="13sp"
-                            android:textColor="@color/fm_heading" />
+                            android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
                         <LinearLayout
                             android:id="@+id/streaksContainer"

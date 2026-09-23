@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/fm_space_4"
         android:text="@string/label_group_color"
-        android:textAppearance="?attr/textAppearanceLabelLarge" />
+        android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
     <HorizontalScrollView
         android:layout_width="match_parent"
