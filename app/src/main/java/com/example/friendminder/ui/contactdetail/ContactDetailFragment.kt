@@ -5,12 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactStatistics
 import com.example.friendminder.data.models.SpecialDateSource
 import com.example.friendminder.databinding.FragmentContactDetailBinding
 import com.example.friendminder.databinding.ItemSpecialDateBinding
@@ -317,20 +320,43 @@ class ContactDetailFragment : Fragment() {
             binding.birthdayFrequencyCaption.visibility = View.GONE
         }
 
-        // formatDaysAgo folded into a local lambda (only used here) to make
-        // room for GH #117's confirmStopTracking()/performStopTracking()
-        // under detekt's TooManyFunctions threshold - same technique used
-        // for updatePickDateButtonText in showAddSpecialDateDialog (GH #132).
-        val formatDaysAgo = { days: Int? ->
-            when {
-                days == null -> getString(R.string.label_never_contacted)
-                days <= 0 -> getString(R.string.label_today)
-                else -> resources.getQuantityString(R.plurals.format_days_ago, days, days)
-            }
+        // SCREENS-PHASE3.md Section 6.2 (GH #164/FRM-129): the three-figure
+        // row replacing the old sentence lines. Kept inline (not split into
+        // a member function) to stay under detekt's TooManyFunctions
+        // threshold - bindStat below is a local fun for the same reason
+        // formatDaysAgo used to be a local lambda. daysSinceContact has no
+        // figure on this screen any more (outreach count took its place),
+        // so label_never_contacted/label_today/format_days_ago are
+        // Home-only now.
+        val dash = getString(R.string.label_stat_dash)
+
+        // One contentDescription per stack (figure + label read as a
+        // single TalkBack statement) rather than two - same pattern as
+        // Overall History's keyMetricBlock (fragment_overall_history.xml).
+        fun bindStat(stack: View, figureView: TextView, figureText: String, @StringRes labelRes: Int) {
+            figureView.text = figureText
+            val label = getString(labelRes)
+            stack.contentDescription = getString(R.string.format_stat_content_description, figureText, label)
         }
-        binding.lastContactText.text = getString(R.string.format_last_contact, formatDaysAgo(stats.daysSinceContact))
-        binding.streakText.text = resources.getQuantityString(R.plurals.format_streak_days, stats.streak, stats.streak)
-        binding.reachRateText.text = getString(R.string.format_reach_rate, stats.reachRate)
+
+        // "Never render '0 days' where '-' is truer" (SCREENS-PHASE3.md
+        // Section 6.2): a streak of 0 isn't a streak, and an outreach
+        // count of 0 means nothing has ever been logged, so both use the
+        // dash rather than the literal zero. Reach rate is different - a
+        // genuine 0% is a real measurement once at least one outreach has
+        // been logged, so it only falls back to the dash when the rate is
+        // undefined (no outreaches to compute a rate from at all).
+        val outreachesText = if (stats.totalContacts <= 0) dash else stats.totalContacts.toString()
+        val streakText = if (stats.streak <= 0) dash else stats.streak.toString()
+        val reachRateText = if (stats.totalContacts <= 0) {
+            dash
+        } else {
+            getString(R.string.format_stat_reach_rate_figure, stats.reachRate)
+        }
+
+        bindStat(binding.outreachesStat, binding.outreachesFigure, outreachesText, R.string.label_stat_outreaches)
+        bindStat(binding.streakStat, binding.streakFigure, streakText, R.string.label_stat_day_streak)
+        bindStat(binding.reachRateStat, binding.reachRateFigure, reachRateText, R.string.label_stat_reach_rate)
     }
 
     private suspend fun bindGroups(contact: Contact) {

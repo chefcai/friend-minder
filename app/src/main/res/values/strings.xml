@@ -114,28 +114,45 @@
     <string name="format_birthday_message">Happy birthday, %1$s! 🎉</string>
     <string name="format_special_date_body">%1$s today</string>
 
-    <!-- Shared last-touch/history formatting used by Contact Detail
-         (ContactDetailFragment) and Home (HomeLastTouchFormatter).
+    <!-- Last-touch formatting, used by Home (HomeLastTouchFormatter).
          Formerly also shared with DashboardFragment, retired on FRM-101 -
          Overall History's own last-touch display goes through
          HomeLastTouchFormatter instead (reusing Home's row exactly, per
-         SCREENS-PHASE3.md §4.6), not this elapsed-based ladder. -->
+         SCREENS-PHASE3.md §4.6), not this elapsed-based ladder. Formerly
+         also used by Contact Detail's formatDaysAgo/lastContactText -
+         GH #164/FRM-129 replaced that sentence with the statsRow figures
+         below, which have no "last contact" figure at all (outreach
+         count took its place per SCREENS-PHASE3.md Section 6.2), so this
+         ladder is Home-only again. -->
     <string name="label_today">Today</string>
     <!-- FRM-126: SCREENS-PHASE3.md SS1.4/SS6.2 - the never-logged rung of the
          last-touch ladder is "Never", one word, matching every other rung
-         being a duration rather than a sentence. Shared by Home
-         (HomeLastTouchFormatter) and Contact Detail (formatDaysAgo). -->
+         being a duration rather than a sentence. -->
     <string name="label_never_contacted">Never</string>
     <plurals name="format_days_ago">
         <item quantity="one">%1$d day ago</item>
         <item quantity="other">%1$d days ago</item>
     </plurals>
-    <string name="format_last_contact">Last contact: %1$s</string>
-    <plurals name="format_streak_days">
-        <item quantity="one">Streak: %1$d day</item>
-        <item quantity="other">Streak: %1$d days</item>
-    </plurals>
-    <string name="format_reach_rate">Reach rate: %1$.0f%%</string>
+    <!-- Contact Detail's statsRow (SCREENS-PHASE3.md Section 6.2, GH #164/
+         FRM-129): three bare figures, not sentences - the label TextViews
+         below carry the words "outreaches"/"day streak"/"reach rate", so
+         these are deliberately not %-templated format strings the way the
+         old format_last_contact/format_streak_days/format_reach_rate
+         sentences were (those three are retired). label_stat_dash is the
+         "-" zero-state figure the spec calls out ("never render '0 days'
+         where '-' is truer") - used in place of "0" wherever a zero count
+         doesn't actually mean anything (see ContactDetailFragment.
+         bindStats). -->
+    <string name="label_stat_outreaches">outreaches</string>
+    <string name="label_stat_day_streak">day streak</string>
+    <string name="label_stat_reach_rate">reach rate</string>
+    <string name="label_stat_dash">—</string>
+    <!-- Reach rate's own figure (no "Reach rate:" prefix - the label
+         TextView underneath already says that) and the shared
+         "<figure> <label>" TalkBack sentence for all three stacks
+         (ContactDetailFragment.bindStat). -->
+    <string name="format_stat_reach_rate_figure">%1$.0f%%</string>
+    <string name="format_stat_content_description">%1$s %2$s</string>
     <string name="format_chart_bar_count">%1$d contacts</string>
     <!-- Chart axis labels (GH #101): persistent per-bar labels, distinct from the
          tap-to-reveal value shown by format_chart_bar_count above. -->

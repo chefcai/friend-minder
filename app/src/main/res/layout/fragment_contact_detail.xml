@@ -130,38 +130,120 @@
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="@dimen/fm_space_4"
-                android:background="?attr/colorOutlineVariant" />
-
-            <TextView
-                android:id="@+id/lastContactText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/fm_space_3"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-            <TextView
-                android:id="@+id/streakText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/fm_space_1"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-            <TextView
-                android:id="@+id/reachRateText"
+            <!-- SCREENS-PHASE3.md Section 6.2 (GH #164/FRM-129): three
+                 evenly-spaced figure stacks replace the old three sentence
+                 lines (ContactStatistics.totalContacts / streak /
+                 reachRate). "No boxes, no dividers - 32dp of air above and
+                 below" is why the two colorOutlineVariant hairlines that
+                 used to bracket the sentence block are gone too, replaced
+                 by this row's own top/bottom margin (fm_space_8 = 32dp).
+                 Each stack is one focusable node with a single
+                 contentDescription set in code (bindStats) so TalkBack
+                 reads one statement per figure rather than the numeral and
+                 label separately - same pattern as Overall History's
+                 keyMetricBlock (fragment_overall_history.xml). -->
+            <LinearLayout
+                android:id="@+id/statsRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/fm_space_1"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:layout_marginTop="@dimen/fm_space_8"
+                android:layout_marginBottom="@dimen/fm_space_8"
+                android:orientation="horizontal">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="@dimen/fm_space_3"
-                android:background="?attr/colorOutlineVariant" />
+                <LinearLayout
+                    android:id="@+id/outreachesStat"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:importantForAccessibility="yes">
+
+                    <TextView
+                        android:id="@+id/outreachesFigure"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textSize="24sp"
+                        android:textColor="@color/fm_heading"
+                        android:gravity="center"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/fm_space_1"
+                        android:text="@string/label_stat_outreaches"
+                        android:textSize="13sp"
+                        android:textColor="@color/fm_ink_dim"
+                        android:gravity="center"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/streakStat"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:importantForAccessibility="yes">
+
+                    <TextView
+                        android:id="@+id/streakFigure"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textSize="24sp"
+                        android:textColor="@color/fm_heading"
+                        android:gravity="center"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/fm_space_1"
+                        android:text="@string/label_stat_day_streak"
+                        android:textSize="13sp"
+                        android:textColor="@color/fm_ink_dim"
+                        android:gravity="center"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/reachRateStat"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:focusable="true"
+                    android:importantForAccessibility="yes">
+
+                    <TextView
+                        android:id="@+id/reachRateFigure"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textSize="24sp"
+                        android:textColor="@color/fm_heading"
+                        android:gravity="center"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/fm_space_1"
+                        android:text="@string/label_stat_reach_rate"
+                        android:textSize="13sp"
+                        android:textColor="@color/fm_ink_dim"
+                        android:gravity="center"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+            </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
