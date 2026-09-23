@@ -39,6 +39,16 @@
     <string name="notice_next_reminder_tomorrow_random">Next reminder: tomorrow between %1$s and %2$s</string>
     <string name="label_contacts_per_day">How many reminders per day?</string>
     <string name="helper_contacts_per_day">Each reminder shows one contact</string>
+    <!-- GH #165/FRM-130: contactsPerDayRow's sheet title (mirrors
+         title_edit_cooldown reusing its section label's text) and the
+         row/option-list figure - "N reminder(s)", matching cooldown's
+         "N days" phrasing rather than a bare number, since the row no
+         longer has a unit-less Spinner to lean on. -->
+    <string name="title_edit_contacts_per_day">How many reminders per day?</string>
+    <plurals name="format_contacts_per_day_option">
+        <item quantity="one">%1$d reminder</item>
+        <item quantity="other">%1$d reminders</item>
+    </plurals>
     <string name="label_cooldown">Don\'t repeat a contact within</string>
     <string name="cooldown_option_3">3 days</string>
     <string name="cooldown_option_7">7 days</string>
