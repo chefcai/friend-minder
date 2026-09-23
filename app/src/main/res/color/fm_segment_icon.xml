@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FRM-159: the check shows only on the selected segment. The unselected
+     segment keeps the same 16dp slot (transparent) so both labels sit in the
+     same place and do not jump when the selection changes. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/fm_on_primary" android:state_checked="true" />
+    <item android:color="@android:color/transparent" />
+</selector>
