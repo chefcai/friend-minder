@@ -34,6 +34,15 @@
     <dimen name="fm_fab_size">56dp</dimen>
 
     <!-- Phase 3 (FRM-98/99/100): DESIGN-SYSTEM-PHASE3.md §4. -->
+    <!-- GH #166: the one side gutter every screen's content column should
+         share (§4.1). Home already honoured this at 24dp (fm_space_6);
+         Groups/Group Detail/Contact Detail/Settings were still at 16dp -
+         a per-layout literal each, not a shared token, which is exactly
+         how they drifted. Referenced everywhere the leading/trailing edge
+         of a screen's content sits against the screen edge; NOT a general
+         substitute for fm_space_4/fm_space_6 elsewhere (card padding,
+         dialog padding, inter-element spacing are unrelated concerns). -->
+    <dimen name="fm_gutter">24dp</dimen>
     <dimen name="fm_home_header_height">72dp</dimen>
     <dimen name="fm_home_row_height">76dp</dimen>
     <dimen name="fm_status_badge_size">28dp</dimen>

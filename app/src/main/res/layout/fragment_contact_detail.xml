@@ -88,7 +88,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/fm_space_4">
+            android:paddingStart="@dimen/fm_gutter"
+            android:paddingEnd="@dimen/fm_gutter"
+            android:paddingTop="@dimen/fm_space_4"
+            android:paddingBottom="@dimen/fm_space_4">
 
             <FrameLayout
                 android:layout_width="@dimen/fm_avatar_size_detail"
