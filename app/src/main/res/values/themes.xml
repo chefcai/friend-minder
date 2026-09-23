@@ -51,7 +51,57 @@
              every screen renders on stock Material #FEF7FF instead of the
              brand background. This is the fix. -->
         <item name="android:windowBackground">@color/fm_surface</item>
+
+        <!-- FRM-151 (HM-4 / X2): stock Material 3 roles that the tokens above
+             never reached, each measured leaking on device in the
+             2026-09-23 audit:
+             - TextViews with no explicit textColor draw in
+               ?android:textColorPrimary, which M3 resolves to #1D1B20, and
+               ?android:textColorSecondary (#49454F). Point both at ink.
+             - Surface containers: Low (#F7F2FA) paints bottom sheets, High
+               (#ECE6F0) paints alert dialogs, Highest (#E6E0E9) paints the
+               off switch track. Sheets, dialogs and popup menus
+               (surfaceContainer) sit on fm_surface (DESIGN-SYSTEM Section
+               6.6); Highest is the M3 role for tracks and filled controls,
+               which sit on fm_surface_sunken (Section 2.2). -->
+        <item name="android:textColorPrimary">@color/fm_ink</item>
+        <item name="android:textColorSecondary">@color/fm_ink_dim</item>
+        <item name="android:textColorPrimaryDisableOnly">@color/fm_text_primary_disable_only</item>
+        <item name="android:colorBackground">@color/fm_surface</item>
+        <item name="colorOnBackground">@color/fm_ink</item>
+        <item name="colorSurfaceBright">@color/fm_surface</item>
+        <item name="colorSurfaceContainerLowest">@color/fm_surface</item>
+        <item name="colorSurfaceContainerLow">@color/fm_surface</item>
+        <item name="colorSurfaceContainer">@color/fm_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/fm_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/fm_surface_sunken</item>
+        <!-- M3 tints raised surfaces toward colorPrimary as they gain
+             elevation: measured #E7F1F1 on the alert dialog and #F3F8F8 on
+             the New Group sheet once the container roles above were fixed.
+             The system is flat (Section 4.4), so no tint anywhere. -->
+        <item name="elevationOverlayEnabled">false</item>
+
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.FriendMinder.BottomSheetDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.FriendMinder.MaterialAlertDialog</item>
     </style>
+
+    <!-- FRM-151: every bottom sheet sits on fm_surface (Section 6.6). -->
+    <style name="ThemeOverlay.FriendMinder.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.FriendMinder.BottomSheet.Modal</item>
+    </style>
+
+    <style name="Widget.FriendMinder.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/fm_surface</item>
+    </style>
+
+    <!-- FRM-151: alert dialogs (until FRM-173 turns the last one into a
+         sheet) sit on fm_surface, not surfaceContainerHigh #ECE6F0. -->
+    <style name="ThemeOverlay.FriendMinder.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/fm_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/fm_surface</item>
+        <item name="backgroundTint">@color/fm_surface</item>
+    </style>
+
     <!-- FRM-65: splash screen (DESIGN-SYSTEM-PHASE3.md §8.3 lineage, unchanged
          mechanism from Phase 2). Uses the Android 12+ SplashScreen API via
          androidx.core.splashscreen, which back-fills the same behavior on
