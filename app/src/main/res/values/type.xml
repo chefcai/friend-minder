@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Text appearances from DESIGN-SYSTEM-PHASE3.md Section 3 (Typography).
+      Apply with android:textAppearance and do not also set textColor /
+      textSize / textStyle on the view: a view-level attribute silently
+      overrides the appearance, which is how three different "section
+      label" styles grew up (FRM-152, audit finding X5).
+    -->
+
+    <!--
+      Section Label: 13sp, weight 600, +0.08em, UPPERCASE, fm_heading
+      (8.48:1 on fm_surface). Every section header in the app uses this.
+      textFontWeight needs API 28; on 26-27 textStyle bold (700) is the
+      nearest available weight.
+    -->
+    <style name="TextAppearance.FM.SectionLabel" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/fm_heading</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textFontWeight" tools:targetApi="28">600</item>
+        <item name="lineHeight">16sp</item>
+    </style>
+
+    <!-- Row Primary: 17sp / 400, fm_ink. Setting names, list primaries. -->
+    <style name="TextAppearance.FM.RowPrimary" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/fm_ink</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="lineHeight">24sp</item>
+    </style>
+</resources>

@@ -74,8 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/label_days_section"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/fm_ink_dim" />
+            android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/customDaysInputLayout"

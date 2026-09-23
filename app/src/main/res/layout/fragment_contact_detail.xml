@@ -253,7 +253,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/fm_space_3"
                 android:text="@string/label_groups_header"
-                android:textAppearance="?attr/textAppearanceLabelLarge" />
+                android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/groupsChipGroup"
@@ -286,7 +286,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/fm_space_3"
                 android:text="@string/label_checkin_frequency_header"
-                android:textAppearance="?attr/textAppearanceLabelLarge" />
+                android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
             <LinearLayout
                 android:id="@+id/checkInFrequencyRow"
