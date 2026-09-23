@@ -14,9 +14,12 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
 import com.example.friendminder.databinding.ActivityMainBinding
+import com.example.friendminder.ui.groups.GroupDetailFragment
 import com.example.friendminder.ui.groups.GroupsFragment
 import com.example.friendminder.ui.history.OverallHistoryFragment
 import com.example.friendminder.ui.home.HomeFragment
+import com.example.friendminder.ui.home.LegacyDiagnosticsFragment
+import com.example.friendminder.ui.settings.AdvancedSettingsFragment
 import com.example.friendminder.ui.settings.SettingsFragment
 
 /**
@@ -44,10 +47,19 @@ import com.example.friendminder.ui.settings.SettingsFragment
  * off whatever fragment [R.id.nav_host_container] currently holds - re-run
  * on every back-stack change (a fragment-manager listener, registered
  * once) and, for the one case that isn't a back-stack change, the very
- * first root commit. Home and every screen that isn't itself one of the
- * three real destinations show no item selected (SCREENS-PHASE3.md §2.2's
- * original "on Home, all three glyphs sit inactive" now generalized to
- * "true everywhere that isn't Groups/History/Settings themselves").
+ * first root commit. A screen with an unambiguous single parent section -
+ * Advanced Settings, Notifications & Diagnostics (both only ever pushed
+ * from Settings), Group Detail (only ever pushed from Groups) - shows that
+ * parent's icon selected too (FRM-135), so the bar still answers "which
+ * section am I in" one level deep. Home and every screen that isn't itself
+ * one of the three real destinations or one of those three unambiguous
+ * children shows no item selected. Contact Detail is deliberately excluded
+ * from that FRM-135 mapping even though it's a child screen: it's reached
+ * from both Home and Group Detail, so which bottom-nav item (if any) it
+ * should light up depends on how you got there, not just which fragment
+ * class is on screen - [R.id.nav_host_container] alone can't answer that,
+ * and neither this fix nor GH #117's original back-stack note attempt to
+ * add entry-point tracking to resolve it.
  *
  * Back-stack shape (SCREENS-PHASE3.md §2.3): switching between nav
  * destinations *replaces* rather than stacks - [navigateToDestination] pops
@@ -255,6 +267,16 @@ class MainActivity : AppCompatActivity() {
             is GroupsFragment -> R.id.nav_groups
             is OverallHistoryFragment -> R.id.nav_overall_history
             is SettingsFragment -> R.id.nav_settings
+            // FRM-135: a sub-menu screen with exactly one possible parent
+            // section shows that parent's icon selected/active, so the bar
+            // still answers "which section am I in" for these one-level-
+            // deep screens instead of going dark. Covers the two Settings
+            // children plus Group Detail; Contact Detail is deliberately
+            // excluded (see class kdoc) since it has no single unambiguous
+            // parent.
+            is AdvancedSettingsFragment -> R.id.nav_settings
+            is LegacyDiagnosticsFragment -> R.id.nav_settings
+            is GroupDetailFragment -> R.id.nav_groups
             else -> HOME_NO_SELECTION
         }
 
