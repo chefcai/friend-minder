@@ -1,6 +1,5 @@
 package com.example.friendminder.ui.contactdetail
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
@@ -31,8 +30,6 @@ import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.common.stackIfLabelsDontFit
 import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.utils.ServiceLocator
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -124,6 +121,18 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
         binding.addSpecialDateButton.setOnClickListener { showAddSpecialDateDialog() }
 
         childFragmentManager.setFragmentResultListener(EditContactGroupsDialogFragment.RESULT_KEY, viewLifecycleOwner) { _, _ -> refresh() }
+        childFragmentManager.setFragmentResultListener(AddSpecialDateSheet.RESULT_KEY, viewLifecycleOwner) { _, bundle ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                ServiceLocator.birthdayService.addCustomSpecialDate(
+                    contactId = contactId,
+                    label = bundle.getString(AddSpecialDateSheet.RESULT_LABEL).orEmpty(),
+                    month = bundle.getInt(AddSpecialDateSheet.RESULT_MONTH),
+                    day = bundle.getInt(AddSpecialDateSheet.RESULT_DAY),
+                    reminderDaysBefore = bundle.getInt(AddSpecialDateSheet.RESULT_REMINDER_DAYS_BEFORE)
+                )
+                refresh()
+            }
+        }
         childFragmentManager.setFragmentResultListener(
             ConfirmStopTrackingDialogFragment.RESULT_KEY, viewLifecycleOwner
         ) { _, _ -> performStopTracking() }
@@ -472,63 +481,11 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
         return MONTH_DAY_FORMAT.format(calendar.time)
     }
 
+    // FRM-173 (DL-1): the sheet collects label/date/reminder and hands them
+    // back through AddSpecialDateSheet.RESULT_KEY (listener in onViewCreated),
+    // which saves through BirthdayService exactly as the old dialog did.
     private fun showAddSpecialDateDialog() {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_special_date, null)
-        val labelInput = dialogView.findViewById<TextInputEditText>(R.id.labelInput)
-        val pickDateButton = dialogView.findViewById<android.widget.Button>(R.id.pickDateButton)
-        val reminderGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.reminderRadioGroup)
-
-        // updatePickDateButtonText folded into a local lambda (only used
-        // here) to make room for GH #132's onResume/onPause under detekt's
-        // TooManyFunctions threshold.
-        val updatePickDateButtonText = { calendar: Calendar ->
-            pickDateButton.text = MONTH_DAY_FORMAT.format(calendar.time)
-        }
-
-        val calendar = Calendar.getInstance()
-        updatePickDateButtonText(calendar)
-        pickDateButton.setOnClickListener {
-            DatePickerDialog(
-                requireContext(),
-                { _, year, month, day ->
-                    calendar.set(Calendar.YEAR, year)
-                    calendar.set(Calendar.MONTH, month)
-                    calendar.set(Calendar.DAY_OF_MONTH, day)
-                    updatePickDateButtonText(calendar)
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.action_add_special_date)
-            .setView(dialogView)
-            .setPositiveButton(R.string.action_save) { _, _ ->
-                val label = labelInput.text?.toString()?.trim().orEmpty()
-                if (label.isBlank()) return@setPositiveButton
-                val reminderDaysBefore = when (reminderGroup.checkedRadioButtonId) {
-                    R.id.radioOneDayBefore -> -1
-                    R.id.radioOneWeekBefore -> -DAYS_IN_WEEK
-                    else -> 0
-                }
-                viewLifecycleOwner.lifecycleScope.launch {
-                    ServiceLocator.birthdayService.addCustomSpecialDate(
-                        contactId = contactId,
-                        label = label,
-                        month = calendar.get(Calendar.MONTH) + 1,
-                        day = calendar.get(Calendar.DAY_OF_MONTH),
-                        reminderDaysBefore = reminderDaysBefore
-                    )
-                    refresh()
-                }
-            }
-            // FRM-120 (FRM-103 §8.1): the old Cancel negative button is
-            // gone - the filled primary is the only button; dismissal is
-            // the scrim/back (this is a plain AlertDialog, not a bottom
-            // sheet, so there's no drag handle here to add to that list).
-            .show()
+        AddSpecialDateSheet.newInstance().show(childFragmentManager, "add_special_date")
     }
 
     override fun onDestroyView() {
