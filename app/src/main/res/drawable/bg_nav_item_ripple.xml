@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bottom-nav item press state (GH #170 / FRM-131).
+
+     DESIGN-SYSTEM-PHASE3.md 6.1 specifies press feedback as "a Material
+     ripple at 12% fm_primary, nothing else" - 12% of 255 is ~31 (0x1F),
+     matching bg_home_row_ripple.xml. The bar previously set no
+     itemBackground or itemRippleColor at all, so it inherited the stock M3
+     ripple rather than this token.
+
+     The mask is what fixes the reported symptom. The item's background
+     bounds are 137 x 64dp (measured: a zero-inset oval mask renders exactly
+     137.0 x 63.6dp). An unmasked ripple therefore grows as a circle only
+     until it reaches 64dp tall, then keeps widening to the full 137dp -
+     measured 37x37 -> 67x63 -> 91x64 -> 137x64. That flattening is what GH
+     #170 describes as "clipped by the navbar frame".
+
+     48dp is not arbitrary and must not be "rounded up":
+       - It is DESIGN-SYSTEM-PHASE3.md 6.2's icon-button target.
+       - It is the largest value that actually works here. Measured on
+         device, 56dp and 64dp masks FAIL: RippleDrawable silently discards
+         the mask and falls back to the unmasked full-bounds ripple
+         (137 x 83dp and 137 x 87dp respectively), i.e. the original bug,
+         worse. Only 48dp renders as a true circle.
+       - At 48dp the ripple measures 47.6 x 47.6dp centred at 32.2dp from
+         the bar top, against a glyph centre of 32.0dp - centred on the
+         glyph, and circular for the whole expansion.
+
+     gravity="center" is correct because the background bounds are the 64dp
+     content area, whose centre already coincides with the glyph centre. Do
+     not add an android:top offset: the 72dp figure uiautomator reports for
+     the item node is the node's bounds, not this drawable's. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#1F1F817D">
+    <item android:id="@android:id/mask">
+        <layer-list>
+            <item
+                android:width="48dp"
+                android:height="48dp"
+                android:gravity="center">
+                <shape android:shape="oval">
+                    <solid android:color="#FFFFFFFF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>

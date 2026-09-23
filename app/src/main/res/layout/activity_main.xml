@@ -53,6 +53,7 @@
         app:elevation="0dp"
         app:itemIconSize="@dimen/fm_bottom_nav_icon_size"
         app:itemIconTint="@null"
+        app:itemBackground="@drawable/bg_nav_item_ripple"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/menu_bottom_nav" />
 
