@@ -6,6 +6,8 @@
     android:padding="@dimen/fm_space_2">
 
     <com.google.android.material.textfield.TextInputLayout
+
+        style="@style/Widget.FM.TextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/hint_special_date_label">

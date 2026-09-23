@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FRM-154 (AC-2): text-input border. fm_outline #5A8A92 (3.83:1 on white,
+  the WCAG 1.4.11 boundary minimum) at rest; fm_primary when focused
+  (Widget.FM.TextInput also thickens it to 2dp). DESIGN-SYSTEM Section 6.3.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:alpha="0.38" android:color="@color/fm_outline" android:state_enabled="false" />
+    <item android:color="@color/fm_primary" android:state_focused="true" />
+    <item android:color="@color/fm_outline" />
+</selector>

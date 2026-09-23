@@ -83,6 +83,9 @@
 
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.FriendMinder.BottomSheetDialog</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.FriendMinder.MaterialAlertDialog</item>
+
+        <!-- FRM-154 (AC-2): default for any TextInputLayout without a style. -->
+        <item name="textInputStyle">@style/Widget.FM.TextInput</item>
     </style>
 
     <!-- FRM-151: every bottom sheet sits on fm_surface (Section 6.6). -->
