@@ -1,0 +1,4 @@
+Group Detail's add-member picker now shows existing group membership, plus a small nav icon consistency fix
+
+- When adding someone to a group, the picker now shows which other group(s) they're already in - "In Alpha," "In Alpha and Beta," or "In Alpha +2" - so you can see the full picture before deciding.
+- The Settings tab icon now matches the visual weight of the Groups and Overall History icons - it previously rendered a bit lighter due to a leftover sizing mismatch.
