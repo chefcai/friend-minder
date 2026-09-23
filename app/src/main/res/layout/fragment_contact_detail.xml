@@ -378,7 +378,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/fm_space_4">
+                android:paddingStart="@dimen/fm_gutter"
+                android:paddingTop="@dimen/fm_space_4"
+                android:paddingEnd="@dimen/fm_gutter"
+                android:paddingBottom="@dimen/fm_space_4">
 
                 <TextView
                     android:id="@+id/specialDatesEmptyText"
