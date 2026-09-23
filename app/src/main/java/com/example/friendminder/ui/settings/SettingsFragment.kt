@@ -10,8 +10,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -72,6 +70,16 @@ class SettingsFragment : Fragment() {
     // performSave rather than a Spinner selection index.
     private var cooldownDays = DEFAULT_COOLDOWN_DAYS
 
+    // GH #165/FRM-130: contactsPerDayRow replaced contactsPerDaySpinner,
+    // same reasoning as cooldownDays above - source of truth between
+    // loadCurrentSettings and performSave rather than a Spinner position.
+    private var contactsPerDay = DEFAULT_CONTACTS_PER_DAY
+
+    // GH #165/FRM-130: timeModeGroup is now a MaterialButtonToggleGroup
+    // rather than a RadioGroup, so "which mode is selected" is tracked
+    // here instead of read back via checkedRadioButtonId.
+    private var isRandomTimeMode = false
+
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op: see 3.3 banner for persistent denial */ }
 
@@ -97,10 +105,25 @@ class SettingsFragment : Fragment() {
         // messageTemplateInput with no accommodation at all.
         ImeInsetPadding.applyToBottom(binding.settingsScrollView)
 
-        binding.contactsPerDaySpinner.adapter = ArrayAdapter(
-            requireContext(), android.R.layout.simple_spinner_dropdown_item, (1..5).toList()
-        )
-        binding.contactsPerDaySpinner.onItemSelectedListener = autoSaveOnItemSelected()
+        // GH #165/FRM-130: contactsPerDayRow replaced contactsPerDaySpinner
+        // - same shared picker, same inline-in-onViewCreated wiring as
+        // cooldownRow just below (see its comment for why it's inline
+        // rather than its own function).
+        binding.contactsPerDayRow.setOnClickListener {
+            ValuePickerDialogFragment.newInstance(
+                requestKey = CONTACTS_PER_DAY_PICKER_REQUEST_KEY,
+                title = getString(R.string.title_edit_contacts_per_day),
+                options = (MIN_CONTACTS_PER_DAY..MAX_CONTACTS_PER_DAY).map { count ->
+                    count to resources.getQuantityString(R.plurals.format_contacts_per_day_option, count, count)
+                },
+                selectedValue = contactsPerDay
+            ).show(childFragmentManager, "settings_contacts_per_day_picker")
+        }
+        childFragmentManager.setFragmentResultListener(CONTACTS_PER_DAY_PICKER_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            contactsPerDay = bundle.getInt(ValuePickerDialogFragment.RESULT_VALUE)
+            renderContactsPerDayValue()
+            scheduleAutoSaveUnlessLoading()
+        }
 
         // GH #98/#121: "build it once" - the global cooldown is one of the
         // four call sites #98 names for the shared picker's Custom... path
@@ -147,24 +170,35 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    // A Spinner's OnItemSelectedListener fires once as soon as it's attached
-    // to an already-populated adapter, not only on a genuine user pick - the
-    // isLoadingSettings guard is what keeps that initial fire silent.
-    private fun autoSaveOnItemSelected() = object : AdapterView.OnItemSelectedListener {
-        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            scheduleAutoSaveUnlessLoading()
-        }
-        override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+    // GH #165/FRM-130: contactsPerDayRow's render step, same lambda-not-
+    // function dodge as renderCooldownValue above.
+    private val renderContactsPerDayValue = {
+        binding.contactsPerDayValue.text =
+            resources.getQuantityString(R.plurals.format_contacts_per_day_option, contactsPerDay, contactsPerDay)
     }
 
     private fun setUpReminderTimeControls() {
-        binding.timeModeGroup.setOnCheckedChangeListener { _, checkedId ->
-            val isRandom = checkedId == binding.randomWindowRadio.id
+        // GH #165/FRM-130: timeModeGroup is a MaterialButtonToggleGroup now
+        // (segmented control, Section 7.2), wired the same way Contact
+        // Detail's tabToggleGroup is - a click listener per button that
+        // sets isChecked itself, rather than
+        // MaterialButtonToggleGroup.addOnButtonCheckedListener, which also
+        // fires once (isChecked=false) for the button being deselected -
+        // one extra branch to filter for no benefit here. Local fun rather
+        // than a member function to stay under detekt's TooManyFunctions
+        // threshold, same reasoning as the lambda-typed render* properties
+        // above.
+        fun selectTimeMode(isRandom: Boolean) {
+            isRandomTimeMode = isRandom
+            binding.fixedTimeToggleButton.isChecked = !isRandom
+            binding.randomWindowToggleButton.isChecked = isRandom
             binding.fixedTimeGroup.visibility = if (isRandom) View.GONE else View.VISIBLE
             binding.randomWindowGroup.visibility = if (isRandom) View.VISIBLE else View.GONE
             validateTimeRange()
             scheduleAutoSaveUnlessLoading()
         }
+        binding.fixedTimeToggleButton.setOnClickListener { selectTimeMode(isRandom = false) }
+        binding.randomWindowToggleButton.setOnClickListener { selectTimeMode(isRandom = true) }
 
         binding.fixedTimeButton.setOnClickListener {
             TimePickerDialog(requireContext(), { _, hour, minute ->
@@ -264,9 +298,9 @@ class SettingsFragment : Fragment() {
             val repo = ServiceLocator.settingsRepository
 
             val isRandom = repo.isRandomTimeEnabled()
-            binding.timeModeGroup.check(
-                if (isRandom) binding.randomWindowRadio.id else binding.fixedTimeRadio.id
-            )
+            isRandomTimeMode = isRandom
+            binding.fixedTimeToggleButton.isChecked = !isRandom
+            binding.randomWindowToggleButton.isChecked = isRandom
             binding.fixedTimeGroup.visibility = if (isRandom) View.GONE else View.VISIBLE
             binding.randomWindowGroup.visibility = if (isRandom) View.VISIBLE else View.GONE
 
@@ -274,7 +308,8 @@ class SettingsFragment : Fragment() {
             repo.getRandomTimeRange()?.let { (s, e) -> randomStartHour = s; randomEndHour = e }
             renderTimeButtons()
 
-            binding.contactsPerDaySpinner.setSelection((repo.getContactsPerDay() - 1).coerceIn(0, 4))
+            contactsPerDay = repo.getContactsPerDay().coerceIn(MIN_CONTACTS_PER_DAY, MAX_CONTACTS_PER_DAY)
+            renderContactsPerDayValue()
             cooldownDays = repo.getCooldownDays()
             renderCooldownValue()
 
@@ -336,7 +371,7 @@ class SettingsFragment : Fragment() {
     // directly, since the caller (validateTimeRange) is now what owns
     // timeStatusText - the one shared view also used for the range error.
     private val nextReminderNoticeText = {
-        val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
+        val isRandom = isRandomTimeMode
         val now = System.currentTimeMillis()
         if (isRandom) {
             val isToday = SlotScheduling.occursLaterToday(randomEndHour, minute = 0, nowMillis = now)
@@ -364,7 +399,7 @@ class SettingsFragment : Fragment() {
     // visible, so the two can't structurally collide or fight for
     // attention - only one message is ever showing, whichever applies.
     private fun validateTimeRange(): Boolean {
-        val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
+        val isRandom = isRandomTimeMode
         val valid = !isRandom || randomEndHour > randomStartHour
         binding.timeStatusText.text = if (valid) {
             nextReminderNoticeText()
@@ -377,8 +412,7 @@ class SettingsFragment : Fragment() {
     private fun performSave() {
         if (!validateTimeRange()) return
 
-        val isRandom = binding.timeModeGroup.checkedRadioButtonId == binding.randomWindowRadio.id
-        val contactsPerDay = (binding.contactsPerDaySpinner.selectedItemPosition + 1).coerceIn(1, 5)
+        val isRandom = isRandomTimeMode
         val includeMessage = binding.includeMessageSwitch.isChecked
         val templates = binding.messageTemplateInput.text?.toString().orEmpty()
             .lines()
@@ -456,6 +490,13 @@ class SettingsFragment : Fragment() {
         private val COOLDOWN_OPTIONS = intArrayOf(COOLDOWN_OPTION_3, COOLDOWN_OPTION_7, COOLDOWN_OPTION_14)
         private const val DEFAULT_COOLDOWN_DAYS = COOLDOWN_OPTION_3
         private const val COOLDOWN_PICKER_REQUEST_KEY = "settings_cooldown_picker"
+
+        // GH #165/FRM-130: contactsPerDayRow's range - unchanged from the
+        // Spinner it replaced, which offered exactly 1..5.
+        private const val MIN_CONTACTS_PER_DAY = 1
+        private const val MAX_CONTACTS_PER_DAY = 5
+        private const val DEFAULT_CONTACTS_PER_DAY = MIN_CONTACTS_PER_DAY
+        private const val CONTACTS_PER_DAY_PICKER_REQUEST_KEY = "settings_contacts_per_day_picker"
 
         fun newInstance(): SettingsFragment = SettingsFragment()
     }
