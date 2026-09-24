@@ -9,6 +9,7 @@ import androidx.test.rule.GrantPermissionRule
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactMethod
 import com.example.friendminder.notifications.NotificationHelper
 import com.example.friendminder.utils.ServiceLocator
 import java.util.Calendar
@@ -48,6 +49,7 @@ class BirthdayWorkerTest {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         context.getSharedPreferences("friend_minder_prefs", Context.MODE_PRIVATE).edit().clear().commit()
         context.getSharedPreferences("friend_minder_special_dates", Context.MODE_PRIVATE).edit().clear().commit()
+        context.getSharedPreferences("friend_minder_contact_methods", Context.MODE_PRIVATE).edit().clear().commit()
 
         ServiceLocator.init(context)
         NotificationHelper.ensureChannel(context)
@@ -117,5 +119,72 @@ class BirthdayWorkerTest {
 
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         assertEquals(0, notificationManager?.activeNotifications?.size ?: -1)
+    }
+
+    /**
+     * FRM-186: the birthday/special-date notification's action label - and by extension the
+     * Intent its PendingIntent fires (CallLaunchActivity vs SmsLaunchActivity) - switches with
+     * the contact's stored preference. The label is the black-box-observable part of that
+     * choice via NotificationManager; the two Activities' own Intent-building is unit-covered
+     * separately (ContactActionLauncherTest).
+     */
+    @Test
+    fun doWork_postsACallAction_whenContactPrefersCall() = runBlocking {
+        val contact = Contact(id = "e2e-call-pref-contact", name = "Cam Caller", phoneNumber = "555-0102")
+        ServiceLocator.friendListRepository.addFriend(contact)
+        ServiceLocator.contactMethodRepository.setMethod(contact.id, ContactMethod.CALL)
+
+        val today = Calendar.getInstance()
+        val dueDate = ServiceLocator.birthdayService.addCustomSpecialDate(
+            contactId = contact.id,
+            label = "Birthday",
+            month = today.get(Calendar.MONTH) + 1,
+            day = today.get(Calendar.DAY_OF_MONTH)
+        )
+
+        val worker = TestListenableWorkerBuilder<BirthdayWorker>(context).build()
+        worker.doWork()
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        val expectedNotificationId = (contact.id + "_" + dueDate.id).hashCode()
+        val posted = notificationManager?.activeNotifications?.firstOrNull { it.id == expectedNotificationId }
+
+        assertNotNull("expected a notification for the special date due today", posted)
+        val actionTitle = posted!!.notification.actions?.firstOrNull()?.title?.toString()
+        assertEquals(
+            context.getString(com.example.friendminder.R.string.format_notif_action_call, "Cam Caller"),
+            actionTitle
+        )
+    }
+
+    @Test
+    fun doWork_postsATextAction_whenContactHasNoStoredPreference() = runBlocking {
+        // Regression guard: a contact who predates FRM-183, or simply never touched the
+        // method selector, must keep getting the original SMS action - getEffectiveMethod's
+        // default, not a behavior change for everyone else.
+        val contact = Contact(id = "e2e-no-pref-contact", name = "Sam Texter", phoneNumber = "555-0103")
+        ServiceLocator.friendListRepository.addFriend(contact)
+
+        val today = Calendar.getInstance()
+        val dueDate = ServiceLocator.birthdayService.addCustomSpecialDate(
+            contactId = contact.id,
+            label = "Birthday",
+            month = today.get(Calendar.MONTH) + 1,
+            day = today.get(Calendar.DAY_OF_MONTH)
+        )
+
+        val worker = TestListenableWorkerBuilder<BirthdayWorker>(context).build()
+        worker.doWork()
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        val expectedNotificationId = (contact.id + "_" + dueDate.id).hashCode()
+        val posted = notificationManager?.activeNotifications?.firstOrNull { it.id == expectedNotificationId }
+
+        assertNotNull("expected a notification for the special date due today", posted)
+        val actionTitle = posted!!.notification.actions?.firstOrNull()?.title?.toString()
+        assertEquals(
+            context.getString(com.example.friendminder.R.string.format_notif_action_text, "Sam Texter"),
+            actionTitle
+        )
     }
 }

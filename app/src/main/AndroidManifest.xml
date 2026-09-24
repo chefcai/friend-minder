@@ -77,6 +77,16 @@
             android:excludeFromRecents="true"
             android:noHistory="true" />
 
+        <!-- FRM-186: the Call counterpart, used when the notified contact's stored
+             preference (FRM-183) is Call. Same trampoline shape as SmsLaunchActivity
+             above - not exported, only ever invoked via a PendingIntent this app created. -->
+        <activity
+            android:name=".notifications.CallLaunchActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:noHistory="true" />
+
     </application>
 
 </manifest>
