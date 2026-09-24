@@ -19,6 +19,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactMethod
+import com.example.friendminder.data.storage.getEffectiveMethod
 import com.example.friendminder.databinding.FragmentHomeBinding
 import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
@@ -290,6 +292,7 @@ class HomeFragment : Fragment() {
             val statisticsService = ServiceLocator.statisticsService
             val collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.SECONDARY }
 
+            val contactMethodRepository = ServiceLocator.contactMethodRepository
             baseRows = friends
                 .sortedWith(compareBy(collator) { it.name })
                 .map { contact ->
@@ -297,7 +300,12 @@ class HomeFragment : Fragment() {
                     BaseContactRow(
                         contact = contact,
                         streak = stats.streak,
-                        lastTouchText = HomeLastTouchFormatter.format(requireContext(), stats.lastContacted)
+                        lastTouchText = HomeLastTouchFormatter.format(requireContext(), stats.lastContacted),
+                        // FRM-185 (AC2): the row's own quick-action tint reads this -
+                        // never re-derives the SMS default itself, same as FRM-184's
+                        // selector (ContactMethodRepository.kt's doc on why
+                        // getEffectiveMethod exists).
+                        preferredMethod = contactMethodRepository.getEffectiveMethod(contact.id)
                     )
                 }
             // A selected contact could in principle vanish out from under
@@ -319,6 +327,7 @@ class HomeFragment : Fragment() {
                 contact = base.contact,
                 streak = base.streak,
                 lastTouchText = base.lastTouchText,
+                preferredMethod = base.preferredMethod,
                 isSelectionMode = isSelectionMode,
                 isSelected = base.contact.id in selectedContactIds
             )
@@ -490,7 +499,8 @@ class HomeFragment : Fragment() {
     private data class BaseContactRow(
         val contact: Contact,
         val streak: Int,
-        val lastTouchText: String
+        val lastTouchText: String,
+        val preferredMethod: ContactMethod
     )
 
     companion object {
