@@ -1,0 +1,1 @@
+Fixed Home showing "0 months ago" for contacts reached 28-29 days ago — it now correctly reads "4 weeks ago".
