@@ -204,6 +204,14 @@
     <string name="action_save">Save</string>
     <string name="label_group_no_members">No members yet</string>
     <string name="action_add_contact_to_group">Add contact to group</string>
+    <!-- FRM-174 (DL-2): sheet titles in sentence case on FmBottomSheet, and the
+         Create group primary's disabled reason. -->
+    <string name="title_new_group_sheet">New group</string>
+    <string name="title_edit_group_sheet">Edit group</string>
+    <string name="title_contact_groups_sheet">Groups</string>
+    <string name="action_create_group">Create group</string>
+    <string name="helper_group_needs_name_create">Name the group to create it</string>
+    <string name="helper_group_needs_name_save">Name the group to save it</string>
 
     <!-- GH #121: per-group check-in interval, set from Group Detail's new
          value row (no SCREENS-PHASE3 addendum specs this row's screen

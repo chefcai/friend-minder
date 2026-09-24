@@ -1,117 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Group-assignment sheet, shared by EditContactGroupsDialogFragment (toggle
-  which groups one contact belongs to - Contact Detail's "+ Add" chip, and
-  FRM-102's add-contact flow Step 2 "Groups" row) and
-  AddContactToGroupDialogFragment (add existing friends to one specific
-  group, from Group Detail) - same candidate-checkbox-list shape, just
-  which side of the contact<->group relationship is fixed. One layout
-  rather than two near-identical ones.
+  Body shared by AddContactToGroupDialogFragment and
+  EditContactGroupsDialogFragment. FRM-174 (DL-2): both are on
+  FmBottomSheet now, so the handle, title, gutter and the single primary
+  come from sheet_fm_base.xml; this is only the optional "+ New group"
+  action, the empty text and the fixed-height candidate list.
 
-  FRM-102 (SCREENS-PHASE3.md §8.1): this is a genuinely multi-select sheet
-  (a contact can be in several groups at once), which is why it keeps an
-  explicit primary button rather than adopting §8.4's tap-one-and-dismiss
-  shape (that shape is for single-value pickers only - see
-  ValuePickerDialogFragment). What §8.1 does apply here regardless of
-  single- vs. multi-select: one shape for the sheet itself (fm_surface,
-  rounded top corners, drag handle 12dp from the true top edge - hence the
-  handle living outside the padded content block below, same split as
-  dialog_value_picker.xml) and exactly one way out (the filled primary,
-  plus the handle/scrim/back) - the old ✕-and-Cancel-and-scrim three-way-out
-  is gone from both dialogs that shared this layout.
+  GH #72 / GH #76: the list is a fixed-height NestedScrollView. Neither
+  ScrollView class honours maxHeight, and a plain ScrollView does not
+  negotiate nested scrolling with BottomSheetBehavior (swipes collapsed the
+  sheet instead of scrolling the list).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/bg_bottom_sheet_surface">
+    android:orientation="vertical">
 
-    <View
-        android:layout_width="@dimen/fm_dialog_handle_width"
-        android:layout_height="@dimen/fm_dialog_handle_height"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="@dimen/fm_dialog_handle_margin_top"
-        android:background="@drawable/bg_dialog_drag_handle"
-        android:importantForAccessibility="no" />
+    <Button
+        android:id="@+id/createGroupButton"
+        style="@style/Widget.Material3.Button.TextButton.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:minHeight="48dp"
+        android:layout_marginBottom="@dimen/fm_space_2"
+        app:icon="@drawable/ic_add"
+        android:text="@string/action_new_group" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/emptyText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/fm_space_6">
+        android:text="@string/label_add_to_group_empty"
+        android:textAppearance="@style/TextAppearance.FM.RowPrimary"
+        android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/dialogTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/fm_space_4"
-            android:text="@string/action_add_contact_to_group"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall" />
-
-        <Button
-            android:id="@+id/createGroupButton"
-            style="@style/Widget.Material3.Button.TextButton.Icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginBottom="@dimen/fm_space_2"
-            app:icon="@drawable/ic_add"
-            android:text="@string/action_new_group" />
-
-        <TextView
-            android:id="@+id/emptyText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/label_add_to_group_empty"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:visibility="gone" />
-
-        <!--
-          GH #72 / GH #76: this was a plain android.widget.ScrollView. Two
-          unrelated framework gaps in that class combined to make this
-          dialog unusable with a realistic (40+) contact list, both
-          confirmed on-device with a 45-contact candidate list:
-
-          1. Neither android.widget.ScrollView NOR androidx.core.widget.
-             NestedScrollView honors android:maxHeight - the attribute is
-             silently ignored by both (verified empirically: an earlier
-             attempt assuming NestedScrollView supported it measured 507dp
-             tall instead of the intended 360dp cap), so the list grew to
-             its full wrap_content height instead of capping, pushing the
-             primary-button row past the bottom of the screen with no
-             scroll path to reach it. Fixed with a genuine fixed height
-             instead of a maxHeight neither ScrollView class applies.
-
-          2. Plain ScrollView does not implement NestedScrollingChild, so
-             it never negotiates scroll ownership with the enclosing
-             BottomSheetBehavior - every swipe over the list collapsed the
-             sheet instead of scrolling it. NestedScrollView fixes this.
-        -->
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="360dp">
-
-            <LinearLayout
-                android:id="@+id/candidateContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </androidx.core.widget.NestedScrollView>
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/candidateScroll"
+        android:layout_width="match_parent"
+        android:layout_height="360dp">
 
         <LinearLayout
+            android:id="@+id/candidateContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginTop="@dimen/fm_space_4">
-
-            <Button
-                android:id="@+id/addButton"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/action_save" />
-        </LinearLayout>
-    </LinearLayout>
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>

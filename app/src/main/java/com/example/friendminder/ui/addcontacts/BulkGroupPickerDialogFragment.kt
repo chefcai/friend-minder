@@ -11,10 +11,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.DialogAddContactToGroupBinding
-import com.example.friendminder.ui.common.applyPhaseThreeSheetChrome
+import com.example.friendminder.ui.common.FmBottomSheet
 import com.example.friendminder.ui.groups.GroupEditDialogFragment
 import com.example.friendminder.utils.ServiceLocator
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
 /**
@@ -36,7 +35,7 @@ import kotlinx.coroutines.launch
  * [GroupEditDialogFragment] - a group is a standalone entity independent of
  * which contacts end up in it.
  */
-class BulkGroupPickerDialogFragment : BottomSheetDialogFragment() {
+class BulkGroupPickerDialogFragment : FmBottomSheet() {
 
     private var _binding: DialogAddContactToGroupBinding? = null
     private val binding get() = _binding!!
@@ -46,22 +45,20 @@ class BulkGroupPickerDialogFragment : BottomSheetDialogFragment() {
     }
     private val checkboxesByGroup = mutableMapOf<ContactGroup, CheckBox>()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = DialogAddContactToGroupBinding.inflate(inflater, container, false)
+    // FRM-174 (DL-2): on the shared FmBottomSheet.
+    override fun sheetTitle(): CharSequence = getString(R.string.label_groups_header)
+
+    override fun primaryLabel(): CharSequence = getString(R.string.action_save)
+
+    override fun onPrimaryClick() = applySelection()
+
+    override fun onCreateSheetContent(inflater: LayoutInflater, parent: ViewGroup, savedInstanceState: Bundle?): View {
+        _binding = DialogAddContactToGroupBinding.inflate(inflater, parent, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        applyPhaseThreeSheetChrome()
-
-        binding.dialogTitle.text = getString(R.string.label_groups_header)
-        binding.addButton.text = getString(R.string.action_save)
-        binding.addButton.setOnClickListener { applySelection() }
         binding.createGroupButton.setOnClickListener {
             GroupEditDialogFragment.newInstance().show(childFragmentManager, GROUP_EDIT_TAG)
         }
@@ -80,7 +77,8 @@ class BulkGroupPickerDialogFragment : BottomSheetDialogFragment() {
             val allGroups = ServiceLocator.groupService.getGroups().sortedBy { it.name.lowercase() }
 
             binding.emptyText.visibility = if (allGroups.isEmpty()) View.VISIBLE else View.GONE
-            binding.addButton.visibility = if (allGroups.isEmpty()) View.GONE else View.VISIBLE
+            setPrimaryVisible(allGroups.isNotEmpty())
+            binding.candidateScroll.visibility = if (allGroups.isEmpty()) View.GONE else View.VISIBLE
             if (allGroups.isEmpty()) {
                 binding.emptyText.text = getString(R.string.label_no_groups_to_add)
             }

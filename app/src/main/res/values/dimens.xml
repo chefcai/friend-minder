@@ -74,4 +74,14 @@
     <dimen name="fm_status_icon_gap">4dp</dimen>
     <!-- FRM-166: widest a settings value may get before it wraps. -->
     <dimen name="fm_value_row_value_max_width">180dp</dimen>
+    <!-- FRM-174 (DL-2): group swatch grid. The cell is the 48dp swatch plus a
+         3dp gap and a 2dp ring on each side (58dp), so the selected ring
+         sits outside the swatch; cell margins are the 24dp / 16dp swatch
+         spacing minus that 5dp. -->
+    <dimen name="fm_swatch_size">48dp</dimen>
+    <dimen name="fm_swatch_ring_width">2dp</dimen>
+    <dimen name="fm_swatch_ring_gap">3dp</dimen>
+    <dimen name="fm_swatch_cell">58dp</dimen>
+    <dimen name="fm_swatch_cell_gap_h">14dp</dimen>
+    <dimen name="fm_swatch_cell_gap_v">6dp</dimen>
 </resources>
