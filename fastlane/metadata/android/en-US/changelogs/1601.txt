@@ -1,0 +1,4 @@
+Reminder notifications now use your chosen contact method
+
+- If a contact is set to "Call," their reminder notification now opens the dialer with their number ready to go, instead of a text message.
+- Contacts still set to "Text" (or not set at all) see no change.
