@@ -73,16 +73,19 @@
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.FM.TextInput"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
+        android:minHeight="56dp"
         android:layout_marginStart="@dimen/fm_space_6"
         android:layout_marginEnd="@dimen/fm_space_6"
         android:layout_marginTop="@dimen/fm_space_4"
         android:hint="@string/hint_search_contacts">
 
+        <!-- FRM-163 (X6): was a fixed 56dp, which left the hint and the
+             floated label no room at 200% text; it now grows with the text. -->
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/searchInput"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:inputType="text"
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
