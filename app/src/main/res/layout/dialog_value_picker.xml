@@ -37,9 +37,10 @@
         android:layout_marginTop="@dimen/fm_space_4"
         android:layout_marginStart="@dimen/fm_space_6"
         android:layout_marginEnd="@dimen/fm_space_6"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:textColor="@color/fm_heading" />
+        android:accessibilityHeading="true"
+        android:textAppearance="@style/TextAppearance.FM.ScreenHeading" />
+    <!-- FRM-172 (DL-1, reopened by the FRM-178 re-run): Screen Heading like
+         every FmBottomSheet title, instead of the old 17sp bold teal. -->
 
     <TextView
         android:id="@+id/warningText"

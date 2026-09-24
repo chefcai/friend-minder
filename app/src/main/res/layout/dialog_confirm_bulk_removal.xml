@@ -36,9 +36,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/fm_space_2"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:textColor="@color/fm_heading" />
+            android:accessibilityHeading="true"
+            android:textAppearance="@style/TextAppearance.FM.ScreenHeading" />
+        <!-- FRM-172 (DL-1): Screen Heading, same as the FmBottomSheet base. -->
 
         <TextView
             android:id="@+id/confirmBody"
