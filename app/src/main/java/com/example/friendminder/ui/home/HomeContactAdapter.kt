@@ -142,37 +142,41 @@ class HomeContactAdapter(
         // (rather than merely disabling) also gives the row's tap-to-select
         // target the full row width back, matching how the badge slot
         // itself switches to the selection check in that mode (bindBadge).
-        // Tint (not layout order or size) is what shows which method is the
-        // stored preference (AC2) - see this class's kdoc.
+        // Single adaptive icon (superseded the always-both-icons design
+        // after a too-crowded preview, see item_home_contact.xml's
+        // comment): glyph, content description and click target all swap
+        // together based on row.preferredMethod, so exactly one action is
+        // ever offered from Home - reaching the non-preferred method still
+        // requires Contact Detail (FRM-184).
         private fun bindQuickActions(row: HomeContactRow) {
             if (row.isSelectionMode) {
-                binding.quickActionSmsButton.visibility = View.GONE
-                binding.quickActionCallButton.visibility = View.GONE
+                binding.quickActionButton.visibility = View.GONE
                 return
             }
             val context = binding.root.context
-            binding.quickActionSmsButton.visibility = View.VISIBLE
-            binding.quickActionCallButton.visibility = View.VISIBLE
+            binding.quickActionButton.visibility = View.VISIBLE
 
-            val primaryTint = androidx.core.content.ContextCompat.getColor(context, R.color.fm_primary)
-            val secondaryTint = androidx.core.content.ContextCompat.getColor(context, R.color.fm_ink_dim)
-            binding.quickActionSmsButton.imageTintList = android.content.res.ColorStateList.valueOf(
-                if (row.preferredMethod == ContactMethod.SMS) primaryTint else secondaryTint
-            )
-            binding.quickActionCallButton.imageTintList = android.content.res.ColorStateList.valueOf(
-                if (row.preferredMethod == ContactMethod.CALL) primaryTint else secondaryTint
-            )
-
-            binding.quickActionSmsButton.contentDescription =
-                context.getString(R.string.format_content_desc_quick_action_sms, row.contact.name)
-            binding.quickActionCallButton.contentDescription =
-                context.getString(R.string.format_content_desc_quick_action_call, row.contact.name)
-
-            binding.quickActionSmsButton.setOnClickListener {
-                launchContactAction(context, ContactMethod.SMS, row.contact.phoneNumber)
+            val iconRes: Int
+            val contentDescRes: Int
+            when (row.preferredMethod) {
+                ContactMethod.SMS -> {
+                    iconRes = R.drawable.ic_sms_24
+                    contentDescRes = R.string.format_content_desc_quick_action_sms
+                }
+                ContactMethod.CALL -> {
+                    iconRes = R.drawable.ic_call_24
+                    contentDescRes = R.string.format_content_desc_quick_action_call
+                }
             }
-            binding.quickActionCallButton.setOnClickListener {
-                launchContactAction(context, ContactMethod.CALL, row.contact.phoneNumber)
+            binding.quickActionButton.setImageResource(iconRes)
+            binding.quickActionButton.imageTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.content.ContextCompat.getColor(context, R.color.fm_primary)
+            )
+            binding.quickActionButton.contentDescription =
+                context.getString(contentDescRes, row.contact.name)
+
+            binding.quickActionButton.setOnClickListener {
+                launchContactAction(context, row.preferredMethod, row.contact.phoneNumber)
             }
         }
 
