@@ -237,6 +237,11 @@
     <string name="label_reminder_1_day_before">1 day before</string>
     <string name="label_reminder_1_week_before">1 week before</string>
     <string name="action_add_special_date">Add special date</string>
+    <!-- FRM-173 (DL-1): Add special date sheet. -->
+    <string name="label_special_date_date">Date</string>
+    <string name="label_special_date_remind_me">Remind me</string>
+    <string name="action_save_special_date">Save date</string>
+    <string name="helper_special_date_needs_label">Add a label to save this date</string>
     <string name="hint_special_date_label">Label (e.g. Anniversary)</string>
     <string name="action_pick_date">Pick date</string>
     <string name="label_special_dates_empty">No special dates yet</string>

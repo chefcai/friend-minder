@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  FRM-173 (DL-1): body of the Add special date sheet (AddSpecialDateSheet,
+  on FmBottomSheet). The sheet base supplies the handle, title, gutter and
+  the "Save date" primary; this is the label field plus two value rows in
+  the one row shape (Widget.FM.ValueRow). It replaces the stock
+  MaterialAlertDialog whose text-button Save measured 3.81:1.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/fm_space_2">
+    android:orientation="vertical">
 
     <com.google.android.material.textfield.TextInputLayout
-
         style="@style/Widget.FM.TextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,41 +25,44 @@
             android:inputType="textCapWords" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/pickDateButton"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:layout_marginTop="@dimen/fm_space_2" />
-
-    <RadioGroup
-        android:id="@+id/reminderRadioGroup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+    <LinearLayout
+        android:id="@+id/dateRow"
+        style="@style/Widget.FM.ValueRow"
         android:layout_marginTop="@dimen/fm_space_2">
 
-        <RadioButton
-            android:id="@+id/radioDayOf"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:checked="true"
-            android:text="@string/label_reminder_day_of" />
+            android:layout_weight="1"
+            android:text="@string/label_special_date_date"
+            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
 
-        <RadioButton
-            android:id="@+id/radioOneDayBefore"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:text="@string/label_reminder_1_day_before" />
+        <TextView
+            android:id="@+id/dateValue"
+            style="@style/Widget.FM.ValueRow.Value" />
 
-        <RadioButton
-            android:id="@+id/radioOneWeekBefore"
-            android:layout_width="match_parent"
+        <ImageView
+            style="@style/Widget.FM.ValueRow.Chevron"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/remindRow"
+        style="@style/Widget.FM.ValueRow">
+
+        <TextView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:text="@string/label_reminder_1_week_before" />
-    </RadioGroup>
+            android:layout_weight="1"
+            android:text="@string/label_special_date_remind_me"
+            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
+
+        <TextView
+            android:id="@+id/remindValue"
+            style="@style/Widget.FM.ValueRow.Value" />
+
+        <ImageView
+            style="@style/Widget.FM.ValueRow.Chevron"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
 </LinearLayout>

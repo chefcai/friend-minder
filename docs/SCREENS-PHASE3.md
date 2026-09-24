@@ -509,7 +509,7 @@ Current state: `05-dialog-group-edit.png`, `09-dialog-outreach-log.png`, plus th
 ### 8.1 One shape for all of them
 Every dialog is a bottom sheet per DESIGN-SYSTEM §6.6: `fm_surface` ground, 16dp top corners, 24dp gutter, a 4×32dp `fm_divider` drag handle centred 12dp from the top, scrim `#1B2E30` at 40%.
 
-- **Add special date is an `AlertDialog` today** while every other dialog is a bottom sheet. Convert it.
+- **Add special date is now a bottom sheet** (FRM-173, DL-1; it was the only `AlertDialog`). `AddSpecialDateSheet` on `FmBottomSheet`: a label field, then **Date** and **Remind me** value rows (Day of / 1 day before / 1 week before), each opening its picker, then a full-width **"Save date"** primary. Save stays disabled, with the helper "Add a label to save this date", until there is a label. The old text-button Save measured 3.81:1; the filled primary is 4.67:1.
 - **Dismissal is the handle, the scrim and back — nothing else.** *New Group* currently offers an `✕` **and** a Cancel button **and** the scrim: three ways out competing with one way forward. Both the `✕` and the Cancel go; the filled primary becomes the only button.
 
 ### 8.2 The colour-swatch overflow (real bug)
