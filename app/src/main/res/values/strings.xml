@@ -319,20 +319,17 @@
     <string name="hint_outreach_note">Note (optional)</string>
     <string name="toast_outreach_logged">Outreach logged</string>
 
-    <!-- TalkBack names for the group swatch palette (DESIGN-SYSTEM-PHASE2.md §2.5,
-         cool-rebrand edition), in the same order as fm_group_color_1..8 in
-         colors.xml. Corrected from an earlier "Warm Circle" pass
-         (Terracotta/Amber/Gold/Rust/Clay/Cocoa/Ivory/Espresso), which was
-         superseded before it should have shipped. -->
+    <!-- FRM-176 (GR-1): TalkBack names for the identity palette, in the
+         same order as fm_identity_1..8 in colors.xml. -->
     <string-array name="group_color_names">
-        <item>Teal</item>
+        <item>Pine</item>
         <item>Cyan</item>
         <item>Sky</item>
-        <item>Deep Teal</item>
-        <item>Slate</item>
-        <item>Ink Blue</item>
-        <item>Mist</item>
-        <item>Midnight</item>
+        <item>Indigo</item>
+        <item>Seafoam</item>
+        <item>Sand</item>
+        <item>Plum</item>
+        <item>Rose</item>
     </string-array>
 
     <!-- Home (HomeFragment, FRM-99) - the app's Phase 3 root screen.

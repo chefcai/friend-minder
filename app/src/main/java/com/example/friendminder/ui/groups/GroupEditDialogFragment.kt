@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.databinding.DialogGroupEditBinding
 import com.example.friendminder.ui.common.FmBottomSheet
+import com.example.friendminder.ui.common.IdentityPalette
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -69,7 +70,8 @@ class GroupEditDialogFragment : FmBottomSheet() {
                 val existing = ServiceLocator.contactGroupRepository.getGroup(existingId)
                 if (existing != null) {
                     binding.nameInput.setText(existing.name)
-                    selectColor(existing.color)
+                    // FRM-176: an unknown stored colour selects its nearest swatch.
+                    selectColor(IdentityPalette.nearestIdentityColor(requireContext(), existing.color))
                 }
             }
         } else {
@@ -140,6 +142,14 @@ class GroupEditDialogFragment : FmBottomSheet() {
         val swatch = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(color)
+            // FRM-176: light identity fills keep the 1dp fm_divider hairline.
+            val index = IdentityPalette.nearestIndex(color)
+            if (IdentityPalette.isLightFill(index)) {
+                setStroke(
+                    resources.displayMetrics.density.toInt().coerceAtLeast(1),
+                    ContextCompat.getColor(requireContext(), R.color.fm_divider)
+                )
+            }
         }
         val ring = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
@@ -182,16 +192,8 @@ class GroupEditDialogFragment : FmBottomSheet() {
         private const val ARG_GROUP_ID = "arg_group_id"
         private const val SWATCHES_PER_ROW = 4
 
-        private val GROUP_COLOR_RES = intArrayOf(
-            R.color.fm_group_color_1,
-            R.color.fm_group_color_2,
-            R.color.fm_group_color_3,
-            R.color.fm_group_color_4,
-            R.color.fm_group_color_5,
-            R.color.fm_group_color_6,
-            R.color.fm_group_color_7,
-            R.color.fm_group_color_8
-        )
+        // FRM-176 (GR-1): the swatches are the shared identity palette.
+        private val GROUP_COLOR_RES = IdentityPalette.colorRes
 
         fun newInstance(groupId: String? = null): GroupEditDialogFragment =
             GroupEditDialogFragment().apply {

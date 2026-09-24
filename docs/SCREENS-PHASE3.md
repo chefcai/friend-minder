@@ -321,7 +321,7 @@ The pinned outlined button on Group Detail goes: an outlined button is the lowes
 - Rows **76dp**, up from 64dp, and structurally identical to a Home contact row:
   - 24dp gutter → **48dp circle filled with the group's colour** → 16dp → name (Row Primary) over member count (Row Secondary, "2 members" / "1 member" via a quantity string) → 24dp gutter.
   - The 16dp colour dot becomes a full 48dp circle. It occupies the avatar slot, so Groups and Home rows align to the same grid, and the group's colour finally has enough area to be identifiable rather than decorative.
-  - `fm_group_color_7` (`#CCE0E9`, "Mist") is pale enough to disappear against white — it takes the same **1dp `fm_divider` hairline** the light avatar fills take (DESIGN-SYSTEM §4.3).
+  - The circle uses the identity palette (DESIGN-SYSTEM §2.6). The four light fills (Sky, Seafoam, Sand, Rose) take the same **1dp `fm_divider` hairline** the light avatar fills take (DESIGN-SYSTEM §4.3).
 - **The trailing chevron is removed.** No other list in the app uses one, and a whole row is already the target.
 - 1dp `fm_divider` between rows, inset 24dp, none after the last.
 - Empty state per DESIGN-SYSTEM §6.7: "No groups yet" / "Groups let you set different check-in rhythms for different people." / **"Create a group"**. FAB hidden.
