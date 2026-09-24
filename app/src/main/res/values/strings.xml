@@ -264,6 +264,13 @@
     <string name="label_special_dates_empty">No special dates yet</string>
     <string name="title_edit_frequency">Reminder Frequency</string>
 
+    <!-- FRM-184: per-contact preferred outreach method (SMS/Call), FRM-183's
+         ContactMethodRepository. Placed near CHECK-IN FREQUENCY below - both
+         are contact-level settings in the same cluster. -->
+    <string name="label_contact_method_header">Contact method</string>
+    <string name="label_contact_method_sms">SMS</string>
+    <string name="label_contact_method_call">Call</string>
+
     <!-- GH #121: Contact Detail's CHECK-IN FREQUENCY row (SCREENS-PHASE3.md
          §6.2a) shows the *effective* interval - the minimum across the
          contact's own override, its groups, and the global default - and
