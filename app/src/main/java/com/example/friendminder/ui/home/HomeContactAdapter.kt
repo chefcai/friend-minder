@@ -10,8 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.friendminder.R
 import com.example.friendminder.data.contacts.ContactPhotoLoader
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactMethod
 import com.example.friendminder.databinding.ItemHomeContactBinding
 import com.example.friendminder.ui.common.AvatarBinder
+import com.example.friendminder.ui.common.launchContactAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
@@ -85,6 +87,7 @@ class HomeContactAdapter(
 
             bindBadge(row)
             bindAvatar(row.contact)
+            bindQuickActions(row)
 
             binding.root.setOnClickListener { onRowClicked(row.contact) }
             binding.root.setOnLongClickListener { onRowLongPressed(row.contact); true }
@@ -134,6 +137,49 @@ class HomeContactAdapter(
             )
         }
 
+        // FRM-185: hidden entirely in selection mode (row.isSelectionMode) -
+        // a tap here must never double as a row-select tap, and hiding
+        // (rather than merely disabling) also gives the row's tap-to-select
+        // target the full row width back, matching how the badge slot
+        // itself switches to the selection check in that mode (bindBadge).
+        // Single adaptive icon (superseded the always-both-icons design
+        // after a too-crowded preview, see item_home_contact.xml's
+        // comment): glyph, content description and click target all swap
+        // together based on row.preferredMethod, so exactly one action is
+        // ever offered from Home - reaching the non-preferred method still
+        // requires Contact Detail (FRM-184).
+        private fun bindQuickActions(row: HomeContactRow) {
+            if (row.isSelectionMode) {
+                binding.quickActionButton.visibility = View.GONE
+                return
+            }
+            val context = binding.root.context
+            binding.quickActionButton.visibility = View.VISIBLE
+
+            val iconRes: Int
+            val contentDescRes: Int
+            when (row.preferredMethod) {
+                ContactMethod.SMS -> {
+                    iconRes = R.drawable.ic_sms_24
+                    contentDescRes = R.string.format_content_desc_quick_action_sms
+                }
+                ContactMethod.CALL -> {
+                    iconRes = R.drawable.ic_call_24
+                    contentDescRes = R.string.format_content_desc_quick_action_call
+                }
+            }
+            binding.quickActionButton.setImageResource(iconRes)
+            binding.quickActionButton.imageTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.content.ContextCompat.getColor(context, R.color.fm_primary)
+            )
+            binding.quickActionButton.contentDescription =
+                context.getString(contentDescRes, row.contact.name)
+
+            binding.quickActionButton.setOnClickListener {
+                launchContactAction(context, row.preferredMethod, row.contact.phoneNumber)
+            }
+        }
+
         private fun bindAvatar(contact: Contact) {
             cancelPendingPhotoLoad()
             photoLoadJob = AvatarBinder.bind(
@@ -165,6 +211,7 @@ data class HomeContactRow(
     val contact: Contact,
     val streak: Int,
     val lastTouchText: String,
+    val preferredMethod: ContactMethod,
     val isSelectionMode: Boolean = false,
     val isSelected: Boolean = false
 )

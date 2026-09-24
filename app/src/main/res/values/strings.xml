@@ -377,6 +377,13 @@
     </plurals>
     <string name="format_home_no_streak_description">No streak, last contact %1$s</string>
 
+    <!-- FRM-185: Home row quick-action icons. Both are always visible
+         (AC1) - "sms"/"call" name which glyph, not which is preferred;
+         which one is the stored preference is conveyed by tint only
+         (bindQuickActions in HomeContactAdapter), not by these strings. -->
+    <string name="format_content_desc_quick_action_sms">Message %1$s</string>
+    <string name="format_content_desc_quick_action_call">Call %1$s</string>
+
     <!-- Bulk removal - selection mode on Home (FRM-112, SCREENS-PHASE3.md
          §10). Header title reuses format_selected_count verbatim (already
          "%1$d selected", same wording §10.3 calls for) rather than a new

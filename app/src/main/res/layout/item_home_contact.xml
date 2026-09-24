@@ -109,6 +109,30 @@
             android:importantForAccessibility="no" />
     </FrameLayout>
 
+    <!-- FRM-185: single adaptive quick-action icon, toStartOf statusBadge
+         so it's the next fixed-width element in from the end gutter -
+         textBlock (below) yields to it, same as it already yields to
+         statusBadge alone (see this file's header doc). Superseded the
+         earlier always-both-icons design (PR #211) after a to-scale
+         preview showed the row too crowded (~260dp -> ~174dp of text
+         width) - now exactly one icon is shown per row, its glyph and tap
+         target swapped in code (HomeContactAdapter.bindQuickActions)
+         between ic_sms_24/ic_call_24 based on the contact's stored
+         preferred method, so the row cost stays a single 36dp element.
+         GONE in selection mode (row.isSelectionMode) so a tap here can
+         never be mistaken for - or interfere with - the row's own
+         tap-to-select gesture. -->
+    <ImageButton
+        android:id="@+id/quickActionButton"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@id/statusBadge"
+        android:layout_marginEnd="@dimen/fm_space_2"
+        android:padding="6dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@null" />
+
     <LinearLayout
         android:id="@+id/textBlock"
         android:layout_width="match_parent"
@@ -116,7 +140,7 @@
         android:orientation="vertical"
         android:layout_centerVertical="true"
         android:layout_toEndOf="@id/avatarContainer"
-        android:layout_toStartOf="@id/statusBadge"
+        android:layout_toStartOf="@id/quickActionButton"
         android:layout_marginStart="@dimen/fm_space_4"
         android:layout_marginEnd="@dimen/fm_space_3">
 
