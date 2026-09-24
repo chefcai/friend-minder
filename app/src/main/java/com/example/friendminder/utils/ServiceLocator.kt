@@ -3,6 +3,7 @@ package com.example.friendminder.utils
 import android.content.Context
 import com.example.friendminder.data.contacts.ContactPhotoLoader
 import com.example.friendminder.data.storage.ContactGroupRepository
+import com.example.friendminder.data.storage.ContactMethodRepository
 import com.example.friendminder.data.storage.CooldownRepository
 import com.example.friendminder.data.storage.FriendListRepository
 import com.example.friendminder.data.storage.NotificationScheduler
@@ -13,6 +14,7 @@ import com.example.friendminder.data.storage.RoomOutreachLogRepository
 import com.example.friendminder.data.storage.RoomSpecialDateRepository
 import com.example.friendminder.data.storage.SettingsRepository
 import com.example.friendminder.data.storage.SharedPrefsCooldownRepository
+import com.example.friendminder.data.storage.SharedPrefsContactMethodRepository
 import com.example.friendminder.data.storage.SharedPrefsFriendListRepository
 import com.example.friendminder.data.storage.SharedPrefsReminderFrequencyRepository
 import com.example.friendminder.data.storage.SharedPrefsSettingsRepository
@@ -85,6 +87,10 @@ object ServiceLocator {
 
     val specialDateRepository: SpecialDateRepository by lazy {
         RoomSpecialDateRepository(requireContext())
+    }
+
+    val contactMethodRepository: ContactMethodRepository by lazy {
+        SharedPrefsContactMethodRepository(requireContext())
     }
 
     val outreachLogRepository: OutreachLogRepository by lazy {

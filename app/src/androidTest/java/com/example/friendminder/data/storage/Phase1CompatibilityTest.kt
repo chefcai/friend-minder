@@ -36,6 +36,7 @@ class Phase1CompatibilityTest {
             "friend_minder_special_dates",
             "friend_minder_outreach_log",
             "friend_minder_statistics_cache",
+            "friend_minder_contact_methods",
             "friend_minder_schema"
         ).forEach { name ->
             context.getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear().commit()
@@ -77,6 +78,12 @@ class Phase1CompatibilityTest {
 
         val outreachLogRepository = SharedPrefsOutreachLogRepository(context)
         assertTrue(outreachLogRepository.getForContact("legacy-1").isEmpty())
+
+        // FRM-183, same rule: a contact that predates the SMS/Call preference
+        // store reads back as "never set" (null), not a fabricated default -
+        // getEffectiveMethod is what resolves that to SMS for callers.
+        val contactMethodRepository = SharedPrefsContactMethodRepository(context)
+        assertNull(contactMethodRepository.getMethod("legacy-1"))
     }
 
     @Test
