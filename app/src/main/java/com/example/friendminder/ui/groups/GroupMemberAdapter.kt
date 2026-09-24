@@ -16,9 +16,13 @@ import com.example.friendminder.ui.common.AvatarBinder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
-/** One member row plus the selection state stamped on it (FRM-167). */
+/**
+ * One member row plus the selection state stamped on it (FRM-167) and its
+ * pre-formatted last-touch line (FRM-168, same string Home shows).
+ */
 data class GroupMemberRow(
     val contact: Contact,
+    val lastTouchText: String = "",
     val isSelectionMode: Boolean = false,
     val isSelected: Boolean = false
 )
@@ -44,7 +48,7 @@ class GroupMemberAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position)
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
@@ -73,11 +77,15 @@ class GroupMemberAdapter(
             photoLoadJob = null
         }
 
-        fun bind(row: GroupMemberRow) {
+        fun bind(row: GroupMemberRow, position: Int) {
             currentRow = row
             val contact = row.contact
             cancelPendingPhotoLoad()
+            // FRM-168: divider between rows only, as on Home.
+            binding.topDivider.visibility = if (position == 0) View.GONE else View.VISIBLE
             binding.memberName.text = contact.name
+            binding.lastTouch.text = row.lastTouchText
+            binding.lastTouch.visibility = if (row.lastTouchText.isEmpty()) View.GONE else View.VISIBLE
             photoLoadJob = AvatarBinder.bind(binding.contactPhoto, binding.contactInitial, contact, photoLoader, scope)
             binding.root.setOnClickListener { onRowClicked(contact) }
             binding.root.setOnLongClickListener { onRowLongPressed(contact); true }

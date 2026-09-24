@@ -1,21 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  Group Detail member row. FRM-168 (GD-2): the same geometry as the Home
+  contact row (item_home_contact.xml) without the streak badge: 76dp min
+  height, 24dp gutter, 48dp avatar, 16dp, name over the last-touch line.
+
+  The trailing slot holds the controls that replace Home's badge:
+  - selectionSlot (FRM-167): 28dp ring/check, visible only in selection mode.
+  - removeButton: hidden by default; only MissingContactsDialogFragment,
+    which reuses this row, turns it on.
+
+  topDivider is a 1dp hairline inset 24dp both sides; the adapter hides it on
+  the first row, as Home does.
+-->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="72dp"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingStart="@dimen/fm_gutter"
-    android:paddingEnd="8dp"
-    android:background="?attr/selectableItemBackground"
+    android:minHeight="@dimen/fm_home_row_height"
+    android:background="@drawable/bg_home_row_ripple"
     android:clickable="true"
     android:focusable="true">
 
+    <View
+        android:id="@+id/topDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="@dimen/fm_gutter"
+        android:layout_marginEnd="@dimen/fm_gutter"
+        android:background="@color/fm_divider"
+        android:visibility="gone" />
+
     <FrameLayout
+        android:id="@+id/avatarContainer"
         android:layout_width="@dimen/fm_avatar_size_list"
-        android:layout_height="@dimen/fm_avatar_size_list">
+        android:layout_height="@dimen/fm_avatar_size_list"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="@dimen/fm_gutter">
 
         <ImageView
             android:id="@+id/contactPhoto"
@@ -32,52 +56,75 @@
             android:layout_height="@dimen/fm_avatar_size_list"
             android:background="@drawable/bg_avatar_placeholder"
             android:gravity="center"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="?attr/colorOnSecondaryContainer" />
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
     </FrameLayout>
 
-    <TextView
-        android:id="@+id/memberName"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:id="@+id/trailingSlot"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="12dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceBodyLarge" />
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="@dimen/fm_gutter"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <!-- FRM-167: hidden by default. Only MissingContactsDialogFragment,
-         which reuses this row, turns it on; Group Detail removes members
-         through selection mode instead (see selectionSlot below). -->
-    <ImageButton
-        android:id="@+id/removeButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/ic_close"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/action_remove_from_group"
-        android:visibility="gone" />
+        <FrameLayout
+            android:id="@+id/selectionSlot"
+            android:layout_width="@dimen/fm_status_badge_size"
+            android:layout_height="@dimen/fm_status_badge_size"
+            android:visibility="gone">
 
-    <!-- FRM-167 (GD-1): Group Detail has no per-row remove button. Members are
-         removed through long-press selection mode (SCREENS Section 10,
-         same as Home); this 28dp slot shows the selection ring/check only
-         while that mode is on, reusing Home's badge-slot drawables. -->
-    <FrameLayout
-        android:id="@+id/selectionSlot"
-        android:layout_width="@dimen/fm_status_badge_size"
-        android:layout_height="@dimen/fm_status_badge_size"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="16dp"
-        android:visibility="gone">
+            <ImageView
+                android:id="@+id/selectionCheck"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="4dp"
+                android:src="@drawable/ic_check"
+                android:importantForAccessibility="no"
+                android:visibility="gone"
+                app:tint="@color/fm_on_primary" />
+        </FrameLayout>
 
-        <ImageView
-            android:id="@+id/selectionCheck"
+        <ImageButton
+            android:id="@+id/removeButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_close"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/action_remove_from_group"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/textBlock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/avatarContainer"
+        android:layout_toStartOf="@id/trailingSlot"
+        android:layout_marginStart="@dimen/fm_space_4"
+        android:layout_marginEnd="@dimen/fm_space_3">
+
+        <TextView
+            android:id="@+id/memberName"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="4dp"
-            android:src="@drawable/ic_check"
-            android:importantForAccessibility="no"
-            android:visibility="gone"
-            app:tint="@color/fm_on_primary" />
-    </FrameLayout>
-</LinearLayout>
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="17sp"
+            android:textColor="@color/fm_ink" />
+
+        <TextView
+            android:id="@+id/lastTouch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="14sp"
+            android:textColor="@color/fm_ink_dim"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</RelativeLayout>
