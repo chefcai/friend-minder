@@ -50,49 +50,56 @@ class AppDatabaseMigrationTest {
     }
 
     /**
-     * FRM-175 / GR-1: all 8 retired group colours remap to their identity
-     * colour; an unknown colour is left unchanged; membership rows survive
-     * (the migration is an in-place UPDATE, not a delete/re-insert).
+     * FRM-180 / GR-1: after 2->3 every group is Pine, whatever it stored
+     * before (all 8 old palette colours, an unknown colour, and a colour that
+     * is already Pine); names and intervals are kept and every membership row
+     * survives (the migration is an in-place UPDATE, not a delete/re-insert).
      */
     @Test
-    fun migrate2To3_remapsAllEightOldGroupColoursAndLeavesUnknownUnchanged() {
-        val unknown = -65536 // #FF0000, not in the old palette
-        val oldToNew = AppDatabase.GROUP_COLOR_REMAP_2_3
-        assertEquals(8, oldToNew.size)
+    fun migrate2To3_setsEveryGroupToPineAndKeepsMemberships() {
+        val pine = AppDatabase.MIGRATED_GROUP_COLOR
+        val stored = listOf(
+            -15498893, -15424581, -8141835, -15505049, // Teal, Cyan, Sky, Deep Teal
+            -12805985, -14196108, -3350295, -15390165, // Slate, Ink Blue, Mist, Midnight
+            -65536, // unknown (#FF0000)
+            pine // already Pine
+        )
+        val membersPerGroup = 3
 
         helper.createDatabase(TEST_DB, 2).apply {
-            oldToNew.keys.forEachIndexed { i, old ->
+            stored.forEachIndexed { i, color ->
                 execSQL(
                     "INSERT INTO contact_groups (id, name, color, icon, createdAt, reminderFrequencyDays) " +
-                        "VALUES ('g$i', 'Group $i', $old, NULL, 1000, 14)"
+                        "VALUES ('g$i', 'Group $i', $color, NULL, 1000, ${if (i % 2 == 0) "14" else "NULL"})"
                 )
-                execSQL("INSERT INTO contact_group_membership (contactId, groupId) VALUES ('c$i', 'g$i')")
+                repeat(membersPerGroup) { m ->
+                    execSQL("INSERT INTO contact_group_membership (contactId, groupId) VALUES ('c$i-$m', 'g$i')")
+                }
             }
-            execSQL(
-                "INSERT INTO contact_groups (id, name, color, icon, createdAt, reminderFrequencyDays) " +
-                    "VALUES ('gx', 'Unknown', $unknown, NULL, 1000, NULL)"
-            )
-            execSQL("INSERT INTO contact_group_membership (contactId, groupId) VALUES ('cx', 'gx')")
             close()
         }
 
         val migrated = helper.runMigrationsAndValidate(TEST_DB, 3, true, AppDatabase.MIGRATION_2_3)
 
-        oldToNew.entries.forEachIndexed { i, (old, new) ->
+        stored.indices.forEach { i ->
             migrated.query("SELECT color, name, reminderFrequencyDays FROM contact_groups WHERE id = 'g$i'").use { c ->
                 assertTrue(c.moveToFirst())
-                assertEquals("old colour $old", new, c.getInt(0))
+                assertEquals("group g$i (was ${stored[i]})", pine, c.getInt(0))
                 assertEquals("Group $i", c.getString(1))
-                assertEquals(14, c.getInt(2))
+                if (i % 2 == 0) assertEquals(14, c.getInt(2)) else assertTrue(c.isNull(2))
             }
         }
-        migrated.query("SELECT color FROM contact_groups WHERE id = 'gx'").use { c ->
+        migrated.query("SELECT COUNT(*) FROM contact_groups WHERE color != $pine").use { c ->
             assertTrue(c.moveToFirst())
-            assertEquals(unknown, c.getInt(0))
+            assertEquals(0, c.getInt(0))
         }
-        migrated.query("SELECT COUNT(*) FROM contact_group_membership").use { c ->
-            assertTrue(c.moveToFirst())
-            assertEquals("membership rows must survive the colour remap", 9, c.getInt(0))
+        migrated.query("SELECT groupId, COUNT(*) FROM contact_group_membership GROUP BY groupId").use { c ->
+            var groups = 0
+            while (c.moveToNext()) {
+                groups++
+                assertEquals("members of ${c.getString(0)}", membersPerGroup, c.getInt(1))
+            }
+            assertEquals("membership rows must survive the colour reset", stored.size, groups)
         }
     }
 
@@ -110,7 +117,7 @@ class AppDatabaseMigrationTest {
         )
         migrated.query("SELECT color FROM contact_groups WHERE id = 'g1'").use { c ->
             assertTrue(c.moveToFirst())
-            assertEquals(-6501396, c.getInt(0)) // Mist -> Sky
+            assertEquals(AppDatabase.MIGRATED_GROUP_COLOR, c.getInt(0)) // Mist -> Pine
         }
     }
 }

@@ -13,8 +13,9 @@ What it does (emulator/debug builds only - it uses `run-as`):
 
 Seed shape (what the Phase 3.1 audit needs):
   * 48 tracked contacts, including the long-name case "Donovan Arthen".
-  * 6 groups, coloured with six different Phase 3 group-palette colours so
-    the v2->v3 palette migration (FRM-175/177) has real rows to remap.
+  * 6 groups, coloured with six different identity-palette colours (GR-1).
+    The v2->v3 migration sets every group to Pine (FRM-180), so the seed no
+    longer needs old-palette colours for migration testing.
   * HEAVY_CONTACT has 34 outreaches (Contact Detail one-scroll, CD-2).
   * ZERO_CONTACT has 0 reminders sent and 0 outreaches.
   * Several contacts reached more than once this month (OH-1: events vs
@@ -58,12 +59,12 @@ ZERO_CONTACT = "Xena Xu"
 
 # (name, stored ARGB Int from the Phase 3 group palette, per-group interval)
 GROUPS = [
-    ("Family", -15498893, None),          # Teal      #138173
-    ("College friends", -15424581, None),  # Cyan      #14A3BB
-    ("Book club", -8141835, None),         # Sky       #83C3F5
-    ("Work", -15505049, 14),               # Deep Teal #136967
-    ("Neighbours", -3350295, None),        # Mist      #CCE0E9
-    ("Climbing", -15390165, None),         # Midnight  #152A2B
+    ("Family", -13865399, None),           # Pine    #2C6E49 fm_identity_1
+    ("College friends", -16028014, None),  # Cyan    #0B6E92 fm_identity_2
+    ("Book club", -6501396, None),         # Sky     #9CCBEC fm_identity_3
+    ("Work", -12757596, 14),               # Indigo  #3D55A4 fm_identity_4
+    ("Neighbours", -7417660, None),        # Seafoam #8ED0C4 fm_identity_5
+    ("Climbing", -8370806, None),          # Plum    #80458A fm_identity_7
 ]
 GROUP_SIZES = [5, 12, 6, 9, 3, 1]
 OUTREACH_TYPES = ["SMS", "SMS", "SMS", "CALL", "IN_PERSON", "VIDEO"]
