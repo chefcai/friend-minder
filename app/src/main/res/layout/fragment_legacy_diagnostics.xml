@@ -102,6 +102,11 @@
                 android:visibility="gone"
                 android:text="@string/banner_notifications_disabled" />
 
+            <!-- FRM-178: reminder time, moved here from Settings. -->
+            <include
+                android:id="@+id/reminderTime"
+                layout="@layout/section_reminder_time" />
+
             <!-- Empty-friend-list state (Designer spec §4.1) -->
             <LinearLayout
                 android:id="@+id/emptyStateGroup"

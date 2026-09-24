@@ -87,105 +87,14 @@
                 android:paddingTop="16dp"
                 android:paddingBottom="16dp">
 
-                <!-- Reminder Time -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_reminder_time"
-                    android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
-
-                <!-- GH #165/FRM-130: segmented control replacing the radio
-                     pair (SCREENS-PHASE3.md Section 7.2), matching Contact
-                     Detail's tabToggleGroup (fragment_contact_detail.xml)
-                     rather than introducing a second segmented-control
-                     shape. -->
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/timeModeGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:singleSelection="true"
-                    app:selectionRequired="true">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/fixedTimeToggleButton"
-                        style="@style/Widget.FM.SegmentedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/option_fixed_time" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/randomWindowToggleButton"
-                        style="@style/Widget.FM.SegmentedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/option_random_window" />
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-
-                <!-- FRM-166 (ST-4): the reminder time is a value row like every
-                     other setting with a value (label left, value and chevron
-                     right, minHeight 64dp) instead of outlined pill buttons.
-                     Fixed time: "Time  5:00 AM >". Random window: "Window
-                     8:00 AM - 12:00 PM >", which opens the start picker and then
-                     the end picker. -->
-                <LinearLayout
-                    android:id="@+id/timeRow"
-                    style="@style/Widget.FM.ValueRow"
-                    android:layout_marginTop="8dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:paddingTop="8dp"
-                        android:paddingBottom="8dp">
-
-                        <TextView
-                            android:id="@+id/timeLabel"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/label_time"
-                            android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/timeValue"
-                        style="@style/Widget.FM.ValueRow.Value" />
-
-                    <ImageView
-                        style="@style/Widget.FM.ValueRow.Chevron"
-                        android:importantForAccessibility="no" />
-                </LinearLayout>
-
-                <!-- FRM-164 (ST-1): the next-reminder notice is now Row
-                     Secondary in fm_ink_dim with a leading clock icon; only
-                     the invalid-range error (something the user has to fix)
-                     switches it to fm_error with no icon. See
-                     SettingsFragment.validateTimeRange.
-                     GH #150 follow-up: a single shared status line, originally
-                     styled like a validation error (colorError), so the
-                     "invalid range" error and the "next reminder lands
-                     today/tomorrow" notice can never both be on screen or
-                     visually collide - there's only one view, and its text
-                     is swapped depending on validation state. Not a true
-                     error in the notice case, but it still wants the same
-                     visual weight/attention as one. -->
-                <TextView
-                    android:id="@+id/timeStatusText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/error_end_before_start"
-                    android:textAppearance="@style/TextAppearance.FM.RowSecondary" />
-
+                <!-- FRM-178 (Cai, option B): the REMINDER TIME section moved to
+                     the Notifications screen (section_reminder_time.xml,
+                     hosted by LegacyDiagnosticsFragment). Settings opens with
+                     REMINDERS. -->
                 <!-- FRM-165 (ST-2): REMINDERS section. -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
                     android:text="@string/label_section_reminders"
                     android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
@@ -339,29 +248,29 @@
                     android:text="@string/label_section_more"
                     android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
 
+                <!-- FRM-178: a value row now - the reminder time lives behind
+                     it, so the time shows as its value ("Notifications ·
+                     5:00 AM ›") and stays findable from Settings. -->
                 <LinearLayout
                     android:id="@+id/notificationsDiagnosticsRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="56dp"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_home_row_ripple"
-                    android:clickable="true"
-                    android:focusable="true">
+                    style="@style/Widget.FM.ValueRow"
+                    android:layout_marginTop="8dp">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
                         android:text="@string/title_notifications_diagnostics"
                         android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
 
+                    <TextView
+                        android:id="@+id/notificationsValue"
+                        style="@style/Widget.FM.ValueRow.Value" />
+
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_chevron_right"
+                        style="@style/Widget.FM.ValueRow.Chevron"
                         android:importantForAccessibility="no" />
                 </LinearLayout>
 

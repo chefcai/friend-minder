@@ -19,6 +19,8 @@ import com.example.friendminder.databinding.FragmentLegacyDiagnosticsBinding
 import com.example.friendminder.notifications.NotificationHelper
 import com.example.friendminder.ui.addcontacts.AddContactsStep1Fragment
 import com.example.friendminder.ui.common.EdgeToEdgeHeader
+import com.example.friendminder.ui.settings.ReminderTimeController
+import com.google.android.material.snackbar.Snackbar
 import com.example.friendminder.utils.ServiceLocator
 import kotlinx.coroutines.launch
 
@@ -66,6 +68,18 @@ class LegacyDiagnosticsFragment : Fragment() {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
         EdgeToEdgeHeader.applyHeaderInsets(binding.headerContainer, binding.statusBarSpacer)
+
+        // FRM-178 (Cai, option B): the reminder time moved here from
+        // Settings. It saves on every change; "Saved" confirms it, the same
+        // word Settings' auto-save pill uses.
+        ReminderTimeController(this, binding.reminderTime) {
+            // Anchored above the bottom nav, as FRM-167 does, so it never covers it.
+            view?.let {
+                Snackbar.make(it, R.string.label_settings_saved_pill, Snackbar.LENGTH_SHORT)
+                    .setAnchorView(requireActivity().findViewById<View>(R.id.bottomNav))
+                    .show()
+            }
+        }.start()
 
         binding.addFriendsButton.setOnClickListener { openFriendList() }
         // FRM-78: this used to enqueue the real SuggestionWorker, which posts a
