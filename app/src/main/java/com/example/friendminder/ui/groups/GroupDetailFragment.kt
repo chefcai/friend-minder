@@ -21,6 +21,7 @@ import com.example.friendminder.ui.common.EdgeToEdgeHeader
 import com.example.friendminder.ui.common.ValuePickerDialogFragment
 import com.example.friendminder.ui.common.withLivePhotoUris
 import com.example.friendminder.ui.contactdetail.ContactDetailFragment
+import com.example.friendminder.ui.home.HomeLastTouchFormatter
 import com.example.friendminder.utils.ServiceLocator
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
@@ -40,6 +41,7 @@ class GroupDetailFragment : Fragment() {
     private val selectedIds = linkedSetOf<String>()
     private val isSelectionMode: Boolean get() = selectedIds.isNotEmpty()
     private var members: List<Contact> = emptyList()
+    private var lastTouchById: Map<String, String> = emptyMap()
     private lateinit var selectionBackCallback: OnBackPressedCallback
 
     // Set by Undo: once the restored rows are committed, scroll so the
@@ -255,7 +257,14 @@ class GroupDetailFragment : Fragment() {
 
     private fun renderRows() {
         adapter.submitList(
-            members.map { GroupMemberRow(it, isSelectionMode = isSelectionMode, isSelected = it.id in selectedIds) }
+            members.map {
+                GroupMemberRow(
+                    it,
+                    lastTouchText = lastTouchById[it.id].orEmpty(),
+                    isSelectionMode = isSelectionMode,
+                    isSelected = it.id in selectedIds
+                )
+            }
         ) {
             val target = scrollToAfterCommit ?: return@submitList
             scrollToAfterCommit = null
@@ -284,6 +293,13 @@ class GroupDetailFragment : Fragment() {
         members = withLivePhotoUris(
             requireContext(), ServiceLocator.groupService.getContactsInGroup(groupId)
         ).sortedBy { it.name.lowercase() }
+        // FRM-168 (GD-2): the same last-touch line Home shows under the name.
+        val context = requireContext()
+        lastTouchById = members.associate { contact ->
+            val stats = ServiceLocator.statisticsService.getStatistics(contact.id)
+            contact.id to HomeLastTouchFormatter.format(context, stats.lastContacted)
+        }
+        if (_binding == null) return
         binding.emptyStateContainer.visibility = if (members.isEmpty()) View.VISIBLE else View.GONE
         binding.memberRecyclerView.visibility = if (members.isEmpty()) View.GONE else View.VISIBLE
         // FRM-119: FAB is hidden on the empty state in favour of that

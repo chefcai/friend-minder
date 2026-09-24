@@ -86,45 +86,37 @@
              "label + trailing value + chevron" row shape already established
              by fragment_add_contacts_step2.xml's checkInEveryRow/groupsRow
              rather than inventing a new one. -->
+        <!-- FRM-168 (GD-2): the shared value-row component (FRM-166) on the
+             24dp gutter, with its divider inset 24dp like every list row. -->
         <LinearLayout
             android:id="@+id/checkInFrequencyRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            style="@style/Widget.FM.ValueRow"
             android:paddingStart="@dimen/fm_gutter"
-            android:paddingEnd="@dimen/fm_gutter"
-            android:background="@drawable/bg_home_row_ripple"
-            android:clickable="true"
-            android:focusable="true">
+            android:paddingEnd="@dimen/fm_gutter">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:text="@string/label_group_checkin_frequency"
-                android:textSize="17sp"
-                android:textColor="@color/fm_ink" />
+                android:textAppearance="@style/TextAppearance.FM.RowPrimary" />
 
             <TextView
                 android:id="@+id/groupFrequencyValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/fm_space_2"
-                android:textSize="16sp"
-                android:textColor="@color/fm_ink_dim" />
+                style="@style/Widget.FM.ValueRow.Value" />
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_chevron_right"
+                style="@style/Widget.FM.ValueRow.Chevron"
                 android:importantForAccessibility="no" />
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:layout_marginStart="@dimen/fm_gutter"
+            android:layout_marginEnd="@dimen/fm_gutter"
             android:background="@color/fm_divider" />
 
         <FrameLayout
