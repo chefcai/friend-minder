@@ -6,9 +6,9 @@ import org.junit.Test
 
 /**
  * FRM-176 (GR-1): the identity palette's colour maths - the spec's minimum
- * pairwise dE76, and that nearestIndex agrees with the Architect's Room
- * v2 -> v3 migration table (ui-ux-audit-findings GR-1) for every old
- * group colour.
+ * pairwise dE76, and where each old-palette group colour renders if one is
+ * still stored (the v2 -> v3 migration itself now sets every group to Pine,
+ * FRM-180; this covers devices that reached v3 before that change).
  */
 class IdentityPaletteTest {
 
@@ -36,7 +36,7 @@ class IdentityPaletteTest {
     }
 
     @Test
-    fun oldGroupColoursMapLikeMigration() {
+    fun oldGroupColoursRenderAsNearestFill() {
         val expected = mapOf(
             0xFF138173.toInt() to "Pine", // Teal
             0xFF14A3BB.toInt() to "Cyan", // Cyan

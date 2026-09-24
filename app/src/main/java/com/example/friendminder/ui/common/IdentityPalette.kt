@@ -13,12 +13,12 @@ import kotlin.math.sqrt
  * 2.6) shared by avatar fallbacks, group circles, chip dots and the group
  * swatch grid. Minimum pairwise dE76 is 26.0 (Sky / Seafoam).
  *
- * Group colours are stored as raw ARGB Ints. The Architect's Room v2 -> v3
- * migration (GROUP_COLOR_REMAP_2_3) moved the eight old group colours onto
- * this palette; anything else (an unknown or future value) is shown as its
- * nearest identity colour by dE76 via [nearestIndex] / [nearestIdentityColor].
- * nearestIndex reproduces the migration table exactly for the old colours
- * (IdentityPaletteTest).
+ * Group colours are stored as raw ARGB Ints. The Room v2 -> v3 migration sets
+ * every existing group to Pine (AppDatabase.MIGRATED_GROUP_COLOR, FRM-180).
+ * Any stored value that is not an identity fill (e.g. an old-palette colour
+ * on a device that reached v3 before FRM-180, or a future value) is shown as
+ * its nearest identity colour by dE76 via [nearestIndex] /
+ * [nearestIdentityColor], so a group never renders off-palette.
  */
 object IdentityPalette {
 
