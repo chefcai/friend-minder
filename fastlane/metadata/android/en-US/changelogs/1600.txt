@@ -1,0 +1,4 @@
+Choose how to reach each contact - SMS or Call
+
+- New setting on Contact Detail: pick SMS or Call as how you reach out to each contact.
+- Home now shows a one-tap icon on every contact row for your chosen method - tap it to text or call instantly, no need to open Contact Detail first.
