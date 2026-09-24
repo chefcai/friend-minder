@@ -454,14 +454,22 @@ Current state: `10-settings.png`, `11-advanced-settings.png`.
 ### 7.2 Settings
 
 - Header: teal, "Settings", back arrow → Home. Bottom nav present, **slot 3 active**.
-- **REMINDER TIME** — segmented control (Fixed time / Random window) replacing the radio pair, then the time as a tappable row with the value and a chevron.
-- **Time row** (FRM-166, ST-4) — "Time · 5:00 AM ›" in Fixed mode; in Random window mode the same row reads "Window · 8:00 AM – 12:00 PM ›" and opens the start-hour picker, then the end-hour picker. Reminders per day, Don't repeat within, and Templates use the same value-row shape (DESIGN-SYSTEM Section 6.1).
-- **Next-reminder status line** (FRM-164, ST-1) — beneath the time: Row Secondary 14sp in `fm_ink_dim`, led by a 16dp clock icon (`ic_schedule_24`, tinted `fm_ink_dim`) with a 4dp gap. The icon is inline, so when the line wraps at large text sizes it stays with the first line. The same view shows the invalid-range error ("End time must be after start time") in `fm_error` with no icon; `fm_error` is kept for states the user has to fix.
+- **Reminder time lives on the Notifications screen** (FRM-178, Cai 2026-09-24): Settings opens with REMINDERS. The Notifications row in MORE is a value row that shows the current time ("Notifications · 5:00 AM ›"), so the time can still be found from here.
 - **REMINDERS** — "How many reminders per day" and "Don't repeat a contact within" become tappable rows showing their current value with a trailing chevron, opening a bottom-sheet picker. Both are bare `Spinner`s today, which look like unstyled form controls dropped into a settings screen. This also matches the frequency row on Contact Detail, so "a setting with a value" looks the same everywhere.
 - **MESSAGES** (FRM-165, ST-2) — the "Include a pre-filled message" switch, then a value row **"Templates · N ›"** (N = number of non-blank lines). The row opens a full-height editor sheet (`TemplatesEditorSheet`): title, the text field filling the sheet, the helper text *beneath* the field, a right-aligned count ("3 templates"), and a full-width Done. The edit is kept on every dismissal path (Done, handle, scrim, back). The row is disabled (38% alpha) while the switch is off.
 - **The notification preview block moves here from the retired setup hub**, and becomes this screen's one `fm_surface_accent` block. Its dashed border goes — a dashed outline appears nowhere else in the app and reads as a dropzone.
-- **MORE** (FRM-165, ST-2) — the final section: Notifications, then Advanced, as normal rows with a chevron. They used to be pinned below the scroll area; now the whole screen is **one scroll container** (REMINDER TIME, REMINDERS, MESSAGES, MORE), so every row can be reached at 200% text.
+- **MORE** (FRM-165, ST-2) — the final section: Notifications, then Advanced, as normal rows with a chevron. They used to be pinned below the scroll area; now the whole screen is **one scroll container** (REMINDERS, MESSAGES, MORE), so every row can be reached at 200% text.
 - **There is no "Save Settings" button.** See §7.4.
+
+### 7.2a Notifications
+
+- Header: teal, "Notifications", back arrow → Settings. Bottom nav present, slot 3 active.
+- Any status banners first (notifications off, missing contacts), then **REMINDER TIME** (moved from Settings by FRM-178, unchanged):
+  - **REMINDER TIME** — segmented control (Fixed time / Random window) replacing the radio pair, then the time as a tappable row with the value and a chevron.
+  - **Time row** (FRM-166, ST-4) — "Time · 5:00 AM ›" in Fixed mode; in Random window mode the same row reads "Window · 8:00 AM – 12:00 PM ›" and opens the start-hour picker, then the end-hour picker. Reminders per day, Don't repeat within, and Templates use the same value-row shape (DESIGN-SYSTEM Section 6.1).
+  - **Next-reminder status line** (FRM-164, ST-1) — beneath the time: Row Secondary 14sp in `fm_ink_dim`, led by a 16dp clock icon (`ic_schedule_24`, tinted `fm_ink_dim`) with a 4dp gap. The icon is inline, so when the line wraps at large text sizes it stays with the first line. The same view shows the invalid-range error ("End time must be after start time") in `fm_error` with no icon; `fm_error` is kept for states the user has to fix.
+- Every change saves immediately and confirms with a short "Saved" snackbar. The time and the reminders-per-day count are on different screens now, so each screen reschedules from the *stored* values (ReminderTimeController.reschedule).
+- Then the notification preview and "Send a test notification now".
 
 ### 7.3 Advanced
 
