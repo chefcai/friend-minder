@@ -97,6 +97,12 @@ abstract class FmBottomSheet : BottomSheetDialogFragment() {
         sheet.sheetPrimaryHelper.visibility = if (enabled) View.GONE else View.VISIBLE
     }
 
+    /** Hides the primary (and its helper) entirely, e.g. on an empty state with nothing to act on. */
+    protected fun setPrimaryVisible(visible: Boolean) {
+        sheet.sheetPrimaryButton.visibility = if (visible) View.VISIBLE else View.GONE
+        if (!visible) sheet.sheetPrimaryHelper.visibility = View.GONE
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _sheet = null

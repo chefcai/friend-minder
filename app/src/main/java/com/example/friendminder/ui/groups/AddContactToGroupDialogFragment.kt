@@ -13,9 +13,8 @@ import com.example.friendminder.data.models.Contact
 import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.DialogAddContactToGroupBinding
 import com.example.friendminder.databinding.ItemGroupAddMemberCandidateBinding
-import com.example.friendminder.ui.common.applyPhaseThreeSheetChrome
+import com.example.friendminder.ui.common.FmBottomSheet
 import com.example.friendminder.utils.ServiceLocator
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
 /**
@@ -41,7 +40,7 @@ import kotlinx.coroutines.launch
  * of this shared layout) toggles one contact's own groups, where Contact
  * Detail's GROUPS chips already show the same information above it.
  */
-class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
+class AddContactToGroupDialogFragment : FmBottomSheet() {
 
     private var _binding: DialogAddContactToGroupBinding? = null
     private val binding get() = _binding!!
@@ -49,19 +48,21 @@ class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
     private val groupId: String by lazy { requireArguments().getString(ARG_GROUP_ID)!! }
     private val checkboxesByContact = mutableMapOf<Contact, CheckBox>()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = DialogAddContactToGroupBinding.inflate(inflater, container, false)
+    // FRM-174 (DL-2): on the shared FmBottomSheet - title and the single
+    // full-width primary come from the base.
+    override fun sheetTitle(): CharSequence = getString(R.string.action_add_contact_to_group)
+
+    override fun primaryLabel(): CharSequence = getString(R.string.action_save)
+
+    override fun onPrimaryClick() = addSelected()
+
+    override fun onCreateSheetContent(inflater: LayoutInflater, parent: ViewGroup, savedInstanceState: Bundle?): View {
+        _binding = DialogAddContactToGroupBinding.inflate(inflater, parent, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        applyPhaseThreeSheetChrome()
-        binding.addButton.setOnClickListener { addSelected() }
 
         // GH #72: this dialog's layout is shared with
         // EditContactGroupsDialogFragment (which lets a contact be added to a
@@ -81,7 +82,8 @@ class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
             val candidates = allFriends.filterNot { it.id in existingMemberIds }.sortedBy { it.name.lowercase() }
 
             binding.emptyText.visibility = if (candidates.isEmpty()) View.VISIBLE else View.GONE
-            binding.addButton.visibility = if (candidates.isEmpty()) View.GONE else View.VISIBLE
+            setPrimaryVisible(candidates.isNotEmpty())
+            binding.candidateScroll.visibility = if (candidates.isEmpty()) View.GONE else View.VISIBLE
 
             candidates.forEach { contact ->
                 val otherGroups = ServiceLocator.groupService.getGroupsForContact(contact.id)
@@ -129,7 +131,7 @@ class AddContactToGroupDialogFragment : BottomSheetDialogFragment() {
 
     private fun addSelected() {
         val selected = checkboxesByContact.filterValues { it.isChecked }.keys
-        binding.addButton.isEnabled = false
+        sheet.sheetPrimaryButton.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             selected.forEach { contact ->
                 ServiceLocator.groupService.assignContactToGroup(contact.id, groupId)

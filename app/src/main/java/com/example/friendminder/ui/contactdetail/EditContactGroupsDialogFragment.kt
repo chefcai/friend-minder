@@ -11,10 +11,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.friendminder.R
 import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.DialogAddContactToGroupBinding
-import com.example.friendminder.ui.common.applyPhaseThreeSheetChrome
+import com.example.friendminder.ui.common.FmBottomSheet
 import com.example.friendminder.ui.groups.GroupEditDialogFragment
 import com.example.friendminder.utils.ServiceLocator
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
 /**
@@ -28,7 +27,7 @@ import kotlinx.coroutines.launch
  * see [applyPhaseThreeSheetChrome]'s kdoc for why this stays multi-select
  * rather than adopting §8.4's single-value tap-to-dismiss shape.
  */
-class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
+class EditContactGroupsDialogFragment : FmBottomSheet() {
 
     private var _binding: DialogAddContactToGroupBinding? = null
     private val binding get() = _binding!!
@@ -36,20 +35,21 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
     private val contactId: String by lazy { requireArguments().getString(ARG_CONTACT_ID)!! }
     private val checkboxesByGroup = mutableMapOf<ContactGroup, CheckBox>()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = DialogAddContactToGroupBinding.inflate(inflater, container, false)
+    // FRM-174 (DL-2): on the shared FmBottomSheet, with its own title
+    // (the shared layout used to hard-code "Add contact to group" here too).
+    override fun sheetTitle(): CharSequence = getString(R.string.title_contact_groups_sheet)
+
+    override fun primaryLabel(): CharSequence = getString(R.string.action_save)
+
+    override fun onPrimaryClick() = applyChanges()
+
+    override fun onCreateSheetContent(inflater: LayoutInflater, parent: ViewGroup, savedInstanceState: Bundle?): View {
+        _binding = DialogAddContactToGroupBinding.inflate(inflater, parent, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        applyPhaseThreeSheetChrome()
-        binding.addButton.text = getString(R.string.action_save)
-        binding.addButton.setOnClickListener { applyChanges() }
         binding.createGroupButton.setOnClickListener {
             GroupEditDialogFragment.newInstance().show(childFragmentManager, GROUP_EDIT_TAG)
         }
@@ -66,7 +66,8 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
             val currentGroupIds = ServiceLocator.groupService.getGroupsForContact(contactId).map { it.id }.toSet()
 
             binding.emptyText.visibility = if (allGroups.isEmpty()) View.VISIBLE else View.GONE
-            binding.addButton.visibility = if (allGroups.isEmpty()) View.GONE else View.VISIBLE
+            setPrimaryVisible(allGroups.isNotEmpty())
+            binding.candidateScroll.visibility = if (allGroups.isEmpty()) View.GONE else View.VISIBLE
             if (allGroups.isEmpty()) {
                 binding.emptyText.text = getString(R.string.label_no_groups_to_add)
             }
@@ -86,7 +87,7 @@ class EditContactGroupsDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun applyChanges() {
-        binding.addButton.isEnabled = false
+        sheet.sheetPrimaryButton.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             checkboxesByGroup.forEach { (group, checkbox) ->
                 if (checkbox.isChecked) {
