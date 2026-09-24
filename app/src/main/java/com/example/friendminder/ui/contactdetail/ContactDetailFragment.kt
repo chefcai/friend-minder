@@ -18,8 +18,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactMethod
 import com.example.friendminder.data.models.ContactStatistics
 import com.example.friendminder.data.models.SpecialDateSource
+import com.example.friendminder.data.storage.getEffectiveMethod
 import com.example.friendminder.databinding.FragmentContactDetailBinding
 import com.example.friendminder.databinding.ItemSpecialDateBinding
 import com.example.friendminder.domain.services.IntervalSource
@@ -113,6 +115,22 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
         binding.historyToggleButton.setOnClickListener { showHistory() }
         binding.specialDatesToggleButton.setOnClickListener { showSpecialDates() }
         showHistory()
+
+        // FRM-184: persists immediately on tap, same as bindFrequencyRow's
+        // picker - no separate save action. The toggle group's own
+        // singleSelection/selectionRequired already flip isChecked; refresh()
+        // below sets the initial checked button from the stored preference.
+        binding.contactMethodToggleGroup.stackIfLabelsDontFit()
+        binding.contactMethodSmsButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                ServiceLocator.contactMethodRepository.setMethod(contactId, ContactMethod.SMS)
+            }
+        }
+        binding.contactMethodCallButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                ServiceLocator.contactMethodRepository.setMethod(contactId, ContactMethod.CALL)
+            }
+        }
 
         binding.addGroupButton.setOnClickListener {
             EditContactGroupsDialogFragment.newInstance(contactId).show(childFragmentManager, "edit_groups")
@@ -314,6 +332,15 @@ class ContactDetailFragment : Fragment(), BottomNavPolicy {
             )
 
             bindStats(contact)
+
+            // FRM-184: the effective (defaulted) method, not getMethod's raw
+            // nullable - a never-set contact should show SMS selected, not
+            // neither button, matching getEffectiveMethod's whole purpose
+            // (ContactMethodRepository.kt's doc).
+            when (ServiceLocator.contactMethodRepository.getEffectiveMethod(contact.id)) {
+                ContactMethod.SMS -> binding.contactMethodSmsButton.isChecked = true
+                ContactMethod.CALL -> binding.contactMethodCallButton.isChecked = true
+            }
 
             // §6.2a: the row shows the *effective* interval GroupService
             // resolves, not necessarily this contact's own stored override

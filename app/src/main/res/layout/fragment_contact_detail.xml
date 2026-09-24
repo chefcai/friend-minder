@@ -282,6 +282,62 @@
                 android:layout_marginTop="@dimen/fm_space_2"
                 android:background="?attr/colorOutlineVariant" />
 
+            <!-- FRM-184: preferred SMS/Call method, reusing the CD-4 segmented-
+                 control fix (Widget.FM.SegmentedButton: fm_primary fill on the
+                 selected segment, 4.67:1 against fm_surface - see
+                 color/fm_segment_background.xml) that tabToggleGroup below
+                 already uses. Each button's own icon slot carries the SMS/Call
+                 glyph (not the check mark tabToggleGroup uses it for) so the
+                 fill-contrast alone - already the real CD-4 fix, the check
+                 mark there was reinforcement - carries the selected state;
+                 the icon tint tracks fm_segment_label so it stays visible in
+                 both states. stackIfLabelsDontFit() (ContactDetailFragment)
+                 covers the HM-3/CD-8 large-text-size case the same way it
+                 already does for tabToggleGroup. -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_3"
+                android:text="@string/label_contact_method_header"
+                android:textAppearance="@style/TextAppearance.FM.SectionLabel" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/contactMethodToggleGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fm_space_1"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/contactMethodSmsButton"
+                    style="@style/Widget.FM.SegmentedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_contact_method_sms"
+                    app:icon="@drawable/ic_sms_24"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/fm_segment_label" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/contactMethodCallButton"
+                    style="@style/Widget.FM.SegmentedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_contact_method_call"
+                    app:icon="@drawable/ic_call_24"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/fm_segment_label" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="@dimen/fm_space_2"
+                android:background="?attr/colorOutlineVariant" />
+
             <!-- GH #121/SCREENS-PHASE3.md §6.2a: "CHECK-IN FREQUENCY section
                  label, then a single tappable row: the effective interval
                  and where it came from, with a trailing chevron." The row
