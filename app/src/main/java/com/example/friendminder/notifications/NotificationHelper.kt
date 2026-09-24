@@ -15,7 +15,10 @@ import androidx.core.content.ContextCompat
 import com.example.friendminder.MainActivity
 import com.example.friendminder.R
 import com.example.friendminder.data.models.Contact
+import com.example.friendminder.data.models.ContactMethod
 import com.example.friendminder.data.models.SpecialDate
+import com.example.friendminder.data.storage.getEffectiveMethod
+import com.example.friendminder.utils.ServiceLocator
 
 private const val CHANNEL_ID = "daily_reminders"
 private const val TEST_CHANNEL_ID = "test_notifications"
@@ -108,7 +111,29 @@ object NotificationHelper {
         NotificationManagerCompat.from(context).notify(TEST_NOTIFICATION_ID, notification)
     }
 
-    fun postReminder(context: Context, contact: Contact, messageTemplate: String) {
+    /**
+     * FRM-186: resolves [contact]'s stored SMS/Call preference (FRM-183) to the Intent that
+     * should fire when the notification - its content tap and its action button share one
+     * PendingIntent, see [postReminder]/[postSpecialDateReminder] - is invoked, plus the label
+     * for the action button. [message] is only used for the SMS branch.
+     */
+    private suspend fun actionIntentAndLabel(
+        context: Context,
+        contact: Contact,
+        displayName: String,
+        message: String,
+        notificationId: Int
+    ): Pair<Intent, String> =
+        when (ServiceLocator.contactMethodRepository.getEffectiveMethod(contact.id)) {
+            ContactMethod.CALL ->
+                CallLaunchActivity.intentFor(context, contact.phoneNumber, contact.id, notificationId) to
+                    context.getString(R.string.format_notif_action_call, displayName)
+            ContactMethod.SMS ->
+                SmsLaunchActivity.intentFor(context, contact.phoneNumber, message, contact.id, notificationId) to
+                    context.getString(R.string.format_notif_action_text, displayName)
+        }
+
+    suspend fun postReminder(context: Context, contact: Contact, messageTemplate: String) {
         // postReminder runs off SuggestionWorker (a background WorkManager job) with no UI to
         // prompt from - the in-app request/rationale flow lives in SettingsFragment. If the
         // user hasn't granted POST_NOTIFICATIONS (or revoked it since), just skip this
@@ -127,15 +152,16 @@ object NotificationHelper {
         val displayName = contact.name.trim().ifBlank { contact.name }
         val notificationId = contact.id.hashCode()
 
-        // Passing our own notificationId through lets SmsLaunchActivity explicitly cancel this
-        // notification itself rather than relying solely on setAutoCancel() below, which is
-        // unreliable for action-button PendingIntents that launch an activity into a new task
-        // (chefcai/friend-minder#35).
-        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, messageTemplate, contact.id, notificationId)
+        // Passing our own notificationId through lets SmsLaunchActivity/CallLaunchActivity
+        // explicitly cancel this notification itself rather than relying solely on
+        // setAutoCancel() below, which is unreliable for action-button PendingIntents that
+        // launch an activity into a new task (chefcai/friend-minder#35).
+        val (actionIntent, actionLabel) =
+            actionIntentAndLabel(context, contact, displayName, messageTemplate, notificationId)
         val pendingIntent = PendingIntent.getActivity(
             context,
             contact.id.hashCode(),
-            smsIntent,
+            actionIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -146,7 +172,7 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(0, context.getString(R.string.format_notif_action_text, displayName), pendingIntent)
+            .addAction(0, actionLabel, pendingIntent)
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
@@ -157,7 +183,7 @@ object NotificationHelper {
      * pre-filled with a festive template for birthdays and a generic one for
      * custom dates (anniversaries, etc.).
      */
-    fun postSpecialDateReminder(context: Context, contact: Contact, specialDate: SpecialDate) {
+    suspend fun postSpecialDateReminder(context: Context, contact: Contact, specialDate: SpecialDate) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
         ) {
@@ -183,11 +209,12 @@ object NotificationHelper {
             context.getString(R.string.format_special_date_body, specialDate.label)
         }
 
-        val smsIntent = SmsLaunchActivity.intentFor(context, contact.phoneNumber, message, contact.id, notificationId)
+        val (actionIntent, actionLabel) =
+            actionIntentAndLabel(context, contact, displayName, message, notificationId)
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
-            smsIntent,
+            actionIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -198,7 +225,7 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(0, context.getString(R.string.format_notif_action_text, displayName), pendingIntent)
+            .addAction(0, actionLabel, pendingIntent)
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)

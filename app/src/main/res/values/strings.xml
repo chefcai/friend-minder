@@ -127,7 +127,11 @@
     <string name="notif_test_title">[Test] Friend-Minder</string>
     <string name="notif_test_body">This is a test notification. No contact was suggested and nothing was logged.</string>
     <string name="format_notif_action_text">Text %1$s</string>
+    <!-- FRM-186: shown instead of format_notif_action_text when the contact's stored
+         preference (FRM-183) is Call - CallLaunchActivity opens the dialer, it never dials. -->
+    <string name="format_notif_action_call">Call %1$s</string>
     <string name="toast_no_sms_app">No SMS app available.</string>
+    <string name="toast_no_dialer_app">No dialer app available.</string>
     <string name="toast_sms_sent">Message sent</string>
     <!-- FRM-130: Settings' transient auto-save confirmation pill, not a
          Toast (see SettingsFragment.showSavedPill). -->
