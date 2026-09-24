@@ -47,38 +47,24 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * FRM-175 / GR-1: remaps every stored `contact_groups.color` from the
-         * retired 8-colour group palette onto the shared 8-colour identity
-         * palette (ui-ux-audit-findings.md, "Group migration, Room v2->v3").
-         * Values are signed ARGB Ints, exactly as [ContactGroupEntity.color]
-         * stores them. Unknown values are left unchanged (the UI maps them to
-         * the nearest identity colour at render time).
-         *
-         * A single in-place `UPDATE ... CASE` - never a delete/re-insert -
+         * FRM-180 / GR-1 (Cai, 2026-09-24, on FRM-177): every stored group
+         * colour becomes Pine #2C6E49 (fm_identity_1, the first swatch and the
+         * New-group default); users re-pick from the identity palette. This
+         * replaces FRM-175's nearest-colour remap, which collapsed the 8 old
+         * colours onto only 4 fills. Signed ARGB Int, as
+         * [ContactGroupEntity.color] stores it.
+         */
+        const val MIGRATED_GROUP_COLOR: Int = -13865399
+
+        /**
+         * A single in-place `UPDATE` over every row - never a delete/re-insert -
          * so the `ON DELETE CASCADE` membership rows are untouched
          * (PHASE-3-LESSONS: `INSERT OR REPLACE` wipes group memberships).
+         * Devices that already ran the FRM-175 remap are not re-migrated.
          */
-        val GROUP_COLOR_REMAP_2_3: Map<Int, Int> = mapOf(
-            -15498893 to -13865399, // Teal      #138173 -> Pine    #2C6E49
-            -15424581 to -16028014, // Cyan      #14A3BB -> Cyan    #0B6E92
-            -8141835 to -6501396, //   Sky       #83C3F5 -> Sky     #9CCBEC
-            -15505049 to -13865399, // Deep Teal #136967 -> Pine    #2C6E49
-            -12805985 to -7417660, //  Slate     #3C989F -> Seafoam #8ED0C4
-            -14196108 to -16028014, // Ink Blue  #276274 -> Cyan    #0B6E92
-            -3350295 to -6501396, //   Mist      #CCE0E9 -> Sky     #9CCBEC
-            -15390165 to -16028014 //  Midnight  #152A2B -> Cyan    #0B6E92
-        )
-
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                val cases = GROUP_COLOR_REMAP_2_3.entries.joinToString(" ") { (old, new) ->
-                    "WHEN $old THEN $new"
-                }
-                val keys = GROUP_COLOR_REMAP_2_3.keys.joinToString(",")
-                db.execSQL(
-                    "UPDATE contact_groups SET color = CASE color $cases ELSE color END " +
-                        "WHERE color IN ($keys)"
-                )
+                db.execSQL("UPDATE contact_groups SET color = $MIGRATED_GROUP_COLOR")
             }
         }
 
