@@ -93,7 +93,12 @@
         <item name="android:focusable">true</item>
     </style>
 
-    <style name="Widget.FM.ValueRow.Value">
+    <!-- FRM-163: parent="" on the two child styles. The dotted names made them
+         inherit Widget.FM.ValueRow implicitly, so the value text and chevron
+         were themselves clickable/focusable (with a 64dp minHeight) and
+         swallowed taps meant for the row: at 200% text the value covers the
+         row's centre and Group Detail's cadence row stopped opening. -->
+    <style name="Widget.FM.ValueRow.Value" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">@dimen/fm_space_4</item>
@@ -106,7 +111,7 @@
         <item name="android:textColor">@color/fm_ink_dim</item>
     </style>
 
-    <style name="Widget.FM.ValueRow.Chevron">
+    <style name="Widget.FM.ValueRow.Chevron" parent="">
         <item name="android:layout_width">24dp</item>
         <item name="android:layout_height">24dp</item>
         <item name="android:src">@drawable/ic_chevron_right</item>

@@ -17,7 +17,8 @@ private const val GAP_FRACTION = 0.12f
 private const val MAX_BAR_HEIGHT_FRACTION = 0.92f
 private const val CORNER_RADIUS_DP = 4f
 private const val AXIS_LABEL_AREA_HEIGHT_DP = 18f
-private const val AXIS_LABEL_BASELINE_INSET_DP = 4f
+private const val AXIS_LABEL_PAD_DP = 2f
+private const val AXIS_LABEL_SIDE_PAD_DP = 2f
 // Caption (DESIGN-SYSTEM-PHASE3.md §3): 13sp/18sp/400.
 private const val AXIS_LABEL_TEXT_SIZE_SP = 13f
 private const val BASELINE_STROKE_WIDTH_DP = 1f
@@ -87,6 +88,11 @@ class BarChartView @JvmOverloads constructor(
     private val baselinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.fm_divider)
     }
+    private val baseLabelTextSize = axisLabelPaint.textSize
+    private var labelLines: List<List<String>> = emptyList()
+    private var labelAreaHeight = 0f
+    private var labelLineHeight = 0f
+    private var labelAscent = 0f
     private val barRects = mutableListOf<RectF>()
     private val density = resources.displayMetrics.density
     private val cornerRadius = density * CORNER_RADIUS_DP
@@ -110,7 +116,42 @@ class BarChartView @JvmOverloads constructor(
         values = newValues
         labels = newLabels
         contentDescription = buildContentDescription(newValues, newLabels)
+        layoutLabels()
         invalidate()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        layoutLabels()
+    }
+
+    /**
+     * FRM-163 (X6): the labels are sized in sp but each one only has its bar
+     * slot to live in, and the strip under the bars used to be a fixed 18dp.
+     * At 200% text the four labels overran each other. Wrap to two lines
+     * first, shrink only if a single word still overflows, and size the strip
+     * from the real text height.
+     */
+    private fun layoutLabels() {
+        axisLabelPaint.textSize = baseLabelTextSize
+        if (labels.isEmpty() || width == 0) {
+            labelLines = emptyList()
+            labelAreaHeight = 0f
+            return
+        }
+        val gap = width * GAP_FRACTION / labels.size
+        val usable = (width - gap) / labels.size - 2 * density * AXIS_LABEL_SIDE_PAD_DP
+        labelLines = labels.map { wrapAxisLabel(it, usable, axisLabelPaint::measureText) }
+        val widest = labelLines.flatten().maxOf { axisLabelPaint.measureText(it) }
+        if (widest > usable) axisLabelPaint.textSize = baseLabelTextSize * usable / widest
+        val metrics = axisLabelPaint.fontMetrics
+        labelLineHeight = metrics.descent - metrics.ascent
+        labelAscent = metrics.ascent
+        val lineCount = labelLines.maxOf { it.size }
+        labelAreaHeight = maxOf(
+            density * AXIS_LABEL_AREA_HEIGHT_DP,
+            lineCount * labelLineHeight + 2 * density * AXIS_LABEL_PAD_DP
+        )
     }
 
     private fun buildContentDescription(values: List<Int>, labels: List<String>): String {
@@ -127,9 +168,8 @@ class BarChartView @JvmOverloads constructor(
         barRects.clear()
         if (values.isEmpty() || width == 0 || height == 0) return
 
-        val labelAreaHeight = if (labels.isNotEmpty()) density * AXIS_LABEL_AREA_HEIGHT_DP else 0f
         val chartHeight = height - labelAreaHeight
-        val labelBaselineY = height - density * AXIS_LABEL_BASELINE_INSET_DP
+        val firstBaselineY = chartHeight + density * AXIS_LABEL_PAD_DP - labelAscent
 
         val maxValue = (values.maxOrNull() ?: 0).coerceAtLeast(1)
         val barCount = values.size
@@ -154,8 +194,8 @@ class BarChartView @JvmOverloads constructor(
             }
             canvas.drawPath(path, barPaint)
 
-            if (index < labels.size) {
-                canvas.drawText(labels[index], left + barWidth / 2f, labelBaselineY, axisLabelPaint)
+            labelLines.getOrNull(index)?.forEachIndexed { line, text ->
+                canvas.drawText(text, left + barWidth / 2f, firstBaselineY + line * labelLineHeight, axisLabelPaint)
             }
         }
     }
@@ -197,4 +237,20 @@ class BarChartView @JvmOverloads constructor(
         }
         return true
     }
+}
+
+/**
+ * FRM-163 (X6): fits one axis label into its bar slot. A label that is wider
+ * than [maxWidth] (e.g. "3 wks ago" at 200% text) is split at the space that
+ * makes the wider of the two lines narrowest, so large-text users keep the
+ * full text size. A single word that still does not fit is returned as-is;
+ * the caller scales the paint down as the last resort.
+ */
+internal fun wrapAxisLabel(label: String, maxWidth: Float, measure: (String) -> Float): List<String> {
+    if (measure(label) <= maxWidth) return listOf(label)
+    val words = label.split(' ').filter { it.isNotEmpty() }
+    if (words.size < 2) return listOf(label)
+    return (1 until words.size)
+        .map { i -> listOf(words.take(i).joinToString(" "), words.drop(i).joinToString(" ")) }
+        .minBy { lines -> lines.maxOf(measure) }
 }
