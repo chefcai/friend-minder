@@ -1,0 +1,12 @@
+Phase 3.1: safer deletions, truthful numbers, one color palette, and an app-wide consistency pass
+
+- Contact Detail is now one single scroll, and "Stop tracking" moved from a floating button to the header's overflow menu - no more accidental taps while scrolling through someone's history.
+- Overall History's key figure now counts the actual people you've reached, not your total outreach count, and the next-reminder line no longer looks like an error.
+- Settings is one scroll now: Advanced and Notifications sit together at the end, message templates get their own screen, and reminder time shows as a plain value row like everything else.
+- Group Detail: remove a member with long-press selection and Undo (no more per-row X), and member rows now match the rest of the app.
+- Avatars and group colors now share one 8-color palette - existing groups will show a single color after this update (your members and history aren't affected); just re-pick a color per group if you'd like them distinct again.
+- "Add special date" and the group-color picker now use the app's own bottom sheet instead of a plain system dialog, with colors laid out in a clearer grid.
+- The app holds up better at larger text sizes, and the bottom nav's press ripple, active-tab tap, and sub-screen highlighting all got fixed.
+- The bottom nav is now hidden on Contact Detail and both add-contact steps, matching how those flows are meant to feel.
+
+This update includes a one-time database migration for group colors - no action needed on your part.
