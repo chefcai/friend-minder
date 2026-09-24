@@ -14,7 +14,7 @@ Phase 2's palette was not wrong in its *values* — `fm_primary #1F817D`, `fm_se
 
 1. **The app used the website's *panel* color as its *page* color.** `fm_surface` was `#E6F5FB` — the site's `--bg-panel-alt`, a tone the site reserves for raised blocks. With the whole page already tinted, there was no lighter tone left to separate content from background, so Phase 2 reached for elevated `CardView`s to create separation it had spent its only surface on. **Phase 3 sets the page to white and keeps the tints for the two or three places that genuinely need to sit above it.** Once the ground is white, the cards have nothing left to do, and the "no card-boxing" directive costs nothing to honour.
 2. **All body text was tinted teal.** `colorOnSurface` was `fm_ink #195556`. On the site, `#195556` is `--on-primary-container` — a *heading* color. Body text there is `--text #1B2E30`, a near-neutral. Tinting every word teal is most of why the built screens read as washed out. Phase 3 splits the ink into heading / body / secondary.
-3. **Every categorical palette was compressed into one hue band.** The 10 avatar-fallback colors sat inside ~166–212°, giving a minimum pairwise ΔE of **4.8** — below the threshold at which two colors are separable at a glance, which is the *only* job a fallback avatar color has. The four status colors were all dark teals, so contact health was invisible. Phase 3 widens both (see §2.5, §2.6); the avatar palette's minimum pairwise ΔE is now **21.2**.
+3. **Every categorical palette was compressed into one hue band.** The 10 avatar-fallback colors sat inside ~166–212°, giving a minimum pairwise ΔE of **4.8** — below the threshold at which two colors are separable at a glance, which is the *only* job a fallback avatar color has. The four status colors were all dark teals, so contact health was invisible. Phase 3 widens both (see §2.5, §2.6); the identity palette's minimum pairwise ΔE76 is now **26.0**.
 
 One more, from the on-device capture: `Theme.FriendMinder` sets `colorSurface` but nothing sets `android:windowBackground`, so every screen currently renders on the stock Material `#FEF7FF` rather than on a brand tone at all. §2.2 fixes this explicitly.
 
@@ -96,40 +96,36 @@ Three things this gets right that the earlier four-tone and three-tone versions 
 
 `contentDescription` carries what the shape cannot: "{n} day streak" for the filled state, "No streak, last contact {last-touch string}" for the open one.
 
-### 2.6 Avatar fallback palette — **redefined** (resolves FRM-108 / PRD open question #1)
+### 2.6 Identity palette — **one palette for people and groups** (FRM-176, GR-1)
 
-**Decision: redefined, not carried over.** Cai signed off on widening the band on 2026-09-20.
+**Decision: one 8-colour palette.** Avatars, group circles, group chip dots and the New/Edit group swatches all draw from the same eight fills. Phase 3.0 shipped two palettes (10 avatar fills, 8 group fills) that overlapped in hue without matching exactly, so a group and a person could be almost, but not quite, the same colour. Phase 3.1 collapses them.
 
-Phase 2's 10 colours sat in a ~166–212° band with a minimum pairwise ΔE of **4.8**. On the real *Edit Friends* screen (screenshot `02-manage-friends.png` in the handoff folder) eight of the ten read as the same blue-green. A fallback avatar colour exists to make a specific person findable in a scrolling list; at ΔE 4.8 it was decorative only.
-
-Phase 3 keeps teal/cyan as the centre of gravity — six of ten are still cool — but admits warm and neutral tones. The hero mockup itself shows a warm red initials avatar, so this is a return to the reference, not a departure from it.
-
-| Index | Name | Fill | Initials | Contrast |
+| Index | Name | Fill | Ink | Contrast |
 |---|---|---|---|---|
 | 1 | Pine | `#2C6E49` | `#FFFFFF` | 6.12:1 |
 | 2 | Cyan | `#0B6E92` | `#FFFFFF` | 5.74:1 |
 | 3 | Sky | `#9CCBEC` | `#10323F` | 7.85:1 |
 | 4 | Indigo | `#3D55A4` | `#FFFFFF` | 6.92:1 |
-| 5 | Slate | `#62707C` | `#FFFFFF` | 5.09:1 |
-| 6 | Seafoam | `#8ED0C4` | `#0F3B34` | 7.06:1 |
-| 7 | Sand | `#DCC084` | `#3A2F14` | 7.46:1 |
-| 8 | Clay | `#B85535` | `#FFFFFF` | 4.78:1 |
-| 9 | Plum | `#80458A` | `#FFFFFF` | 6.70:1 |
-| 10 | Rose | `#E8B3BC` | `#4A2028` | 7.59:1 |
+| 5 | Seafoam | `#8ED0C4` | `#0F3B34` | 7.06:1 |
+| 6 | Sand | `#DCC084` | `#3A2F14` | 7.46:1 |
+| 7 | Plum | `#80458A` | `#FFFFFF` | 6.70:1 |
+| 8 | Rose | `#E8B3BC` | `#4A2028` | 7.59:1 |
 
-- Assignment is unchanged: `abs(contactId.hashCode()) % 10`, deterministic across sessions.
-- **Minimum pairwise ΔE = 21.2** (closest pair: Cyan/Slate). Phase 2's was 4.8.
-- **Index 1 changed 2026-09-21**, a consequence of the §2.5 revision. It was `Deep Teal #0F6F6A`, which sits ΔE 7.0 from the brand teal the streak badge now uses — the same row would have carried two near-identical teals at either end. `Pine #2C6E49` restores that gap to 21.7 and leaves the rest of the set untouched. Green is free for an avatar now precisely because status no longer uses it.
+- Tokens: `fm_identity_1…8` (fill) and `fm_identity_ink_1…8` (paired ink). `IdentityPalette.kt` is the single place that holds the order and the pairing; `AvatarPalette.kt` delegates to it.
+- **Minimum pairwise ΔE76 = 26.0** (closest pair: Sky/Seafoam), up from 21.2 for the 10-colour avatar set. `IdentityPaletteTest` enforces it.
+- **Dropped from the Phase 3.0 avatar set:** Slate (the closest pair, 21.2 from Cyan) and Clay (19.4 from `fm_error`, so a Clay avatar read as an error state).
+- Avatar assignment: `abs(contactId.hashCode()) % 8`, deterministic across sessions. Contacts without a photo may change fill once, on upgrade.
+- Group colours are stored as ARGB. The v2→v3 migration (`GROUP_COLOR_REMAP_2_3`) maps each old group colour to its nearest identity fill by ΔE76; the UI applies the same nearest-match rule to any stored value that is not already an identity fill, so a group can never render off-palette.
+- Pine is ΔE 21.7 from the brand teal (`fm_primary`), so a streak badge and a Pine avatar on the same row stay distinct.
 
-**The rule this settles: warmth identifies people, cool communicates state.** Warm tones (Sand, Clay, Rose, Plum) appear only as avatars; the cool band belongs to status and chrome. That division is easier to hold to than the per-value ΔE checks, and it is why the warm avatars survive a cool-only status directive without conflict.
-- Each fill is paired with a **fixed** initials colour in the table — `AvatarPalette.kt` stays the single place that holds the pairing. Five pairs use white, five use a dark ink; do not compute this at runtime and do not assume white.
-- Four of the ten (Sky, Seafoam, Sand, Rose) are light fills measuring 1.7–1.8:1 against white. That is intentional — the initials carry the contrast, not the circle. A light avatar therefore needs an edge: see §4.3.
+**The rule this settles: warmth identifies, cool communicates state.** Sand, Plum and Rose appear only as identity fills; the cool band belongs to status and chrome.
 
-### 2.7 Group identity palette
+- Each fill has a **fixed** ink. Four use white, four a dark ink; do not compute this at runtime.
+- Four fills (Sky, Seafoam, Sand, Rose) are light, 1.7–1.8:1 against white. The ink carries the contrast, not the circle, so a light fill takes a **1dp `fm_divider` hairline** wherever it sits on white: avatars, group circles, and swatches (§4.3).
 
-Carried forward from Phase 2 (`fm_group_color_1…8`) **unchanged**. Group colours are user-chosen, appear as chips rather than as circles next to avatars, and were not part of the confusability problem. Keeping them stable avoids silently recolouring groups users already created.
+### 2.7 Group swatch grid
 
-One bug to fix while touching this, found on device: in the New Group dialog the eighth swatch ("Midnight") is clipped to 44px of its 126px width — eight 48dp swatches plus gaps overflow a 360dp-wide row. See SCREENS §Dialogs.
+The New/Edit group sheet shows the eight identity fills as a 2×4 grid of 58dp cells, the selected one ringed 2dp `fm_ink` with a 3dp gap. The eight-across row that clipped the last swatch at 360dp is gone (FRM-174).
 
 ### 2.8 Lines and borders
 

@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.friendminder.R
+import com.example.friendminder.ui.common.IdentityPalette
 import com.example.friendminder.data.models.ContactGroup
 import com.example.friendminder.databinding.ItemGroupBinding
 
@@ -34,27 +35,24 @@ class GroupAdapter(
             binding.groupMemberCount.text = binding.root.resources.getQuantityString(
                 R.plurals.format_group_member_count, row.memberCount, row.memberCount
             )
+            // FRM-176 (GR-1): stored colours are shown as their nearest identity
+            // colour (the v2->v3 migration already remapped the old palette;
+            // this covers any other value), and the four light fills get the
+            // same 1dp fm_divider hairline as light avatars.
+            val context = binding.root.context
+            val identityIndex = IdentityPalette.nearestIndex(row.group.color)
             binding.groupColorDot.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(row.group.color)
-                // FRM-117: "fm_group_color_7 (Mist) is pale enough to need
-                // the same hairline the light avatars get" - mirrors
-                // AvatarBinder's isLightFill() stroke treatment, but group
-                // colors are a raw stored Int rather than a palette index,
-                // so this compares directly against the one color Designer
-                // called out rather than reusing AvatarPalette's lookup.
-                if (row.group.color == mistColor(binding.root.context)) {
-                    val hairlineWidthPx = (binding.root.context.resources.displayMetrics.density).toInt()
-                        .coerceAtLeast(1)
-                    setStroke(hairlineWidthPx, ContextCompat.getColor(binding.root.context, R.color.fm_divider))
+                setColor(IdentityPalette.color(context, identityIndex))
+                if (IdentityPalette.isLightFill(identityIndex)) {
+                    val hairlineWidthPx = context.resources.displayMetrics.density.toInt().coerceAtLeast(1)
+                    setStroke(hairlineWidthPx, ContextCompat.getColor(context, R.color.fm_divider))
                 }
             }
             binding.root.setOnClickListener { onClick(row.group) }
             binding.root.setOnLongClickListener { onLongClick(row.group); true }
         }
 
-        private fun mistColor(context: android.content.Context): Int =
-            ContextCompat.getColor(context, R.color.fm_group_color_7)
     }
 
     companion object {

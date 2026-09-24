@@ -99,59 +99,29 @@
     <color name="fm_status_neglected">#105750</color>
     <color name="fm_status_new">#3B626D</color>
 
-    <!-- Avatar fallback palette (DESIGN-SYSTEM-PHASE3.md §2.6, resolves
-         FRM-108) - redefined, not carried over. abs(contactId.hashCode())
-         % 10 picks the index; AvatarPalette.kt pairs each fill with the
-         fixed initials-text color below (fm_avatar_text_1..10) - some
-         white, some a bespoke dark ink tuned per-fill (this phase needs
-         four distinct darks, not one shared "ink", since each light fill
-         clears 4.5:1 against a different dark value - see the Initials
-         column of §2.6's table). Minimum pairwise ΔE 21.2 (was 4.8);
-         index 1 (Pine) is the one value that isn't a straight port of an
-         earlier revision - see AvatarPalette.kt's kdoc. -->
-    <color name="fm_avatar_1">#2C6E49</color> <!-- Pine -->
-    <color name="fm_avatar_2">#0B6E92</color> <!-- Cyan -->
-    <color name="fm_avatar_3">#9CCBEC</color> <!-- Sky -->
-    <color name="fm_avatar_4">#3D55A4</color> <!-- Indigo -->
-    <color name="fm_avatar_5">#62707C</color> <!-- Slate -->
-    <color name="fm_avatar_6">#8ED0C4</color> <!-- Seafoam -->
-    <color name="fm_avatar_7">#DCC084</color> <!-- Sand -->
-    <color name="fm_avatar_8">#B85535</color> <!-- Clay -->
-    <color name="fm_avatar_9">#80458A</color> <!-- Plum -->
-    <color name="fm_avatar_10">#E8B3BC</color> <!-- Rose -->
-
-    <!-- Per-index initials-text colors, in the same order as fm_avatar_1..10
-         above. See AvatarPalette.kt - this is the "Initials" column of
-         DESIGN-SYSTEM-PHASE3.md §2.6's table, not a runtime computation. -->
-    <color name="fm_avatar_text_1">#FFFFFF</color>
-    <color name="fm_avatar_text_2">#FFFFFF</color>
-    <color name="fm_avatar_text_3">#10323F</color>
-    <color name="fm_avatar_text_4">#FFFFFF</color>
-    <color name="fm_avatar_text_5">#FFFFFF</color>
-    <color name="fm_avatar_text_6">#0F3B34</color>
-    <color name="fm_avatar_text_7">#3A2F14</color>
-    <color name="fm_avatar_text_8">#FFFFFF</color>
-    <color name="fm_avatar_text_9">#FFFFFF</color>
-    <color name="fm_avatar_text_10">#4A2028</color>
-
-    <!-- Phase 2 holdovers - AvatarPalette.kt no longer references these
-         (see fm_avatar_text_1..10 above), kept only in case anything else
-         does. -->
-    <color name="fm_avatar_initials_white">#FFFFFF</color>
-    <color name="fm_avatar_initials_ink">#132D30</color>
-
-    <!-- Group identity palette (DESIGN-SYSTEM-PHASE3.md §2.7): carried
-         forward from Phase 2 UNCHANGED - user-chosen group colors weren't
-         part of the confusability problem, and recoloring them would
-         silently change groups users already created. -->
-    <color name="fm_group_color_1">#138173</color>
-    <color name="fm_group_color_2">#14A3BB</color>
-    <color name="fm_group_color_3">#83C3F5</color>
-    <color name="fm_group_color_4">#136967</color>
-    <color name="fm_group_color_5">#3C989F</color>
-    <color name="fm_group_color_6">#276274</color>
-    <color name="fm_group_color_7">#CCE0E9</color>
-    <color name="fm_group_color_8">#152A2B</color>
+    <!-- FRM-176 (GR-1): the one 8-colour identity palette (DESIGN-SYSTEM
+         Section 2.6) shared by avatars, group circles, chip dots and group
+         swatches. Supersedes the Phase 3 avatar and group palettes. Minimum
+         pairwise dE76 26.0 (Sky / Seafoam); Pine is 21.7 from fm_primary.
+         Slate (closest to Cyan) and Clay (19.4 from fm_error) are dropped.
+         Each fill has one fixed initials ink, all >= 5.74:1. The order here
+         is the order of IdentityPalette, AvatarPalette and the swatch grid. -->
+    <color name="fm_identity_1">#2C6E49</color> <!-- Pine -->
+    <color name="fm_identity_2">#0B6E92</color> <!-- Cyan -->
+    <color name="fm_identity_3">#9CCBEC</color> <!-- Sky (light) -->
+    <color name="fm_identity_4">#3D55A4</color> <!-- Indigo -->
+    <color name="fm_identity_5">#8ED0C4</color> <!-- Seafoam (light) -->
+    <color name="fm_identity_6">#DCC084</color> <!-- Sand (light) -->
+    <color name="fm_identity_7">#80458A</color> <!-- Plum -->
+    <color name="fm_identity_8">#E8B3BC</color> <!-- Rose (light) -->
+    <color name="fm_identity_ink_1">#FFFFFF</color> <!-- 6.12:1 -->
+    <color name="fm_identity_ink_2">#FFFFFF</color> <!-- 5.74:1 -->
+    <color name="fm_identity_ink_3">#10323F</color> <!-- 7.85:1 -->
+    <color name="fm_identity_ink_4">#FFFFFF</color> <!-- 6.92:1 -->
+    <color name="fm_identity_ink_5">#0F3B34</color> <!-- 7.06:1 -->
+    <color name="fm_identity_ink_6">#3A2F14</color> <!-- 7.46:1 -->
+    <color name="fm_identity_ink_7">#FFFFFF</color> <!-- 6.70:1 -->
+    <color name="fm_identity_ink_8">#4A2028</color> <!-- 7.59:1 -->
     <!-- FRM-172 (DL-1): sheet scrim, fm_ink #1B2E30 at 40%. -->
     <color name="fm_scrim">#661B2E30</color>
 </resources>

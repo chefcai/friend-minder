@@ -23,11 +23,11 @@ class AvatarPaletteTest {
     }
 
     @Test
-    fun `indexFor stays within the 10-color palette range`() {
+    fun `indexFor stays within the 8-colour identity palette range`() {
         val ids = listOf("1", "42", "abc-def-ghi", "", "🎉", "a".repeat(500))
         ids.forEach { id ->
             val index = AvatarPalette.indexFor(id)
-            assertTrue("index $index for id '$id' out of range", index in 0..9)
+            assertTrue("index $index for id '$id' out of range", index in 0..7)
         }
     }
 
@@ -36,7 +36,7 @@ class AvatarPaletteTest {
         val ids = (0 until 200).map { "contact-$it" }
         val distinctIndices = ids.map(AvatarPalette::indexFor).toSet()
         // Not a strict uniform-distribution assertion, just a sanity check
-        // that hashCode() % 10 isn't collapsing everything onto one index.
+        // that hashCode() % 8 isn't collapsing everything onto one index.
         assertTrue("expected more than one distinct index across 200 ids", distinctIndices.size > 1)
     }
 }
